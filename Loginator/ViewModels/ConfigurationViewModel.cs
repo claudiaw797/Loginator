@@ -4,7 +4,7 @@ using Backend.Manager;
 using Backend.Model;
 using Common;
 using Common.Configuration;
-using GalaSoft.MvvmLight.Command;
+using CommunityToolkit.Mvvm.Input;
 using Loginator.Properties;
 using System;
 using System.Collections.Generic;

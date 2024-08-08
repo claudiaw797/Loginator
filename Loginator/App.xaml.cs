@@ -1,7 +1,7 @@
 ﻿using Common.Configuration;
 using Common.Exceptions;
-using GalaSoft.MvvmLight.Threading;
 using Loginator.Bootstrapper;
+using Loginator.Controls;
 using NLog;
 using System;
 using System.Collections.Generic;

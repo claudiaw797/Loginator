@@ -10,7 +10,7 @@ namespace LogApplication.ViewModels {
     using System.Runtime.CompilerServices;
     using System.Windows.Input;
     using System.Windows.Threading;
-    using GalaSoft.MvvmLight.Threading;
+    using CommunityToolkit.Mvvm.Input;
     using Backend;
     using Backend.Events;
     using System.Threading;
@@ -18,7 +18,6 @@ namespace LogApplication.ViewModels {
     using Common;
     using Loginator;
     using Backend.Manager;
-    using GalaSoft.MvvmLight.Command;
     using Common.Configuration;
     using Backend.Dao;
     using System.Diagnostics;
@@ -26,6 +25,7 @@ namespace LogApplication.ViewModels {
     using AutoMapper;
     using LogApplication.Collections;
     using Loginator.ViewModels;
+    using Loginator.Controls;
 
     public class LoginatorViewModel : INotifyPropertyChanged {
 

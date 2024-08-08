@@ -2,7 +2,6 @@
 using Backend.Model;
 using Common;
 using Common.Configuration;
-using GalaSoft.MvvmLight.Threading;
 using LogApplication.ViewModels;
 using NLog;
 using System;
