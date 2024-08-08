@@ -20,11 +20,12 @@ namespace Loginator.Bootstrapper {
                 m.For<ConfigurationViewModel>().Use<ConfigurationViewModel>();
                 // TODO: Move this to separate bootstrapper
                 m.For<IApplicationConfiguration>().Use<ApplicationConfiguration>();
+
+                var config = new MapperConfiguration(cfg => cfg.CreateMap<Log, LogViewModel>());
+                m.For<IMapper>().Singleton().Use(c => new Mapper(config));
             });
             
             DiBootstrapperBackend.Initialize(container);
-
-            Mapper.CreateMap<Log, LogViewModel>();
         }
     }
 }

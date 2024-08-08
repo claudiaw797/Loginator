@@ -4,7 +4,8 @@
         xmlns:controls="clr-namespace:Loginator.Controls"
         DataContext="{Binding LoginatorViewModel, Source={StaticResource Locator}}"
         WindowStartupLocation="CenterScreen"
-        Title="Loginator" Height="600" Width="900" MinHeight="600" MinWidth="900">
+        Title="Loginator" Height="600" Width="900" MinHeight="600" MinWidth="900"
+        Icon="icon.ico">
     <Grid Margin="2">
         <Grid.RowDefinitions>
             <RowDefinition Height="24" />

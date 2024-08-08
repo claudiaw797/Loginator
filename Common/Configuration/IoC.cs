@@ -1,5 +1,5 @@
 ﻿using Common.Exceptions;
-using Microsoft.Practices.ServiceLocation;
+using CommonServiceLocator;
 using StructureMap;
 using System;
 using System.Collections.Generic;

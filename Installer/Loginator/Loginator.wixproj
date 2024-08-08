@@ -8,9 +8,10 @@
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>Loginator</OutputName>
     <OutputType>Package</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
-    <WixToolPath>$(MSBuildProjectDirectory)\..\..\packages\WiX.3.11.2\tools\</WixToolPath>
+    <WixToolPath>$(MSBuildProjectDirectory)\..\..\packages\WiX.3.11.2\</WixToolPath>
     <WixTargetsPath>$(WixToolPath)Wix.targets</WixTargetsPath>
     <WixTasksPath>$(WixToolPath)wixtasks.dll</WixTasksPath>
     <RunWixToolsOutOfProc>true</RunWixToolsOutOfProc>
@@ -18,12 +19,12 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug;BuildLocation=$(SolutionDir)Loginator\bin\$(Configuration)\</DefineConstants>
+    <DefineConstants>Debug;BuildLocation=$(SolutionDir)Loginator\bin\$(Configuration)\$(TargetFramework)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Release;BuildLocation=$(SolutionDir)Loginator\bin\$(Configuration)\</DefineConstants>
+    <DefineConstants>Release;BuildLocation=$(SolutionDir)Loginator\bin\$(Configuration)\$(TargetFramework)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application.wxs" />
@@ -35,7 +36,6 @@
     <Folder Include="GUI" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.config" />
     <Content Include="transform.xslt" />
   </ItemGroup>
   <ItemGroup>
@@ -50,22 +50,22 @@
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUtilExtension">
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\WiX Toolset v3.10\bin\WixUtilExtension.dll</HintPath>
+      <HintPath>$(WixToolPath)\WixUtilExtension.dll</HintPath>
       <Name>WixUtilExtension</Name>
     </WixExtension>
     <WixExtension Include="WixUIExtension">
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\WiX Toolset v3.10\bin\WixUIExtension.dll</HintPath>
+      <HintPath>$(WixToolPath)\WixUIExtension.dll</HintPath>
       <Name>WixUIExtension</Name>
     </WixExtension>
   </ItemGroup>
   <PropertyGroup>
-    <WixToolPath>$(SolutionDir)packages\WiX.3.11.2\tools\</WixToolPath>
+    <WixToolPath>$(SolutionDir)packages\WiX.3.11.2\</WixToolPath>
     <WixTargetsPath>$(WixToolPath)wix.targets</WixTargetsPath>
     <WixTasksPath>$(WixToolPath)WixTasks.dll</WixTasksPath>
   </PropertyGroup>
   <Import Project="$(WixTargetsPath)" />
   <Target Name="BeforeBuild" Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <HeatDirectory RunAsSeparateProcess="$(RunWixToolsOutOfProc)" NoLogo="true" OutputFile="Generated.wxs" Directory="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="ApplicationGrp" AutogenerateGuids="false" GenerateGuidsNow="true" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BuildLocation" Transforms="transform.xslt" />
+    <HeatDirectory RunAsSeparateProcess="$(RunWixToolsOutOfProc)" NoLogo="true" OutputFile="Generated.wxs" Directory="%(ProjectReference.RootDir)%(ProjectReference.Directory)bin\$(Configuration)\$(TargetFramework)" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="ApplicationGrp" AutogenerateGuids="false" GenerateGuidsNow="true" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BuildLocation" Transforms="transform.xslt" />
   </Target>
   <!--<Target Name="AfterBuild">
     <CreateProperty Value="$([System.DateTime]::Now.ToString('yyyyMMdd-HHmmss'))">
@@ -73,7 +73,7 @@
     </CreateProperty>
     <Move SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)Installer_$(DateString).msi" />
   </Target>-->
-  <UsingTask TaskName="RenameToFileWithVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+  <UsingTask TaskName="RenameToFileWithVersion" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <PathToInstaller ParameterType="System.String" Required="true" />
       <PathToVersion ParameterType="System.String" Required="true" />

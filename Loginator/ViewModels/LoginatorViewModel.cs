@@ -35,6 +35,7 @@ namespace LogApplication.ViewModels {
         private const int TIME_INTERVAL_IN_MILLISECONDS = 1000;
 
         private ILogger Logger { get; set; }
+        private IMapper Mapper { get; set; }
         private Receiver Receiver { get; set; }
         private Timer Timer { get; set; }
         
@@ -122,7 +123,7 @@ namespace LogApplication.ViewModels {
             }
         }
 
-        public LoginatorViewModel(IApplicationConfiguration applicationConfiguration, IConfigurationDao configurationDao) {
+        public LoginatorViewModel(IApplicationConfiguration applicationConfiguration, IConfigurationDao configurationDao, IMapper mapper) {
             ApplicationConfiguration = applicationConfiguration;
             ConfigurationDao = configurationDao;
             ConfigurationDao.OnConfigurationChanged += ConfigurationDao_OnConfigurationChanged;
@@ -134,6 +135,7 @@ namespace LogApplication.ViewModels {
             LogsToInsert = new List<LogViewModel>();
             Namespaces = new ObservableCollection<NamespaceViewModel>();
             Applications = new ObservableCollection<ApplicationViewModel>();
+            Mapper = mapper;
         }
 
         private void ConfigurationDao_OnConfigurationChanged(object sender, EventArgs e) {
