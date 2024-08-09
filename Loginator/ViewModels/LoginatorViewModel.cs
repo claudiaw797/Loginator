@@ -372,6 +372,20 @@ namespace LogApplication.ViewModels {
                 return clearAllCommand;
             }
         }
+
+        private ICommand unselectAllCommand;
+        public ICommand UnselectAllCommand
+        {
+            get
+            {
+                if (unselectAllCommand == null)
+                {
+                    unselectAllCommand = new RelayCommand<LoginatorViewModel>(UnselectAll, CanUnselectAll);
+                }
+                return unselectAllCommand;
+            }
+        }
+
         private bool CanClearAll(LoginatorViewModel loginator) {
             return true;
         }
@@ -381,6 +395,23 @@ namespace LogApplication.ViewModels {
                     Logs.Clear();
                     Namespaces.Clear();
                     Applications.Clear();
+                }
+            });
+        }
+
+        private bool CanUnselectAll(LoginatorViewModel loginator)
+        {
+            return true;
+        }
+        public void UnselectAll(LoginatorViewModel loginator)
+        {
+            DispatcherHelper.CheckBeginInvokeOnUI(() => {
+                lock (ViewModelConstants.SYNC_OBJECT)
+                {
+                    foreach (var application in this.Applications)
+                    {
+                        application.IsActive = false;
+                    }
                 }
             });
         }
