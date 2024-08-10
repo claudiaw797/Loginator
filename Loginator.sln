@@ -3,6 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BD106966-02BE-4137-B9DC-4ECE56B4C204}"
+	ProjectSection(SolutionItems) = preProject
+		CHANGELOG.MD = CHANGELOG.MD
+		README.md = README.md
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loginator", "Loginator\Loginator.csproj", "{62FE85E9-B242-4C66-96FC-6F0D02160C44}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\Backend.csproj", "{2F94AA95-0AF9-4CCC-B2C1-5A45F3257496}"

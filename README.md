@@ -1,3 +1,7 @@
+# Loginator .NET 8
+
+A .NET 8 port of the original ![Loginator](https://github.com/dabeku/Loginator).
+
 # Loginator
 The best way to display your logs
 
