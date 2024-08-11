@@ -41,6 +41,10 @@ namespace LogApplication.ViewModels {
         
         private LogTimeFormat LogTimeFormat { get; set; }
 
+        public static string UpdateSearchCriteriaCommandClear => "Clear";
+
+        public static string UpdateSearchCriteriaCommandSearch => "Search";
+
         private bool isActive;
         public bool IsActive {
             get { return isActive; }
@@ -60,14 +64,25 @@ namespace LogApplication.ViewModels {
             }
         }
 
-        private string searchCriteriaInternal;
         private string searchCriteria;
         public string SearchCriteria {
             get { return searchCriteria; }
             set {
                 searchCriteria = value;
                 OnPropertyChanged(nameof(SearchCriteria));
-                UpdateSearchCriteria(this);
+                updateSearchCriteriaCommand.NotifyCanExecuteChanged();
+                UpdateSearchCriteriaCommandName = string.IsNullOrEmpty(value)
+                    ? UpdateSearchCriteriaCommandClear
+                    : UpdateSearchCriteriaCommandSearch;
+            }
+        }
+
+        private string updateSearchCriteriaCommandName;
+        public string UpdateSearchCriteriaCommandName {
+            get { return updateSearchCriteriaCommandName; }
+            set {
+                updateSearchCriteriaCommandName = value;
+                OnPropertyChanged(nameof(UpdateSearchCriteriaCommandName));
             }
         }
 
@@ -136,6 +151,7 @@ namespace LogApplication.ViewModels {
             Namespaces = new ObservableCollection<NamespaceViewModel>();
             Applications = new ObservableCollection<ApplicationViewModel>();
             Mapper = mapper;
+            updateSearchCriteriaCommandName = UpdateSearchCriteriaCommandSearch;
         }
 
         private void ConfigurationDao_OnConfigurationChanged(object sender, EventArgs e) {
@@ -439,24 +455,41 @@ namespace LogApplication.ViewModels {
             });
         }
 
-        private ICommand updateSearchCriteriaCommand;
+        private RelayCommand<string> updateSearchCriteriaCommand;
         public ICommand UpdateSearchCriteriaCommand {
             get {
                 if (updateSearchCriteriaCommand == null) {
-                    updateSearchCriteriaCommand = new RelayCommand<LoginatorViewModel>(UpdateSearchCriteria, CanUpdateSearchCriteria);
+                    updateSearchCriteriaCommand = new RelayCommand<string>(UpdateSearchCriteria, CanUpdateSearchCriteria);
                 }
                 return updateSearchCriteriaCommand;
             }
         }
-        private bool CanUpdateSearchCriteria(LoginatorViewModel loginator) {
-            return true;
+        private bool CanUpdateSearchCriteria(string? command) {
+            return !string.IsNullOrEmpty(SearchCriteria) || UpdateSearchCriteriaCommandName == UpdateSearchCriteriaCommandClear;
         }
-        public void UpdateSearchCriteria(LoginatorViewModel loginator) {
+        private void ProcessUpdateSearchCriteriaCommand(string? command)
+        {
+            command ??= string.IsNullOrEmpty(SearchCriteria)
+                ? UpdateSearchCriteriaCommandClear
+                : UpdateSearchCriteriaCommandSearch;
+
+            if (command == UpdateSearchCriteriaCommandClear)
+            {
+                SearchCriteria = string.Empty;
+            }
+            else if (command == UpdateSearchCriteriaCommandSearch)
+            {
+                UpdateSearchCriteriaCommandName = UpdateSearchCriteriaCommandClear;
+            }
+        }
+        public void UpdateSearchCriteria(string? command) {
             DispatcherHelper.CheckBeginInvokeOnUI(() => {
                 lock (ViewModelConstants.SYNC_OBJECT) {
-                    searchCriteriaInternal = SearchCriteria;
+                    ProcessUpdateSearchCriteriaCommand(command);
+
+                    var searchCriteria = SearchCriteria;
                     foreach (var application in Applications) {
-                        application.UpdateSearchCriteria(searchCriteriaInternal, IsInverted);
+                        application.UpdateSearchCriteria(searchCriteria, IsInverted);
                     }
                 }
             });
