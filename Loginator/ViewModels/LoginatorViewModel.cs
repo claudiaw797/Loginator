@@ -123,9 +123,9 @@ namespace LogApplication.ViewModels {
         }
 
         private void OnUpdateSearch(object? sender, EventArgs e) {
-            var searchCriteria = Search.Criteria;
+            var searchOptions = Search.ToOptions();
             foreach (var application in Applications) {
-                application.UpdateSearchCriteria(searchCriteria, Search.IsInverted);
+                application.UpdateSearchCriteria(searchOptions);
             }
         }
 

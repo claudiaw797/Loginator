@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Backend.Model;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LogApplication.ViewModels;
 using Loginator.Controls;
 using System;
 
@@ -44,6 +44,13 @@ namespace Loginator.ViewModels
                 }
             });
         }
+
+        public SearchOptions ToOptions() =>
+            new()
+            {
+                Criteria = Criteria,
+                IsInverted = IsInverted
+            };
 
         partial void OnCriteriaChanged(string? value)
         {

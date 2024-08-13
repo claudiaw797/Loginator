@@ -25,8 +25,7 @@ namespace LogApplication.ViewModels {
         public IList<LoggingLevel> LogLevels { get; } = LoggingLevel.GetAllLoggingLevels().OrderBy(x => x.Id).ToList();
 
         private int MaxNumberOfLogsPerLevel { get; set; }
-        private string SearchCriteria { get; set; }
-        private bool IsSearchCriteriaInverted { get; set; }
+        private SearchOptions SearchOptions { get; set; }
 
         private OrderedObservableCollection Logs { get; set; }
         private List<LogViewModel> LogsTrace { get; set; }
@@ -82,6 +81,7 @@ namespace LogApplication.ViewModels {
             LogsFatal = new List<LogViewModel>();
             Namespaces = namespaces;
             MaxNumberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
+            SearchOptions = new();
         }
 
         public void ClearLogs() {
@@ -232,9 +232,8 @@ namespace LogApplication.ViewModels {
             });
         }
 
-        public void UpdateSearchCriteria(string criteria, bool isSearchCriteriaInverted) {
-            SearchCriteria = criteria;
-            IsSearchCriteriaInverted = isSearchCriteriaInverted;
+        public void UpdateSearchCriteria(SearchOptions searchOptions) {
+            SearchOptions = searchOptions;
 
             if (!IsActive) {
                 return;
@@ -303,26 +302,29 @@ namespace LogApplication.ViewModels {
 
         private bool IsSearchCriteriaMatch(LogViewModel log) {
             try {
+                var criteria = SearchOptions.Criteria;
+
                 // Default
-                if (String.IsNullOrEmpty(SearchCriteria)) {
+                if (String.IsNullOrEmpty(criteria)) {
                     return true;
                 }
 
                 // Search
-                if (!IsSearchCriteriaInverted) {
-                    if ((!String.IsNullOrEmpty(log.Application) && log.Application.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant())) ||
-                        (!String.IsNullOrEmpty(log.Namespace) && log.Namespace.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant())) ||
-                        (!String.IsNullOrEmpty(log.Message) && log.Message.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant())) ||
-                        (!String.IsNullOrEmpty(log.Exception) && log.Exception.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant()))) {
+                criteria = criteria.ToLowerInvariant();
+                if (!SearchOptions.IsInverted) {
+                    if ((!String.IsNullOrEmpty(log.Application) && log.Application.ToLowerInvariant().Contains(criteria)) ||
+                        (!String.IsNullOrEmpty(log.Namespace) && log.Namespace.ToLowerInvariant().Contains(criteria)) ||
+                        (!String.IsNullOrEmpty(log.Message) && log.Message.ToLowerInvariant().Contains(criteria)) ||
+                        (!String.IsNullOrEmpty(log.Exception) && log.Exception.ToLowerInvariant().Contains(criteria))) {
                         return true;
                     }
                     return false;
                 }
                 else {
-                    if ((!String.IsNullOrEmpty(log.Application) && log.Application.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant())) ||
-                        (!String.IsNullOrEmpty(log.Namespace) && log.Namespace.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant())) ||
-                        (!String.IsNullOrEmpty(log.Message) && log.Message.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant())) ||
-                        (!String.IsNullOrEmpty(log.Exception) && log.Exception.ToLowerInvariant().Contains(SearchCriteria.ToLowerInvariant()))) {
+                    if ((!String.IsNullOrEmpty(log.Application) && log.Application.ToLowerInvariant().Contains(criteria)) ||
+                        (!String.IsNullOrEmpty(log.Namespace) && log.Namespace.ToLowerInvariant().Contains(criteria)) ||
+                        (!String.IsNullOrEmpty(log.Message) && log.Message.ToLowerInvariant().Contains(criteria)) ||
+                        (!String.IsNullOrEmpty(log.Exception) && log.Exception.ToLowerInvariant().Contains(criteria))) {
                         return false;
                     }
                     return true;
