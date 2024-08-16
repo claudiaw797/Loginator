@@ -125,7 +125,7 @@ namespace Loginator.ViewModels {
         private void OnUpdateSearch(object? sender, EventArgs e) {
             var searchOptions = Search.ToOptions();
             foreach (var application in Applications) {
-                application.UpdateSearchCriteria(searchOptions);
+                application.SearchOptions = searchOptions;
             }
         }
 

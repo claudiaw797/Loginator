@@ -22,8 +22,6 @@ namespace Loginator.ViewModels {
         public string Name { get; set; }
         public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
 
-        private SearchOptions SearchOptions { get; set; }
-
         private OrderedObservableCollection Logs { get; set; }
         private List<LogViewModel> LogsTrace { get; set; }
         private List<LogViewModel> LogsDebug { get; set; }
@@ -43,6 +41,9 @@ namespace Loginator.ViewModels {
         [ObservableProperty]
         private int maxNumberOfLogsPerLevel;
 
+        [ObservableProperty]
+        private SearchOptions searchOptions;
+
         partial void OnSelectedMinLogLevelChanged(LoggingLevel? oldValue, LoggingLevel newValue) =>
             ExecuteLocked(() => UpdateByLogLevelChange(oldValue, newValue));
 
@@ -51,6 +52,9 @@ namespace Loginator.ViewModels {
 
         partial void OnMaxNumberOfLogsPerLevelChanged(int oldValue, int newValue) =>
             ExecuteLocked(() => UpdateMaxNumberOfLogs(oldValue, newValue));
+
+        partial void OnSearchOptionsChanged(SearchOptions? oldValue, SearchOptions newValue) =>
+            ExecuteLocked(() => UpdateSearchCriteria(oldValue, newValue));
 
         public ApplicationViewModel(
             string name,
@@ -65,7 +69,7 @@ namespace Loginator.ViewModels {
             selectedMinLogLevel = initialLogLevel;
             isActive = true;
             maxNumberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
-            SearchOptions = new();
+            searchOptions = new();
 
             LogsTrace = [];
             LogsDebug = [];
@@ -97,6 +101,23 @@ namespace Loginator.ViewModels {
                 Logs.Add(logs, IsSearchCriteriaMatch);
             else
                 Logs.Remove(logs);
+        }
+
+        public void AddLog(LogViewModel log) {
+            var logToRemove = AddByLevelPossiblyRemovingFirst(log);
+
+            if (IsActive &&
+                SelectedMinLogLevel != LoggingLevel.NOT_SET &&
+                log.Level >= SelectedMinLogLevel &&
+                IsNamespaceActive(log) &&
+                IsSearchCriteriaMatch(log)) {
+
+                Logs.AddLeading(log);
+
+                if (logToRemove is not null) {
+                    Logs.Remove(logToRemove);
+                }
+            }
         }
 
         private void UpdateByLogLevelChange(LoggingLevel? oldLogLevel, LoggingLevel? newLogLevel) {
@@ -151,15 +172,13 @@ namespace Loginator.ViewModels {
             }
         }
 
-        public void UpdateSearchCriteria(SearchOptions searchOptions) {
-            SearchOptions = searchOptions;
-
-            if (!IsActive) {
+        private void UpdateSearchCriteria(SearchOptions? oldOptions, SearchOptions newOptions) {
+            if (!IsActive || oldOptions == newOptions) {
                 return;
             }
 
             var logs = GetLogsFromLevel(SelectedMinLogLevel);
-            if (string.IsNullOrEmpty(searchOptions.Criteria))
+            if (string.IsNullOrEmpty(newOptions.Criteria))
                 Logs.Add(logs, IsNamespaceActive);
             else {
                 var logsMatching = logs
@@ -170,23 +189,6 @@ namespace Loginator.ViewModels {
                     Logs.Add(logsToAdd, IsNamespaceActive);
                 if (logsMatching.TryGetValue(false, out var logsToRemove))
                     Logs.Remove(logsToRemove);
-            }
-        }
-
-        public void AddLog(LogViewModel log) {
-            var logToRemove = AddByLevelPossiblyRemovingFirst(log);
-
-            if (IsActive &&
-                SelectedMinLogLevel != LoggingLevel.NOT_SET &&
-                log.Level >= SelectedMinLogLevel &&
-                IsNamespaceActive(log) &&
-                IsSearchCriteriaMatch(log)) {
-
-                Logs.AddLeading(log);
-
-                if (logToRemove is not null) {
-                    Logs.Remove(logToRemove);
-                }
             }
         }
 

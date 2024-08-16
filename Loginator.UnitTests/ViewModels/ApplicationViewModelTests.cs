@@ -184,25 +184,25 @@ namespace Loginator.UnitTests.ViewModels {
 
             AssertLogs(expectedItems3, expectedItems2, expectedItems1);
 
-            sut.UpdateSearchCriteria(Search("One", false));
+            sut.SearchOptions = Search("One", false);
             AssertLogs(expectedItems1);
 
-            sut.UpdateSearchCriteria(Search("One", true));
+            sut.SearchOptions = Search("One", true);
             AssertLogs(expectedItems3, expectedItems2);
 
-            sut.UpdateSearchCriteria(Search("Two", false));
+            sut.SearchOptions = Search("Two", false);
             AssertLogs(expectedItems2);
 
-            sut.UpdateSearchCriteria(Search("Two", true));
+            sut.SearchOptions = Search("Two", true);
             AssertLogs(expectedItems3, expectedItems1);
 
-            sut.UpdateSearchCriteria(Search("Three", false));
+            sut.SearchOptions = Search("Three", false);
             AssertLogs(expectedItems3);
 
-            sut.UpdateSearchCriteria(Search("Three", true));
+            sut.SearchOptions = Search("Three", true);
             AssertLogs(expectedItems2, expectedItems1);
 
-            sut.UpdateSearchCriteria(Search());
+            sut.SearchOptions = Search();
             AssertLogs(expectedItems3, expectedItems2, expectedItems1);
         }
 
@@ -214,13 +214,13 @@ namespace Loginator.UnitTests.ViewModels {
 
             logs.Should().BeEmpty();
 
-            sut.UpdateSearchCriteria(Search("Two", false));
+            sut.SearchOptions = Search("Two", false);
             logs.Should().BeEmpty();
 
-            sut.UpdateSearchCriteria(Search("Two", true));
+            sut.SearchOptions = Search("Two", true);
             logs.Should().BeEmpty();
 
-            sut.UpdateSearchCriteria(Search());
+            sut.SearchOptions = Search();
             logs.Should().BeEmpty();
         }
 
@@ -260,7 +260,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         private void AssertOrderLevelSearchNamespaceItems(LoggingLevel level) {
             sut.SelectedMinLogLevel = level;
-            sut.UpdateSearchCriteria(Search("Two", false));
+            sut.SearchOptions = Search("Two", false);
 
             (_, var expectedItems2, _) = AddItemsOneTwoThreeToSut(level);
 
@@ -269,7 +269,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         private void AssertOrderLevelSearchInvertedNamespaceItems(LoggingLevel level) {
             sut.SelectedMinLogLevel = level;
-            sut.UpdateSearchCriteria(Search("Two", true));
+            sut.SearchOptions = Search("Two", true);
 
             (var expectedItems1, _, var expectedItems3) = AddItemsOneTwoThreeToSut(level);
 
