@@ -26,6 +26,7 @@ namespace Loginator.ViewModels {
     using Loginator.Collections;
     using Loginator.ViewModels;
     using Loginator.Controls;
+    using System.Windows;
 
     public class LoginatorViewModel : INotifyPropertyChanged {
 
@@ -79,6 +80,7 @@ namespace Loginator.ViewModels {
                 selectedLog = value;
                 SetNamespaceHighlight(selectedLog);
                 OnPropertyChanged(nameof(SelectedLog));
+                copySelectedLogExceptionCommand?.NotifyCanExecuteChanged();
             }
         }
 
@@ -445,6 +447,21 @@ namespace Loginator.ViewModels {
         }
         public void OpenConfiguration(LoginatorViewModel loginator) {
             new ConfigurationWindow().Show();
+        }
+
+        private RelayCommand copySelectedLogExceptionCommand;
+
+        public ICommand CopySelectedLogExceptionCommand {
+            get {
+                copySelectedLogExceptionCommand ??= new RelayCommand(CopySelectedLogException, CanCopySelectedLogException);
+                return copySelectedLogExceptionCommand;
+            }
+        }
+        private bool CanCopySelectedLogException() {
+            return !string.IsNullOrEmpty(SelectedLog?.Exception);
+        }
+        private void CopySelectedLogException() {
+            Clipboard.SetText(SelectedLog.Exception);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
