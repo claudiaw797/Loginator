@@ -2,7 +2,6 @@
 using Backend.Bootstrapper;
 using Backend.Model;
 using Common.Configuration;
-using LogApplication.ViewModels;
 using Loginator.ViewModels;
 using StructureMap;
 using System;

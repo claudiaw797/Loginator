@@ -2,7 +2,7 @@
 using Backend.Model;
 using Common;
 using Common.Configuration;
-using LogApplication.ViewModels;
+using Loginator.ViewModels;
 using NLog;
 using System;
 using System.Collections.Generic;

@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 using Common;
 using Loginator.ViewModels;
 
-namespace LogApplication.ViewModels {
+namespace Loginator.ViewModels {
 
     public class NamespaceViewModel : INotifyPropertyChanged {
 
@@ -155,7 +155,7 @@ namespace LogApplication.ViewModels {
                 string fullname = Name;
                 var parent = Parent;
                 while (parent != null) {
-                    fullname = parent.Name + Constants.NAMESPACE_SPLITTER + fullname;
+                    fullname = $"{parent.Name}{Constants.NAMESPACE_SPLITTER}{fullname}";
                     parent = parent.Parent;
                 }
                 return fullname;

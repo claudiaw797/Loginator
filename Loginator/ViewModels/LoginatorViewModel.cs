@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogApplication.ViewModels {
+namespace Loginator.ViewModels {
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
@@ -23,7 +23,7 @@ namespace LogApplication.ViewModels {
     using System.Diagnostics;
     using NLog;
     using AutoMapper;
-    using LogApplication.Collections;
+    using Loginator.Collections;
     using Loginator.ViewModels;
     using Loginator.Controls;
 
@@ -60,27 +60,7 @@ namespace LogApplication.ViewModels {
             }
         }
 
-        private string searchCriteriaInternal;
-        private string searchCriteria;
-        public string SearchCriteria {
-            get { return searchCriteria; }
-            set {
-                searchCriteria = value;
-                OnPropertyChanged(nameof(SearchCriteria));
-                UpdateSearchCriteria(this);
-            }
-        }
-
-        private bool isInverted;
-        public bool IsInverted {
-            get { return isInverted; }
-            set {
-                isInverted = value;
-                OnPropertyChanged(nameof(IsInverted));
-            }
-        }
-
-        public IList<LoggingLevel> LogLevels { get; } = LoggingLevel.GetAllLoggingLevels().OrderBy(x => x.Id).ToList();
+        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
 
         private LoggingLevel selectedInitialLogLevel;
 
@@ -123,6 +103,8 @@ namespace LogApplication.ViewModels {
             }
         }
 
+        public SearchViewModel Search { get; private set; }
+
         public LoginatorViewModel(IApplicationConfiguration applicationConfiguration, IConfigurationDao configurationDao, IMapper mapper) {
             ApplicationConfiguration = applicationConfiguration;
             ConfigurationDao = configurationDao;
@@ -136,6 +118,15 @@ namespace LogApplication.ViewModels {
             Namespaces = new ObservableCollection<NamespaceViewModel>();
             Applications = new ObservableCollection<ApplicationViewModel>();
             Mapper = mapper;
+            Search = new SearchViewModel();
+            Search.UpdateSearch += OnUpdateSearch;
+        }
+
+        private void OnUpdateSearch(object? sender, EventArgs e) {
+            var searchOptions = Search.ToOptions();
+            foreach (var application in Applications) {
+                application.SearchOptions = searchOptions;
+            }
         }
 
         private void ConfigurationDao_OnConfigurationChanged(object sender, EventArgs e) {
@@ -433,30 +424,7 @@ namespace LogApplication.ViewModels {
                 lock (ViewModelConstants.SYNC_OBJECT) {
                     numberOfLogsPerApplicationAndLevelInternal = NumberOfLogsPerLevel;
                     foreach (var application in Applications) {
-                        application.UpdateMaxNumberOfLogs(numberOfLogsPerApplicationAndLevelInternal);
-                    }
-                }
-            });
-        }
-
-        private ICommand updateSearchCriteriaCommand;
-        public ICommand UpdateSearchCriteriaCommand {
-            get {
-                if (updateSearchCriteriaCommand == null) {
-                    updateSearchCriteriaCommand = new RelayCommand<LoginatorViewModel>(UpdateSearchCriteria, CanUpdateSearchCriteria);
-                }
-                return updateSearchCriteriaCommand;
-            }
-        }
-        private bool CanUpdateSearchCriteria(LoginatorViewModel loginator) {
-            return true;
-        }
-        public void UpdateSearchCriteria(LoginatorViewModel loginator) {
-            DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    searchCriteriaInternal = SearchCriteria;
-                    foreach (var application in Applications) {
-                        application.UpdateSearchCriteria(searchCriteriaInternal, IsInverted);
+                        application.MaxNumberOfLogsPerLevel = numberOfLogsPerApplicationAndLevelInternal;
                     }
                 }
             });

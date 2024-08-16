@@ -26,9 +26,17 @@
                         </TextBox.InputBindings>
                     </TextBox>
                     <Button Content="Limit" Width="60" Margin="2,0,0,0" Command="{Binding UpdateNumberOfLogsPerLevelCommand}"></Button>
-                    <TextBox Text="{Binding SearchCriteria, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enter search query" Width="100" Margin="16,0,0,0"></TextBox>
-                    <Button Content="Search" Width="60" Margin="2,0,0,0" Command="{Binding UpdateSearchCriteriaCommand}"></Button>
-                    <CheckBox Content="Invert" IsChecked="{Binding IsInverted}" Margin="2,2,0,0"></CheckBox>
+                    <TextBox Text="{Binding Search.Criteria, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enter search query" Width="Auto" MinWidth="100" Margin="16,0,0,0">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding Search.UpdateCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <Button Content="{Binding Search.UpdateCommandName}" Width="60" Margin="2,0,0,0"
+                            Command="{Binding Search.UpdateCommand}"
+                            CommandParameter="{Binding Search.UpdateCommandName}"></Button>
+                    <CheckBox Content="Invert" IsChecked="{Binding Search.IsInverted}" Margin="2,2,0,0"
+                              Command="{Binding Search.UpdateCommand}"
+                              CommandParameter="Invert"></CheckBox>
                     <Grid>
                         <Button Content="Configure..." Width="80" Margin="0,0,332,0" Command="{Binding OpenConfigurationCommand}" HorizontalAlignment="Right"></Button>
                         <Button Content="Clear Logs" Width="80" Margin="0,0, 249,0" Command="{Binding ClearLogsCommand}" HorizontalAlignment="Right"></Button>
@@ -36,8 +44,6 @@
                         <Button Content="Unselect All" Width="80" Margin="0,0,83,0" Command="{Binding UnselectAllCommand}" HorizontalAlignment="Right"></Button>
                         <ComboBox ItemsSource="{Binding Path=LogLevels}" DisplayMemberPath="Name" SelectedValue="{Binding SelectedInitialLogLevel}" Width="70" Margin="2,0,2,0" HorizontalAlignment="Right"/>
                     </Grid>
-                    
-                    
                 </DockPanel>
             </StackPanel>
         </Grid>
