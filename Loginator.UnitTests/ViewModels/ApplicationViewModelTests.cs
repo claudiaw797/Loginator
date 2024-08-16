@@ -145,10 +145,10 @@ namespace Loginator.UnitTests.ViewModels {
             var expectedItems2 = GetExpectedItemsFromLevel(level, allItems2);
             sut.SelectedMinLogLevel = level;
 
-            sut.UpdateMaxNumberOfLogs(2);
+            sut.MaxNumberOfLogsPerLevel = 2;
             AssertLogs(expectedItems2, expectedItems1);
 
-            sut.UpdateMaxNumberOfLogs(1);
+            sut.MaxNumberOfLogsPerLevel = 1;
             AssertLogs(expectedItems2);
 
             var allItems3 = AddItemsToSut(21, "Three");

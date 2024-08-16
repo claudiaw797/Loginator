@@ -22,7 +22,6 @@ namespace Loginator.ViewModels {
         public string Name { get; set; }
         public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
 
-        private int MaxNumberOfLogsPerLevel { get; set; }
         private SearchOptions SearchOptions { get; set; }
 
         private OrderedObservableCollection Logs { get; set; }
@@ -41,17 +40,17 @@ namespace Loginator.ViewModels {
         [ObservableProperty]
         private bool isActive;
 
-        partial void OnSelectedMinLogLevelChanging(LoggingLevel? oldValue, LoggingLevel newValue) {
-            lock (ViewModelConstants.SYNC_OBJECT) {
-                UpdateByLogLevelChange(oldValue, newValue);
-            }
-        }
+        [ObservableProperty]
+        private int maxNumberOfLogsPerLevel;
 
-        partial void OnIsActiveChanging(bool oldValue, bool newValue) {
-            lock (ViewModelConstants.SYNC_OBJECT) {
-                UpdateByActiveChange(oldValue, newValue);
-            }
-        }
+        partial void OnSelectedMinLogLevelChanged(LoggingLevel? oldValue, LoggingLevel newValue) =>
+            ExecuteLocked(() => UpdateByLogLevelChange(oldValue, newValue));
+
+        partial void OnIsActiveChanged(bool oldValue, bool newValue) =>
+            ExecuteLocked(() => UpdateByActiveChange(oldValue, newValue));
+
+        partial void OnMaxNumberOfLogsPerLevelChanged(int oldValue, int newValue) =>
+            ExecuteLocked(() => UpdateMaxNumberOfLogs(oldValue, newValue));
 
         public ApplicationViewModel(
             string name,
@@ -60,20 +59,20 @@ namespace Loginator.ViewModels {
             LoggingLevel initialLogLevel) {
             Logger = LogManager.GetCurrentClassLogger();
             Name = name;
-            isActive = true;
-
-            //SelectedMinLogLevel = LogLevels.ElementAt(0);
-            selectedMinLogLevel = initialLogLevel;
+            Namespaces = namespaces;
             Logs = logs;
+
+            selectedMinLogLevel = initialLogLevel;
+            isActive = true;
+            maxNumberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
+            SearchOptions = new();
+
             LogsTrace = [];
             LogsDebug = [];
             LogsInfo = [];
             LogsWarn = [];
             LogsError = [];
             LogsFatal = [];
-            Namespaces = namespaces;
-            MaxNumberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
-            SearchOptions = new();
         }
 
         public void ClearLogs() {
@@ -83,6 +82,21 @@ namespace Loginator.ViewModels {
             LogsWarn = [];
             LogsError = [];
             LogsFatal = [];
+        }
+
+        public void UpdateByNamespaceChange(NamespaceViewModel ns) {
+            if (!IsActive) {
+                return;
+            }
+
+            var nsName = ns.Fullname;
+            var logs = GetLogsFromLevel(SelectedMinLogLevel)
+                .Where(m => $"{Name}{Constants.NAMESPACE_SPLITTER}{m.Namespace}" == nsName);
+
+            if (ns.IsChecked)
+                Logs.Add(logs, IsSearchCriteriaMatch);
+            else
+                Logs.Remove(logs);
         }
 
         private void UpdateByLogLevelChange(LoggingLevel? oldLogLevel, LoggingLevel? newLogLevel) {
@@ -110,34 +124,17 @@ namespace Loginator.ViewModels {
                 Logs.Remove(GetLogsFromLevel(LoggingLevel.TRACE));
         }
 
-        public void UpdateByNamespaceChange(NamespaceViewModel ns) {
-            if (!IsActive) {
+        private void UpdateMaxNumberOfLogs(int oldMaxNumberOfLogs, int newMaxNumberOfLogs) {
+            if (oldMaxNumberOfLogs <= newMaxNumberOfLogs) {
                 return;
             }
 
-            var nsName = ns.Fullname;
-            var logs = GetLogsFromLevel(SelectedMinLogLevel)
-                .Where(m => $"{Name}{Constants.NAMESPACE_SPLITTER}{m.Namespace}" == nsName);
-
-            if (ns.IsChecked)
-                Logs.Add(logs, IsSearchCriteriaMatch);
-            else
-                Logs.Remove(logs);
-        }
-
-        public void UpdateMaxNumberOfLogs(int maxNumberOfLogs) {
-            if (MaxNumberOfLogsPerLevel <= maxNumberOfLogs) {
-                MaxNumberOfLogsPerLevel = maxNumberOfLogs;
-                return;
-            }
-
-            MaxNumberOfLogsPerLevel = maxNumberOfLogs;
-            var logsToRemoveTrace = RemoveSurplus(LogsTrace, maxNumberOfLogs);
-            var logsToRemoveDebug = RemoveSurplus(LogsDebug, maxNumberOfLogs);
-            var logsToRemoveInfo = RemoveSurplus(LogsInfo, maxNumberOfLogs);
-            var logsToRemoveWarn = RemoveSurplus(LogsWarn, maxNumberOfLogs);
-            var logsToRemoveError = RemoveSurplus(LogsError, maxNumberOfLogs);
-            var logsToRemoveFatal = RemoveSurplus(LogsFatal, maxNumberOfLogs);
+            var logsToRemoveTrace = RemoveSurplus(LogsTrace);
+            var logsToRemoveDebug = RemoveSurplus(LogsDebug);
+            var logsToRemoveInfo = RemoveSurplus(LogsInfo);
+            var logsToRemoveWarn = RemoveSurplus(LogsWarn);
+            var logsToRemoveError = RemoveSurplus(LogsError);
+            var logsToRemoveFatal = RemoveSurplus(LogsFatal);
 
             if (IsActive) {
                 var logsToRemove = logsToRemoveTrace
@@ -282,8 +279,8 @@ namespace Loginator.ViewModels {
             return logToRemove;
         }
 
-        private static List<LogViewModel> RemoveSurplus(List<LogViewModel> levelLogs, int maxNumberOfLogs) {
-            var count = levelLogs.Count - maxNumberOfLogs;
+        private List<LogViewModel> RemoveSurplus(List<LogViewModel> levelLogs) {
+            var count = levelLogs.Count - MaxNumberOfLogsPerLevel;
             if (count <= 0) {
                 return [];
             }
@@ -291,6 +288,12 @@ namespace Loginator.ViewModels {
             var logsToRemove = levelLogs.Take(count).ToList();
             levelLogs.RemoveRange(0, count);
             return logsToRemove;
+        }
+
+        private static void ExecuteLocked(Action action) {
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                action();
+            }
         }
     }
 }

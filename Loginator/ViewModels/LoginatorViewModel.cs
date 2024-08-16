@@ -424,7 +424,7 @@ namespace Loginator.ViewModels {
                 lock (ViewModelConstants.SYNC_OBJECT) {
                     numberOfLogsPerApplicationAndLevelInternal = NumberOfLogsPerLevel;
                     foreach (var application in Applications) {
-                        application.UpdateMaxNumberOfLogs(numberOfLogsPerApplicationAndLevelInternal);
+                        application.MaxNumberOfLogsPerLevel = numberOfLogsPerApplicationAndLevelInternal;
                     }
                 }
             });
