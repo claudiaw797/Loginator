@@ -1,10 +1,12 @@
 ﻿using Backend.Model;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
 
-namespace LogApplication.ViewModels {
+namespace Loginator.ViewModels {
 
+    [DebuggerDisplay("{Timestamp} {Level.Id} {Application}.{Namespace} '{Message}'")]
     public class LogViewModel : INotifyPropertyChanged {
         public DateTime Timestamp { get; set; }
         public LoggingLevel Level { get; set; }

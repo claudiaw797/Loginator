@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BD106966-02BE-4137-B9DC-4ECE56B4C204}"
 	ProjectSection(SolutionItems) = preProject
@@ -9,15 +9,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loginator", "Loginator\Loginator.csproj", "{62FE85E9-B242-4C66-96FC-6F0D02160C44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Loginator", "Loginator\Loginator.csproj", "{62FE85E9-B242-4C66-96FC-6F0D02160C44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\Backend.csproj", "{2F94AA95-0AF9-4CCC-B2C1-5A45F3257496}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Backend", "Backend\Backend.csproj", "{2F94AA95-0AF9-4CCC-B2C1-5A45F3257496}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{43D3F45F-3F5A-4736-BDC0-50BC7F54F2BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{43D3F45F-3F5A-4736-BDC0-50BC7F54F2BB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installer", "Installer", "{7101C288-C57C-498B-A78C-86304BEC9E1B}"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Loginator", "Installer\Loginator\Loginator.wixproj", "{8824F7ED-B223-4959-A7B7-EA5879636D22}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Backend.UnitTests", "Backend.UnitTests\Backend.UnitTests.csproj", "{927349C3-91CC-4F8B-9A04-FC82F3BE322C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Loginator.UnitTests", "Loginator.UnitTests\Loginator.UnitTests.csproj", "{5026E360-7403-4866-AC21-3E04D3950466}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,11 +74,38 @@ Global
 		{8824F7ED-B223-4959-A7B7-EA5879636D22}.Release|Mixed Platforms.Build.0 = Release|x86
 		{8824F7ED-B223-4959-A7B7-EA5879636D22}.Release|x86.ActiveCfg = Release|x86
 		{8824F7ED-B223-4959-A7B7-EA5879636D22}.Release|x86.Build.0 = Release|x86
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Debug|x86.Build.0 = Debug|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Release|x86.ActiveCfg = Release|Any CPU
+		{927349C3-91CC-4F8B-9A04-FC82F3BE322C}.Release|x86.Build.0 = Release|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Debug|x86.Build.0 = Debug|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Release|x86.ActiveCfg = Release|Any CPU
+		{5026E360-7403-4866-AC21-3E04D3950466}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8824F7ED-B223-4959-A7B7-EA5879636D22} = {7101C288-C57C-498B-A78C-86304BEC9E1B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {589EACE9-D938-4630-87CD-525FC0307DD0}
 	EndGlobalSection
 EndGlobal

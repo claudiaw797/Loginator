@@ -1,6 +1,6 @@
 ﻿using Common.Configuration;
 using CommonServiceLocator;
-using LogApplication.ViewModels;
+using Loginator.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

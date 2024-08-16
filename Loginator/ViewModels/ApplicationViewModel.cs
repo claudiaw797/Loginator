@@ -1,28 +1,26 @@
 ﻿using Backend.Model;
 using Common;
-using LogApplication.Collections;
-using Loginator.ViewModels;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Loginator.Collections;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LogApplication.ViewModels {
+namespace Loginator.ViewModels {
 
     /// <summary>
     /// If you add a new function / filter assure the following
     /// * Check that application is active: IsActive
-    /// * Check that you got logs from selected loglevel: GetLogsByLevel()
+    /// * Check that you got logs from selected loglevel: GetLogsFromLevel()
     /// * Check if the namespace is active: IsNamespaceActive()
     /// * Check if the search criteria match: IsSearchCriteriaMatch()
     /// </summary>
-    public class ApplicationViewModel : INotifyPropertyChanged {
+    public partial class ApplicationViewModel : ObservableObject {
 
         public string Name { get; set; }
-        public IList<LoggingLevel> LogLevels { get; } = LoggingLevel.GetAllLoggingLevels().OrderBy(x => x.Id).ToList();
+        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
 
         private int MaxNumberOfLogsPerLevel { get; set; }
         private SearchOptions SearchOptions { get; set; }
@@ -35,201 +33,125 @@ namespace LogApplication.ViewModels {
         private List<LogViewModel> LogsError { get; set; }
         private List<LogViewModel> LogsFatal { get; set; }
         private ObservableCollection<NamespaceViewModel> Namespaces { get; set; }
+        private ILogger Logger { get; set; }
 
+        [ObservableProperty]
         private LoggingLevel selectedMinLogLevel;
-        public LoggingLevel SelectedMinLogLevel {
-            get {
-                return selectedMinLogLevel;
-            }
-            set {
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    UpdateByLogLevelChange(selectedMinLogLevel, value);
-                    selectedMinLogLevel = value;
-                    OnPropertyChanged(nameof(SelectedMinLogLevel));
-                }
-            }
-        }
 
+        [ObservableProperty]
         private bool isActive;
-        public bool IsActive {
-            get {
-                return isActive;
-            }
-            set {
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    UpdateByActiveChange(isActive, value);
-                    isActive = value;
-                    OnPropertyChanged(nameof(IsActive));
-                }
+
+        partial void OnSelectedMinLogLevelChanging(LoggingLevel? oldValue, LoggingLevel newValue) {
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                UpdateByLogLevelChange(oldValue, newValue);
             }
         }
 
-        public ApplicationViewModel(string name, OrderedObservableCollection logs, ObservableCollection<NamespaceViewModel> namespaces, 
-            LoggingLevel initialLogLevel) 
-        {
+        partial void OnIsActiveChanging(bool oldValue, bool newValue) {
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                UpdateByActiveChange(oldValue, newValue);
+            }
+        }
+
+        public ApplicationViewModel(
+            string name,
+            OrderedObservableCollection logs,
+            ObservableCollection<NamespaceViewModel> namespaces,
+            LoggingLevel initialLogLevel) {
+            Logger = LogManager.GetCurrentClassLogger();
             Name = name;
-            IsActive = true;
-            
+            isActive = true;
+
             //SelectedMinLogLevel = LogLevels.ElementAt(0);
-            SelectedMinLogLevel = initialLogLevel;
+            selectedMinLogLevel = initialLogLevel;
             Logs = logs;
-            LogsTrace = new List<LogViewModel>();
-            LogsDebug = new List<LogViewModel>();
-            LogsInfo = new List<LogViewModel>();
-            LogsWarn = new List<LogViewModel>();
-            LogsError = new List<LogViewModel>();
-            LogsFatal = new List<LogViewModel>();
+            LogsTrace = [];
+            LogsDebug = [];
+            LogsInfo = [];
+            LogsWarn = [];
+            LogsError = [];
+            LogsFatal = [];
             Namespaces = namespaces;
             MaxNumberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
             SearchOptions = new();
         }
 
         public void ClearLogs() {
-            LogsTrace = new List<LogViewModel>();
-            LogsDebug = new List<LogViewModel>();
-            LogsInfo = new List<LogViewModel>();
-            LogsWarn = new List<LogViewModel>();
-            LogsError = new List<LogViewModel>();
-            LogsFatal = new List<LogViewModel>();
+            LogsTrace = [];
+            LogsDebug = [];
+            LogsInfo = [];
+            LogsWarn = [];
+            LogsError = [];
+            LogsFatal = [];
         }
 
-        private void UpdateByLogLevelChange(LoggingLevel oldLogLevel, LoggingLevel newLogLevel) {
+        private void UpdateByLogLevelChange(LoggingLevel? oldLogLevel, LoggingLevel? newLogLevel) {
             if (!IsActive) {
                 return;
             }
-            if (oldLogLevel == null || newLogLevel == null || oldLogLevel.Id == newLogLevel.Id) {
-                return;
-            }
-            bool isAdd = oldLogLevel.Id > newLogLevel.Id;
-            var levelsBetween = LoggingLevel.GetLogLevelsBetween(oldLogLevel, newLogLevel);
-            foreach (var levelBetween in levelsBetween) {
-                if (levelBetween == LoggingLevel.TRACE) {
-                    if (isAdd) {
-                        LogsTrace.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-                    } else {
-                        LogsTrace.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.Remove(m); });
-                    }
-                } else if (levelBetween == LoggingLevel.DEBUG) {
-                    if (isAdd) {
-                        LogsDebug.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-                    } else {
-                        LogsDebug.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.Remove(m); });
-                    }
-                } else if (levelBetween == LoggingLevel.INFO) {
-                    if (isAdd) {
-                        LogsInfo.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-                    } else {
-                        LogsInfo.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.Remove(m); });
-                    }
-                } else if (levelBetween == LoggingLevel.WARN) {
-                    if (isAdd) {
-                        LogsWarn.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-                    } else {
-                        LogsWarn.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.Remove(m); });
-                    }
-                } else if (levelBetween == LoggingLevel.ERROR) {
-                    if (isAdd) {
-                        LogsError.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-                    } else {
-                        LogsError.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.Remove(m); });
-                    }
-                } else if (levelBetween == LoggingLevel.FATAL) {
-                    if (isAdd) {
-                        LogsFatal.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-                    } else {
-                        LogsFatal.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.Remove(m); });
-                    }
-                }
-            }
+
+            var logs = LoggingLevel.GetLogLevelsBetween(ref oldLogLevel, ref newLogLevel)
+                .SelectMany(l => GetLogsByLevel(l) ?? []);
+
+            if (oldLogLevel > newLogLevel)
+                Logs.Add(logs, IsNamespaceActiveSearchCriteriaMatch);
+            else
+                Logs.Remove(logs, IsNamespaceActiveSearchCriteriaMatch);
         }
 
         private void UpdateByActiveChange(bool oldIsActive, bool newIsActive) {
             if (oldIsActive == newIsActive) {
                 return;
             }
-            if (newIsActive) {
-                var levels = GetLogsByLevel(SelectedMinLogLevel);
-                levels.ForEach((m) => { if (IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-            } else {
-                LogsTrace.ForEach((m) => { Logs.Remove(m); });
-                LogsDebug.ForEach((m) => { Logs.Remove(m); });
-                LogsInfo.ForEach((m) => { Logs.Remove(m); });
-                LogsWarn.ForEach((m) => { Logs.Remove(m); });
-                LogsError.ForEach((m) => { Logs.Remove(m); });
-                LogsFatal.ForEach((m) => { Logs.Remove(m); });
-            }
-        }
 
-        private List<LogViewModel> GetLogsByLevel(LoggingLevel level) {
-            if (level == LoggingLevel.TRACE) {
-                return LogsTrace.Union(LogsDebug).Union(LogsInfo).Union(LogsWarn).Union(LogsError).Union(LogsFatal).ToList();
-            }
-            else if (level == LoggingLevel.DEBUG) {
-                return LogsDebug.Union(LogsInfo).Union(LogsWarn).Union(LogsError).Union(LogsFatal).ToList();
-            }
-            else if (level == LoggingLevel.INFO) {
-                return LogsInfo.Union(LogsWarn).Union(LogsError).Union(LogsFatal).ToList();
-            }
-            else if (level == LoggingLevel.WARN) {
-                return LogsWarn.Union(LogsError).Union(LogsFatal).ToList();
-            }
-            else if (level == LoggingLevel.ERROR) {
-                return LogsError.Union(LogsFatal).ToList();
-            }
-            else if (level == LoggingLevel.FATAL) {
-                return LogsFatal.ToList();
-            }
-            return new List<LogViewModel>();
+            if (newIsActive)
+                Logs.Add(GetLogsFromLevel(SelectedMinLogLevel), IsNamespaceActiveSearchCriteriaMatch);
+            else
+                Logs.Remove(GetLogsFromLevel(LoggingLevel.TRACE));
         }
 
         public void UpdateByNamespaceChange(NamespaceViewModel ns) {
             if (!IsActive) {
                 return;
             }
-            var logs = GetLogsByLevel(SelectedMinLogLevel);
-            if (ns.IsChecked) {
-                List<LogViewModel> logsToAdd = logs.Where(m => Name + Constants.NAMESPACE_SPLITTER + m.Namespace == ns.Fullname).ToList();
-                logsToAdd.ForEach((m) => { if (IsSearchCriteriaMatch(m)) Logs.AddOrdered(m); });
-            } else {
-                List<LogViewModel> logsToRemove = logs.Where(m => Name + Constants.NAMESPACE_SPLITTER + m.Namespace == ns.Fullname).ToList();
-                logsToRemove.ForEach((m) => { Logs.Remove(m); });
-            }
+
+            var nsName = ns.Fullname;
+            var logs = GetLogsFromLevel(SelectedMinLogLevel)
+                .Where(m => $"{Name}{Constants.NAMESPACE_SPLITTER}{m.Namespace}" == nsName);
+
+            if (ns.IsChecked)
+                Logs.Add(logs, IsSearchCriteriaMatch);
+            else
+                Logs.Remove(logs);
         }
 
         public void UpdateMaxNumberOfLogs(int maxNumberOfLogs) {
-
             if (MaxNumberOfLogsPerLevel <= maxNumberOfLogs) {
                 MaxNumberOfLogsPerLevel = maxNumberOfLogs;
                 return;
             }
 
             MaxNumberOfLogsPerLevel = maxNumberOfLogs;
-            List<LogViewModel> logsToRemove = new List<LogViewModel>();
-            List<LogViewModel> logsToRemoveTrace = LogsTrace.Take(LogsTrace.Count - maxNumberOfLogs).ToList();
-            logsToRemoveTrace.ForEach((m) => { LogsTrace.Remove(m); });
-            List<LogViewModel> logsToRemoveDebug = LogsDebug.Take(LogsDebug.Count - maxNumberOfLogs).ToList();
-            logsToRemoveDebug.ForEach((m) => { LogsDebug.Remove(m); });
-            List<LogViewModel> logsToRemoveInfo = LogsInfo.Take(LogsInfo.Count - maxNumberOfLogs).ToList();
-            logsToRemoveInfo.ForEach((m) => { LogsInfo.Remove(m); });
-            List<LogViewModel> logsToRemoveWarn = LogsWarn.Take(LogsWarn.Count - maxNumberOfLogs).ToList();
-            logsToRemoveWarn.ForEach((m) => { LogsWarn.Remove(m); });
-            List<LogViewModel> logsToRemoveError = LogsError.Take(LogsError.Count - maxNumberOfLogs).ToList();
-            logsToRemoveError.ForEach((m) => { LogsError.Remove(m); });
-            List<LogViewModel> logsToRemoveFatal = LogsFatal.Take(LogsFatal.Count - maxNumberOfLogs).ToList();
-            logsToRemoveFatal.ForEach((m) => { LogsFatal.Remove(m); });
+            var logsToRemoveTrace = RemoveSurplus(LogsTrace, maxNumberOfLogs);
+            var logsToRemoveDebug = RemoveSurplus(LogsDebug, maxNumberOfLogs);
+            var logsToRemoveInfo = RemoveSurplus(LogsInfo, maxNumberOfLogs);
+            var logsToRemoveWarn = RemoveSurplus(LogsWarn, maxNumberOfLogs);
+            var logsToRemoveError = RemoveSurplus(LogsError, maxNumberOfLogs);
+            var logsToRemoveFatal = RemoveSurplus(LogsFatal, maxNumberOfLogs);
 
-            logsToRemove.AddRange(logsToRemoveTrace);
-            logsToRemove.AddRange(logsToRemoveDebug);
-            logsToRemove.AddRange(logsToRemoveInfo);
-            logsToRemove.AddRange(logsToRemoveWarn);
-            logsToRemove.AddRange(logsToRemoveError);
-            logsToRemove.AddRange(logsToRemoveFatal);
+            if (IsActive) {
+                var logsToRemove = logsToRemoveTrace
+                    .Concat(logsToRemoveDebug)
+                    .Concat(logsToRemoveInfo)
+                    .Concat(logsToRemoveWarn)
+                    .Concat(logsToRemoveError)
+                    .Concat(logsToRemoveFatal);
 
-            logsToRemove.ForEach((m) => {
-                if (IsActive && LoggingLevel.IsLogLevelAboveMin(m.Level, SelectedMinLogLevel) && IsNamespaceActive(m) && IsSearchCriteriaMatch(m)) {
-                    Logs.Remove(m);
-                }
-            });
+                Logs.Remove(logsToRemove, m =>
+                    m.Level >= SelectedMinLogLevel &&
+                    IsNamespaceActive(m) &&
+                    IsSearchCriteriaMatch(m));
+            }
         }
 
         public void UpdateSearchCriteria(SearchOptions searchOptions) {
@@ -238,63 +160,34 @@ namespace LogApplication.ViewModels {
             if (!IsActive) {
                 return;
             }
-            var logs = GetLogsByLevel(SelectedMinLogLevel);
 
-            List<LogViewModel> logsToAdd = logs.Where(m => IsSearchCriteriaMatch(m)).ToList();
-            logsToAdd.ForEach((m) => { if (IsNamespaceActive(m)) Logs.AddOrdered(m); });
-            List<LogViewModel> logsToRemove = logs.Where(m => !IsSearchCriteriaMatch(m)).ToList();
-            logsToRemove.ForEach((m) => { Logs.Remove(m); });
+            var logs = GetLogsFromLevel(SelectedMinLogLevel);
+            if (string.IsNullOrEmpty(searchOptions.Criteria))
+                Logs.Add(logs, IsNamespaceActive);
+            else {
+                var logsMatching = logs
+                    .GroupBy(m => IsSearchCriteriaMatch(m))
+                    .ToDictionary(g => g.Key);
+
+                if (logsMatching.TryGetValue(true, out var logsToAdd))
+                    Logs.Add(logsToAdd, IsNamespaceActive);
+                if (logsMatching.TryGetValue(false, out var logsToRemove))
+                    Logs.Remove(logsToRemove);
+            }
         }
 
         public void AddLog(LogViewModel log) {
-            LogViewModel logToRemove = null;
-            if (log.Level == LoggingLevel.TRACE) {
-                LogsTrace.Add(log);
-                if (LogsTrace.Count > MaxNumberOfLogsPerLevel) {
-                    var last = LogsTrace.First();
-                    LogsTrace.Remove(last);
-                    logToRemove = last;
-                }
-            } else if (log.Level == LoggingLevel.DEBUG) {
-                LogsDebug.Add(log);
-                if (LogsDebug.Count > MaxNumberOfLogsPerLevel) {
-                    var last = LogsDebug.First();
-                    LogsDebug.Remove(last);
-                    logToRemove = last;
-                }
-            } else if (log.Level == LoggingLevel.INFO) {
-                LogsInfo.Add(log);
-                if (LogsInfo.Count > MaxNumberOfLogsPerLevel) {
-                    var last = LogsInfo.First();
-                    LogsInfo.Remove(last);
-                    logToRemove = last;
-                }
-            } else if (log.Level == LoggingLevel.WARN) {
-                LogsWarn.Add(log);
-                if (LogsWarn.Count > MaxNumberOfLogsPerLevel) {
-                    var last = LogsWarn.First();
-                    LogsWarn.Remove(last);
-                    logToRemove = last;
-                }
-            } else if (log.Level == LoggingLevel.ERROR) {
-                LogsError.Add(log);
-                if (LogsError.Count > MaxNumberOfLogsPerLevel) {
-                    var last = LogsError.First();
-                    LogsError.Remove(last);
-                    logToRemove = last;
-                }
-            } else if (log.Level == LoggingLevel.FATAL) {
-                LogsFatal.Add(log);
-                if (LogsFatal.Count > MaxNumberOfLogsPerLevel) {
-                    var last = LogsFatal.First();
-                    LogsFatal.Remove(last);
-                    logToRemove = last;
-                }
-            }
+            var logToRemove = AddByLevelPossiblyRemovingFirst(log);
 
-            if (IsActive && LoggingLevel.IsLogLevelAboveMin(log.Level, SelectedMinLogLevel) && IsNamespaceActive(log) && IsSearchCriteriaMatch(log)) {
-                Logs.Insert(0, log);
-                if (logToRemove != null) {
+            if (IsActive &&
+                SelectedMinLogLevel != LoggingLevel.NOT_SET &&
+                log.Level >= SelectedMinLogLevel &&
+                IsNamespaceActive(log) &&
+                IsSearchCriteriaMatch(log)) {
+
+                Logs.AddLeading(log);
+
+                if (logToRemove is not null) {
                     Logs.Remove(logToRemove);
                 }
             }
@@ -305,33 +198,21 @@ namespace LogApplication.ViewModels {
                 var criteria = SearchOptions.Criteria;
 
                 // Default
-                if (String.IsNullOrEmpty(criteria)) {
+                if (string.IsNullOrEmpty(criteria)) {
                     return true;
                 }
 
                 // Search
-                criteria = criteria.ToLowerInvariant();
-                if (!SearchOptions.IsInverted) {
-                    if ((!String.IsNullOrEmpty(log.Application) && log.Application.ToLowerInvariant().Contains(criteria)) ||
-                        (!String.IsNullOrEmpty(log.Namespace) && log.Namespace.ToLowerInvariant().Contains(criteria)) ||
-                        (!String.IsNullOrEmpty(log.Message) && log.Message.ToLowerInvariant().Contains(criteria)) ||
-                        (!String.IsNullOrEmpty(log.Exception) && log.Exception.ToLowerInvariant().Contains(criteria))) {
-                        return true;
-                    }
-                    return false;
+                if ((!string.IsNullOrEmpty(log.Application) && log.Application.Contains(criteria, StringComparison.CurrentCultureIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(log.Namespace) && log.Namespace.Contains(criteria, StringComparison.CurrentCultureIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(log.Message) && log.Message.Contains(criteria, StringComparison.CurrentCultureIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(log.Exception) && log.Exception.Contains(criteria, StringComparison.CurrentCultureIgnoreCase))) {
+                    return !SearchOptions.IsInverted;
                 }
-                else {
-                    if ((!String.IsNullOrEmpty(log.Application) && log.Application.ToLowerInvariant().Contains(criteria)) ||
-                        (!String.IsNullOrEmpty(log.Namespace) && log.Namespace.ToLowerInvariant().Contains(criteria)) ||
-                        (!String.IsNullOrEmpty(log.Message) && log.Message.ToLowerInvariant().Contains(criteria)) ||
-                        (!String.IsNullOrEmpty(log.Exception) && log.Exception.ToLowerInvariant().Contains(criteria))) {
-                        return false;
-                    }
-                    return true;
-                }
+                return SearchOptions.IsInverted;
             }
             catch (Exception e) {
-                Console.WriteLine("Invalid search criteria: " + e);
+                Logger.Error(e, "Invalid search criteria");
                 return false;
             }
         }
@@ -339,51 +220,77 @@ namespace LogApplication.ViewModels {
         private bool IsNamespaceActive(LogViewModel log) {
             // Try to get existing root namespace with name of application
             var nsApplication = Namespaces.FirstOrDefault(m => m.Name == log.Application);
-            if (nsApplication == null) {
-                return false;
-            }
-
-            // Example: Verbosus.VerbTeX.View
-            string nsLogFull = log.Namespace;
-            // Example: Verbosus
-            string nsLogPart = nsLogFull.Split(new string[] { Constants.NAMESPACE_SPLITTER }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            // Try to get existing namespace with name Verbosus
-            var ns = nsApplication.Children.FirstOrDefault(m => m.Name == nsLogPart);
-            if (ns == null) {
-                return false;
-            }
-            if (nsLogFull.Contains(Constants.NAMESPACE_SPLITTER)) {
-                return IsNamespaceActive(ns, nsLogFull.Substring(nsLogFull.IndexOf(Constants.NAMESPACE_SPLITTER) + 1));
-            }
-            else {
-                return ns.IsChecked;
-            }
+            return nsApplication is not null && IsNamespaceActive(nsApplication, log.Namespace);
         }
 
-        private bool IsNamespaceActive(NamespaceViewModel parent, string suffix) {
+        private static bool IsNamespaceActive(NamespaceViewModel parent, string suffix) {
             // Example: VerbTeX.View (Verbosus was processed before)
-            string nsLogFull = suffix;
+            var nsLogFull = suffix;
             // Example: VerbTeX
-            string nsLogPart = nsLogFull.Split(new string[] { Constants.NAMESPACE_SPLITTER }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            var nsLogPart = nsLogFull?.Split([Constants.NAMESPACE_SPLITTER], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
             // Try to get existing namespace with name VerbTeX
             var nsChild = parent.Children.FirstOrDefault(m => m.Name == nsLogPart);
             if (nsChild == null) {
                 return false;
             }
-            if (suffix.Contains(Constants.NAMESPACE_SPLITTER)) {
-                return IsNamespaceActive(nsChild, suffix.Substring(suffix.IndexOf(Constants.NAMESPACE_SPLITTER) + 1));
-            }
-            else {
-                return nsChild.IsChecked;
-            }
+
+            var index = nsLogFull is null ? -1 : nsLogFull.IndexOf(Constants.NAMESPACE_SPLITTER);
+            return index >= 0
+                ? IsNamespaceActive(nsChild, nsLogFull![(index + 1)..])
+                : nsChild.IsChecked;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        private bool IsNamespaceActiveSearchCriteriaMatch(LogViewModel log) =>
+            IsNamespaceActive(log) && IsSearchCriteriaMatch(log);
 
-        private void OnPropertyChanged(string property) {
-            if (PropertyChanged != null) {
-                PropertyChanged(this, new PropertyChangedEventArgs(property));
+        private List<LogViewModel>? GetLogsByLevel(LoggingLevel level) =>
+            level switch {
+                var l when l == LoggingLevel.TRACE => LogsTrace,
+                var l when l == LoggingLevel.DEBUG => LogsDebug,
+                var l when l == LoggingLevel.INFO => LogsInfo,
+                var l when l == LoggingLevel.WARN => LogsWarn,
+                var l when l == LoggingLevel.ERROR => LogsError,
+                var l when l == LoggingLevel.FATAL => LogsFatal,
+                _ => null,
+            };
+
+        private IEnumerable<LogViewModel> GetLogsFromLevel(LoggingLevel level) =>
+            level switch {
+                var l when l == LoggingLevel.TRACE => LogsTrace.Concat(LogsDebug).Concat(LogsInfo).Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
+                var l when l == LoggingLevel.DEBUG => LogsDebug.Concat(LogsInfo).Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
+                var l when l == LoggingLevel.INFO => LogsInfo.Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
+                var l when l == LoggingLevel.WARN => LogsWarn.Concat(LogsError).Concat(LogsFatal),
+                var l when l == LoggingLevel.ERROR => LogsError.Concat(LogsFatal),
+                var l when l == LoggingLevel.FATAL => LogsFatal,
+                _ => [],
+            };
+
+        private LogViewModel? AddByLevelPossiblyRemovingFirst(LogViewModel log) {
+            LogViewModel? logToRemove = null;
+
+            var currentLevelLogs = GetLogsByLevel(log.Level);
+            if (currentLevelLogs is not null) {
+                currentLevelLogs.Add(log);
+
+                if (currentLevelLogs.Count > MaxNumberOfLogsPerLevel) {
+                    var last = currentLevelLogs.First();
+                    currentLevelLogs.Remove(last);
+                    logToRemove = last;
+                }
             }
+
+            return logToRemove;
+        }
+
+        private static List<LogViewModel> RemoveSurplus(List<LogViewModel> levelLogs, int maxNumberOfLogs) {
+            var count = levelLogs.Count - maxNumberOfLogs;
+            if (count <= 0) {
+                return [];
+            }
+
+            var logsToRemove = levelLogs.Take(count).ToList();
+            levelLogs.RemoveRange(0, count);
+            return logsToRemove;
         }
     }
 }

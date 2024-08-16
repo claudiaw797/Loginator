@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogApplication.ViewModels {
+namespace Loginator.ViewModels {
     using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Runtime.CompilerServices;
@@ -23,7 +23,7 @@ namespace LogApplication.ViewModels {
     using System.Diagnostics;
     using NLog;
     using AutoMapper;
-    using LogApplication.Collections;
+    using Loginator.Collections;
     using Loginator.ViewModels;
     using Loginator.Controls;
 
@@ -60,7 +60,7 @@ namespace LogApplication.ViewModels {
             }
         }
 
-        public IList<LoggingLevel> LogLevels { get; } = LoggingLevel.GetAllLoggingLevels().OrderBy(x => x.Id).ToList();
+        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
 
         private LoggingLevel selectedInitialLogLevel;
 
