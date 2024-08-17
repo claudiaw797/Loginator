@@ -19,7 +19,7 @@ namespace Loginator.ViewModels {
     /// </summary>
     public partial class ApplicationViewModel : ObservableObject {
 
-        public string Name { get; set; }
+        public string Name { get; private set; }
         public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
 
         private OrderedObservableCollection Logs { get; set; }
