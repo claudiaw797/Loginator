@@ -43,13 +43,13 @@ namespace Loginator.ViewModels {
             }
         }
         
-        private int numberOfLogsPerApplicationAndLevelInternal;
         private int numberOfLogsPerLevel;
         public int NumberOfLogsPerLevel {
             get { return numberOfLogsPerLevel; }
-            set {
+            private set {
                 numberOfLogsPerLevel = value;
                 OnPropertyChanged(nameof(NumberOfLogsPerLevel));
+                updateNumberOfLogsPerLevelCommand?.NotifyCanExecuteChanged();
             }
         }
 
@@ -289,7 +289,9 @@ namespace Loginator.ViewModels {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
                     if (application == null) {
-                        application = new ApplicationViewModel(log.Application, Logs, Namespaces, SelectedInitialLogLevel);
+                        application = new ApplicationViewModel(log.Application, Logs, Namespaces, SelectedInitialLogLevel) {
+                            MaxNumberOfLogsPerLevel = NumberOfLogsPerLevel
+                        };
                         Applications.Add(application);
                     }
                 }
@@ -411,22 +413,22 @@ namespace Loginator.ViewModels {
             });
         }
 
-        private ICommand? updateNumberOfLogsPerLevelCommand;
+        private RelayCommand<int>? updateNumberOfLogsPerLevelCommand;
         public ICommand UpdateNumberOfLogsPerLevelCommand {
             get {
-                updateNumberOfLogsPerLevelCommand ??= new RelayCommand(UpdateNumberOfLogsPerLevel, CanUpdateNumberOfLogsPerLevel);
+                updateNumberOfLogsPerLevelCommand ??= new RelayCommand<int>(UpdateNumberOfLogsPerLevel, CanUpdateNumberOfLogsPerLevel);
                 return updateNumberOfLogsPerLevelCommand;
             }
         }
-        private bool CanUpdateNumberOfLogsPerLevel() {
-            return true;
+        private bool CanUpdateNumberOfLogsPerLevel(int value) {
+            return value > 0 && value != NumberOfLogsPerLevel;
         }
-        public void UpdateNumberOfLogsPerLevel() {
+        public void UpdateNumberOfLogsPerLevel(int value) {
             DispatcherHelper.CheckBeginInvokeOnUI(() => {
                 lock (ViewModelConstants.SYNC_OBJECT) {
-                    numberOfLogsPerApplicationAndLevelInternal = NumberOfLogsPerLevel;
+                    NumberOfLogsPerLevel = value;
                     foreach (var application in Applications) {
-                        application.MaxNumberOfLogsPerLevel = numberOfLogsPerApplicationAndLevelInternal;
+                        application.MaxNumberOfLogsPerLevel = value;
                     }
                 }
             });
