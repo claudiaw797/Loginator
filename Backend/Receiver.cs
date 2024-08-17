@@ -18,7 +18,7 @@ using NLog;
 
 namespace Backend {
 
-    public class Receiver {
+    public class Receiver : IReceiver {
 
         private ILogger Logger { get; set; }
         private LogType LogType { get; set; }

@@ -29,7 +29,7 @@ namespace Loginator.ViewModels {
         private IApplicationConfiguration ApplicationConfiguration { get; set; }
         private ILogger Logger { get; set; }
         private IMapper Mapper { get; set; }
-        private Receiver? Receiver { get; set; }
+        private IReceiver? Receiver { get; set; }
         private Timer? Timer { get; set; }
 
         private LogTimeFormat LogTimeFormat { get; set; }
@@ -137,7 +137,7 @@ namespace Loginator.ViewModels {
         public void StartListener() {
             if (Receiver is not null) return;
 
-            Receiver = IoC.Get<Receiver>();
+            Receiver = IoC.Get<IReceiver>();
             Receiver.LogReceived += Receiver_LogReceived;
             Timer = new Timer(Callback, null, TIME_INTERVAL_IN_MILLISECONDS, Timeout.Infinite);
             Receiver.Initialize(ConfigurationDao.Read());

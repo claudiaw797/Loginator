@@ -12,7 +12,7 @@ namespace Backend.Bootstrapper {
         public static void Initialize(IContainer container) {
             Console.WriteLine("Bootstrapping DI: Backend");
             container.Configure(m => {
-                m.For<Receiver>().Singleton().Use<Receiver>();
+                m.For<IReceiver>().Singleton().Use<Receiver>();
                 m.For<IConfigurationDao>().Singleton().Use<ConfigurationDaoSettings>();
             });
         }
