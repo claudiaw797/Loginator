@@ -4,9 +4,9 @@ using System.Linq;
 namespace Loginator.UnitTests.ViewModels {
 
     /// <summary>
-    /// Represents test data for <see cref="ApplicationViewModelTests"/>.
+    /// Represents test data for view model tests.
     /// </summary>
-    internal class ApplicationViewModelTestData {
+    internal class TestData {
 
         public static readonly object[] AllLogLevels = [
             new object[] { LoggingLevel.NOT_SET },

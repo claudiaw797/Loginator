@@ -33,7 +33,7 @@ namespace Loginator.ViewModels
 
                     if (command == UpdateCommandClear)
                     {
-                        Criteria = string.Empty;
+                        Criteria = null;
                     }
                     else if (command == UpdateCommandSearch)
                     {

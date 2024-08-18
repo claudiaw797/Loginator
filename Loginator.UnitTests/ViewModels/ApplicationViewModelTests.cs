@@ -18,14 +18,17 @@ namespace Loginator.UnitTests.ViewModels {
         private const string APP_NAME = "TestApp";
         private const string NAMESPACE_NAME = "TestNs";
 
-        private ApplicationViewModel sut;
-        private NamespaceViewModel namespaceApp;
+        private readonly ApplicationViewModel sut;
+        private readonly NamespaceViewModel namespaceApp;
         private readonly ObservableCollection<NamespaceViewModel> namespaces = [];
         private readonly OrderedObservableCollection logs = [];
 
         private readonly IEnumerable<LogViewModel> testItems;
 
         public ApplicationViewModelTests() {
+            sut = new ApplicationViewModel(APP_NAME, logs, namespaces, LoggingLevel.NOT_SET);
+            namespaceApp = new NamespaceViewModel(APP_NAME, sut);
+
             DateTime ts = DateTime.Now;
             var itemV = LogVM(LoggingLevel.TRACE, ts.AddMinutes(1));
             var itemD = LogVM(LoggingLevel.DEBUG, ts.AddMinutes(2));
@@ -39,8 +42,6 @@ namespace Loginator.UnitTests.ViewModels {
 
         [SetUp]
         public void Setup() {
-            sut = new ApplicationViewModel(APP_NAME, logs, namespaces, LoggingLevel.NOT_SET);
-            namespaceApp = new NamespaceViewModel(APP_NAME, sut);
             var ns = new NamespaceViewModel(NAMESPACE_NAME, sut) { Parent = namespaceApp };
             namespaceApp.Children.Add(ns);
         }
@@ -59,7 +60,7 @@ namespace Loginator.UnitTests.ViewModels {
             namespaces.Should().BeEmpty();
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.AllLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
         public void Cannot_show_logs_without_namespace(LoggingLevel level) {
             sut.SelectedMinLogLevel = level;
 
@@ -68,7 +69,7 @@ namespace Loginator.UnitTests.ViewModels {
             logs.Should().BeEmpty();
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.ValidLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
         public void Can_show_logs_for_present_namespace(LoggingLevel level) {
             AssertOrderNamespaceLevelItems(level);
         }
@@ -78,7 +79,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertOrderNamespaceLevelItems(LoggingLevel.NOT_SET);
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.ValidLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
         public void Can_show_logs_for_updated_namespace(LoggingLevel level) {
             AssertOrderLevelItemsNamespace(level);
         }
@@ -108,7 +109,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertOrderNamespaceItemsLevel(LoggingLevel.NOT_SET);
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.AllLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
         public void Can_hide_logs_for_inactive_application(LoggingLevel level) {
             AddItemsToSut(setNamespaceFirst: true);
 
@@ -122,7 +123,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertLogs(expectedItems);
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.AllLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
         public void Can_hide_logs_for_inactive_namespace(LoggingLevel level) {
             AddItemsToSut(setNamespaceFirst: true);
 
@@ -136,7 +137,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertLogs(expectedItems);
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.AllLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
         public void Can_remove_surplus_logs(LoggingLevel level) {
             var allItems1 = AddItemsToSut(setNamespaceFirst: true);
             var expectedItems1 = GetExpectedItemsFromLevel(level, allItems1);
@@ -156,7 +157,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertLogs(expectedItems3);
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.ValidLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
         public void Can_show_logs_for_present_search_options(LoggingLevel level) {
             AssertOrderLevelSearchNamespaceItems(level);
         }
@@ -166,7 +167,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertOrderLevelSearchNamespaceItems(LoggingLevel.NOT_SET);
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.ValidLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
         public void Can_show_logs_for_present_search_options_with_inversion(LoggingLevel level) {
             AssertOrderLevelSearchInvertedNamespaceItems(level);
         }
@@ -176,7 +177,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertOrderLevelSearchInvertedNamespaceItems(LoggingLevel.NOT_SET);
         }
 
-        [TestCaseSource(typeof(ApplicationViewModelTestData), nameof(ApplicationViewModelTestData.AllLogLevels))]
+        [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
         public void Can_show_logs_for_updated_search_options(LoggingLevel level) {
             sut.SelectedMinLogLevel = level;
 
@@ -223,9 +224,6 @@ namespace Loginator.UnitTests.ViewModels {
             sut.SearchOptions = Search();
             logs.Should().BeEmpty();
         }
-
-        private void AssertLogs(params IEnumerable<LogViewModel>[] expected) =>
-            logs.Should().BeEquivalentTo(expected.SelectMany(e => e), c => c.WithStrictOrdering());
 
         private void AssertOrderNamespaceItemsLevel(LoggingLevel level) {
             var expectedItems = GetExpectedItemsFromLevel(level);
@@ -275,6 +273,9 @@ namespace Loginator.UnitTests.ViewModels {
 
             AssertLogs(expectedItems3, expectedItems1);
         }
+
+        private void AssertLogs(params IEnumerable<LogViewModel>[] expected) =>
+            logs.Should().BeEquivalentTo(expected.SelectMany(e => e), c => c.WithStrictOrdering());
 
         private IEnumerable<LogViewModel> AddItemsToSut(bool setNamespaceFirst = false) {
             if (setNamespaceFirst)
@@ -329,9 +330,18 @@ namespace Loginator.UnitTests.ViewModels {
             : (items ?? testItems).TakeWhile(item => item.Level >= level);
 
         private static LogViewModel LogVM(LoggingLevel level, DateTime ts, string message = "One") =>
-            new() { Application = APP_NAME, Namespace = NAMESPACE_NAME, Level = level, Timestamp = ts, Message = $"start {message} end" };
+            new() {
+                Application = APP_NAME,
+                Namespace = NAMESPACE_NAME,
+                Level = level,
+                Timestamp = ts,
+                Message = $"start {message} end"
+            };
 
         private static SearchOptions Search(string? criteria = null, bool isInverted = false) =>
-            new() { Criteria = criteria, IsInverted = isInverted };
+            new() {
+                Criteria = criteria,
+                IsInverted = isInverted
+            };
     }
 }
