@@ -81,16 +81,16 @@ namespace Loginator.ViewModels {
         public ObservableCollection<NamespaceViewModel> Namespaces { get; private set; }
         public ObservableCollection<ApplicationViewModel> Applications { get; private set; }
 
-        private NamespaceViewModel? _selectedNamespaceViewModel;
+        private NamespaceViewModel? selectedNamespaceViewModel;
         public NamespaceViewModel? SelectedNamespaceViewModel {
-            get { return _selectedNamespaceViewModel; }
+            get { return selectedNamespaceViewModel; }
             set {
-                if (_selectedNamespaceViewModel != null) {
-                    _selectedNamespaceViewModel.IsHighlighted = false;
+                if (selectedNamespaceViewModel is not null) {
+                    selectedNamespaceViewModel.IsHighlighted = false;
                 }
-                _selectedNamespaceViewModel = value;
-                if (_selectedNamespaceViewModel != null) {
-                    _selectedNamespaceViewModel.IsHighlighted = true;
+                selectedNamespaceViewModel = value;
+                if (selectedNamespaceViewModel is not null) {
+                    selectedNamespaceViewModel.IsHighlighted = true;
                 }
                 OnPropertyChanged(nameof(SelectedNamespaceViewModel));
             }
@@ -315,9 +315,11 @@ namespace Loginator.ViewModels {
         }
 
         private void SetNamespaceHighlight(LogViewModel? log) {
-            if (log != null) {
-                SelectedNamespaceViewModel = Namespaces.Flatten(x => x.Children).FirstOrDefault(model => model.Fullname.Equals($"{log.Application}{Constants.NAMESPACE_SPLITTER}{log.Namespace}"));
-            }
+            SelectedNamespaceViewModel = log is null
+                ? null
+                : Namespaces
+                    .Flatten(x => x.Children)
+                    .FirstOrDefault(nsp => nsp.Fullname.Equals($"{log.Application}{Constants.NAMESPACE_SPLITTER}{log.Namespace}"));
         }
 
         private void ClearNamespaceHighlight() {
