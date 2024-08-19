@@ -10,11 +10,9 @@ using Loginator.Collections;
 using Loginator.Controls;
 using NLog;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -32,6 +30,7 @@ namespace Loginator.ViewModels {
         private IMapper Mapper { get; set; }
         private IReceiver? Receiver { get; set; }
         private ITimer Timer { get; set; }
+        private IStopwatch Stopwatch { get; set; }
 
         private LogTimeFormat LogTimeFormat { get; set; }
 
@@ -103,6 +102,7 @@ namespace Loginator.ViewModels {
             IApplicationConfiguration applicationConfiguration,
             IConfigurationDao configurationDao,
             IMapper mapper,
+            IStopwatch stopwatch,
             TimeProvider timeProvider) {
             ApplicationConfiguration = applicationConfiguration;
             ConfigurationDao = configurationDao;
@@ -116,6 +116,7 @@ namespace Loginator.ViewModels {
             Namespaces = [];
             Applications = [];
             Mapper = mapper;
+            Stopwatch = stopwatch;
             Search = new SearchViewModel();
             Search.UpdateSearch += Search_OnUpdateSearch;
             Timer = timeProvider.CreateTimer(Callback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -166,31 +167,21 @@ namespace Loginator.ViewModels {
                 try {
                     Logger.Info("Processing {0} new log items", LogsToInsert.Count);
 
-                    // TODO: Refactor this so we can use using(...)
-                    Stopwatch sw = new Stopwatch();
                     var logsToInsert = LogsToInsert.OrderBy(m => m.Timestamp);
 
                     // 1. Add missing applications using incoming logs
-                    sw.Start();
+                    Stopwatch.Start();
                     UpdateApplications(logsToInsert);
-                    sw.Stop();
-                    if (ApplicationConfiguration.IsTimingTraceEnabled) {
-                        Logger.Trace("[UpdateApplications] " + sw.ElapsedMilliseconds + "ms");
-                    }
-                    // 2. Add missing namespaces using incoming logs
-                    sw.Restart();
-                    UpdateNamespaces(logsToInsert);
-                    sw.Stop();
-                    if (ApplicationConfiguration.IsTimingTraceEnabled) {
-                        Logger.Trace("[UpdateNamespaces] " + sw.ElapsedMilliseconds + "ms");
-                    }
+                    Stopwatch.TraceElapsedTime("[UpdateApplications]");
 
-                    sw.Restart();
+                    // 2. Add missing namespaces using incoming logs
+                    Stopwatch.Start();
+                    UpdateNamespaces(logsToInsert);
+                    Stopwatch.TraceElapsedTime("[UpdateNamespaces]");
+
+                    Stopwatch.Start();
                     AddLogs(logsToInsert);
-                    sw.Stop();
-                    if (ApplicationConfiguration.IsTimingTraceEnabled) {
-                        Logger.Trace("[UpdateLogs] " + sw.ElapsedMilliseconds + "ms");
-                    }
+                    Stopwatch.TraceElapsedTime("[UpdateLogs]");
 
                     LogsToInsert.Clear();
                 }

@@ -13,7 +13,6 @@ using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework.Internal;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -90,8 +89,9 @@ namespace Loginator.UnitTests.ViewModels {
             var appConfig = A.Fake<IApplicationConfiguration>();
             var configDao = A.Fake<IConfigurationDao>();
             var mapper = A.Fake<IMapper>();
+            var stopwatch = A.Fake<IStopwatch>();
 
-            var sut = new LoginatorViewModel(appConfig, configDao, mapper, timeProvider);
+            var sut = new LoginatorViewModel(appConfig, configDao, mapper, stopwatch, timeProvider);
 
             sut.IsActive.Should().BeTrue();
             sut.NumberOfLogsPerLevel.Should().BeGreaterThan(100);
@@ -273,7 +273,7 @@ namespace Loginator.UnitTests.ViewModels {
             sut.SelectedInitialLogLevel = level;
 
             (var expectedItems1, var expectedItems2) = AddItemsOneTwoDifferentAppsToSut(level);
-            
+
             var actual = sut.Applications.All(app => app.IsActive);
             actual.Should().BeTrue();
             AssertLogs(expectedItems2, expectedItems1);
@@ -403,7 +403,7 @@ namespace Loginator.UnitTests.ViewModels {
                 AssertNamespaceLevelCounts(ns, expectZero: false);
             }
         }
-           
+
         private NamespaceViewModel AssertSelectedNamespaceFromSelectedLog(Log item) {
             var current = GetViewModel(item);
             var expected = $"{current.Application}{Constants.NAMESPACE_SPLITTER}{current.Namespace}";
@@ -546,7 +546,8 @@ namespace Loginator.UnitTests.ViewModels {
 
             DispatcherHelper.Initialize();
 
-            var sut = new LoginatorViewModel(appConfig, configDao, mapper, timeProvider);
+            var stopwatch = A.Fake<IStopwatch>();
+            var sut = new LoginatorViewModel(appConfig, configDao, mapper, stopwatch, timeProvider);
             sut.StartListener();
 
             return sut;
