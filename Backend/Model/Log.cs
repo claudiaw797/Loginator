@@ -20,7 +20,7 @@ namespace Backend.Model {
         /// <summary>
         /// The exception details including the stacktrace. May not be available.
         /// </summary>
-        public string Exception { get; set; }
+        public string? Exception { get; set; }
         /// <summary>
         /// Gets or sets the machine name of the log. May not be available.
         /// </summary>

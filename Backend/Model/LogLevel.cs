@@ -29,6 +29,9 @@ namespace Backend.Model {
             ShortName = shortName;
         }
 
+        public static LoggingLevel? FromId(int id) =>
+            GetAllLogLevels().FirstOrDefault(m => m.Id == id);
+
         public static LoggingLevel? FromName(string name) =>
             GetAllLogLevels().FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 

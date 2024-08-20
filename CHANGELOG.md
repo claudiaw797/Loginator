@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.3] - 2024-08-20
+
+### Changed
+
+- Improve user-friendliness of setting the maximum number of loaded log entries per level
+- Allow using fake TimeProvider for testing log entry loading
+- Refactorings (LoginatorViewModel)
+
+### Added
+
+- Add interface and implementations for Stopwatch, allowing configuration 'IsTimingTraceEnabled' to do nothing if set to false, otherwise provide a simple to use, low resource stopwatch
+
 ## [1.7.2] - 2024-08-17
 
 ### Changed

@@ -104,7 +104,7 @@ namespace Loginator.ViewModels {
                     LogTimeFormat = LogTimeFormat
                 };
                 ConfigurationDao.Write(configuration);
-                IoC.Get<Receiver>().Initialize(configuration);
+                IoC.Get<IReceiver>().Initialize(configuration);
                 CloseAction();
             } catch (Exception ex) {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Stop, MessageBoxResult.OK);
