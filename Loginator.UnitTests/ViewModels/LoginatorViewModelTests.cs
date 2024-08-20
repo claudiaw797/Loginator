@@ -76,7 +76,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         [TearDown]
         public void TearDown() {
-            sut.ClearAll();
+            sut.ClearAllCommand.Execute(null);
             sut.UpdateNumberOfLogsPerLevelCommand.Execute(Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL);
             sut.IsActive = true;
             sut.SelectedInitialLogLevel = LoggingLevel.NOT_SET;
@@ -86,19 +86,18 @@ namespace Loginator.UnitTests.ViewModels {
 
         [Test]
         public void Can_create_sut() {
-            var appConfig = A.Fake<IApplicationConfiguration>();
             var configDao = A.Fake<IConfigurationDao>();
             var mapper = A.Fake<IMapper>();
             var stopwatch = A.Fake<IStopwatch>();
 
-            var sut = new LoginatorViewModel(appConfig, configDao, mapper, stopwatch, timeProvider);
+            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider);
 
             sut.IsActive.Should().BeTrue();
             sut.NumberOfLogsPerLevel.Should().BeGreaterThan(100);
             sut.Search.Should().NotBeNull();
             sut.SelectedInitialLogLevel.Should().NotBe(LoggingLevel.NOT_SET);
             sut.SelectedLog.Should().BeNull();
-            sut.SelectedNamespaceViewModel.Should().BeNull();
+            sut.SelectedNamespace.Should().BeNull();
             sut.Logs.Should().BeEmpty();
             sut.Namespaces.Should().BeEmpty();
             sut.Applications.Should().BeEmpty();
@@ -263,7 +262,7 @@ namespace Loginator.UnitTests.ViewModels {
 
                 sut.SelectedLog = null;
 
-                sut.SelectedNamespaceViewModel.Should().BeNull();
+                sut.SelectedNamespace.Should().BeNull();
                 last.IsHighlighted.Should().BeFalse();
             }
         }
@@ -278,7 +277,7 @@ namespace Loginator.UnitTests.ViewModels {
             actual.Should().BeTrue();
             AssertLogs(expectedItems2, expectedItems1);
 
-            sut.UnselectAllCommand.Execute(null);
+            sut.DeactivateAllApplicationsCommand.Execute(null);
 
             actual = sut.Applications.All(app => !app.IsActive);
             actual.Should().BeTrue();
@@ -291,16 +290,17 @@ namespace Loginator.UnitTests.ViewModels {
 
             (var expectedItems1, var expectedItems2) = AddItemsOneTwoDifferentAppsToSut(level);
 
-            var actual = sut.Applications.All(app => app.IsActive);
-            actual.Should().BeTrue();
+            sut.Applications.Should().NotBeEmpty();
+            sut.Applications.All(app => app.IsActive).Should().BeTrue();
+            sut.Namespaces.Should().NotBeEmpty();
             AssertLogs(expectedItems2, expectedItems1);
 
             sut.ClearLogsCommand.Execute(null);
 
-            actual = sut.Applications.All(app => app.IsActive);
-            actual.Should().BeTrue();
-            actual = sut.Namespaces.Flatten(ns => ns.Children).All(IsNamespaceDataEmpty);
-            actual.Should().BeTrue();
+            sut.Applications.Should().NotBeEmpty();
+            sut.Applications.All(app => app.IsActive && !app.HasLogs).Should().BeTrue();
+            sut.Namespaces.Should().NotBeEmpty();
+            sut.AllNamespaces().All(IsNamespaceDataEmpty).Should().BeTrue();
             sut.Logs.Should().BeEmpty();
         }
 
@@ -407,10 +407,10 @@ namespace Loginator.UnitTests.ViewModels {
         private NamespaceViewModel AssertSelectedNamespaceFromSelectedLog(Log item) {
             var current = GetViewModel(item);
             var expected = $"{current.Application}{Constants.NAMESPACE_SPLITTER}{current.Namespace}";
-            var last = sut.SelectedNamespaceViewModel;
+            var last = sut.SelectedNamespace;
 
             sut.SelectedLog = current;
-            var actual = sut.SelectedNamespaceViewModel!;
+            var actual = sut.SelectedNamespace!;
 
             if (last is not null && last != actual) {
                 last.IsHighlighted.Should().BeFalse();
@@ -527,12 +527,8 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         private LoginatorViewModel Sut() {
-            var appConfig = A.Fake<IApplicationConfiguration>();
-            A.CallTo(() => appConfig.IsMessageTraceEnabled).Returns(false);
-            A.CallTo(() => appConfig.IsTimingTraceEnabled).Returns(false);
-
             var config = new Configuration {
-                LogType = Common.LogType.CHAINSAW,
+                LogType = LogType.CHAINSAW,
                 PortChainsaw = 7071,
                 PortLogcat = 7081,
                 LogTimeFormat = LogTimeFormat.DO_NOT_CHANGE,
@@ -547,7 +543,7 @@ namespace Loginator.UnitTests.ViewModels {
             DispatcherHelper.Initialize();
 
             var stopwatch = A.Fake<IStopwatch>();
-            var sut = new LoginatorViewModel(appConfig, configDao, mapper, stopwatch, timeProvider);
+            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider);
             sut.StartListener();
 
             return sut;

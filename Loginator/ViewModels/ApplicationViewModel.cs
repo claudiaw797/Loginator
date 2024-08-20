@@ -19,9 +19,6 @@ namespace Loginator.ViewModels {
     /// </summary>
     public partial class ApplicationViewModel : ObservableObject {
 
-        public string Name { get; private set; }
-        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
-
         private OrderedObservableCollection Logs { get; set; }
         private List<LogViewModel> LogsTrace { get; set; }
         private List<LogViewModel> LogsDebug { get; set; }
@@ -31,30 +28,6 @@ namespace Loginator.ViewModels {
         private List<LogViewModel> LogsFatal { get; set; }
         private ObservableCollection<NamespaceViewModel> Namespaces { get; set; }
         private ILogger Logger { get; set; }
-
-        [ObservableProperty]
-        private LoggingLevel selectedMinLogLevel;
-
-        [ObservableProperty]
-        private bool isActive;
-
-        [ObservableProperty]
-        private int maxNumberOfLogsPerLevel;
-
-        [ObservableProperty]
-        private SearchOptions searchOptions;
-
-        partial void OnSelectedMinLogLevelChanged(LoggingLevel? oldValue, LoggingLevel newValue) =>
-            ExecuteLocked(() => UpdateByLogLevelChange(oldValue, newValue));
-
-        partial void OnIsActiveChanged(bool oldValue, bool newValue) =>
-            ExecuteLocked(() => UpdateByActiveChange(oldValue, newValue));
-
-        partial void OnMaxNumberOfLogsPerLevelChanged(int oldValue, int newValue) =>
-            ExecuteLocked(() => UpdateMaxNumberOfLogs(oldValue, newValue));
-
-        partial void OnSearchOptionsChanged(SearchOptions? oldValue, SearchOptions newValue) =>
-            ExecuteLocked(() => UpdateSearchCriteria(oldValue, newValue));
 
         public ApplicationViewModel(
             string name,
@@ -78,6 +51,34 @@ namespace Loginator.ViewModels {
             LogsError = [];
             LogsFatal = [];
         }
+
+        [ObservableProperty]
+        private LoggingLevel selectedMinLogLevel;
+        partial void OnSelectedMinLogLevelChanged(LoggingLevel? oldValue, LoggingLevel newValue) {
+            lock (ViewModelConstants.SYNC_OBJECT) UpdateByLogLevelChange(oldValue, newValue);
+        }
+
+        [ObservableProperty]
+        private bool isActive;
+        partial void OnIsActiveChanged(bool oldValue, bool newValue) {
+            lock (ViewModelConstants.SYNC_OBJECT) UpdateByActiveChange(oldValue, newValue);
+        }
+
+        [ObservableProperty]
+        private int maxNumberOfLogsPerLevel;
+        partial void OnMaxNumberOfLogsPerLevelChanged(int oldValue, int newValue) {
+            lock (ViewModelConstants.SYNC_OBJECT) UpdateMaxNumberOfLogs(oldValue, newValue);
+        }
+
+        [ObservableProperty]
+        private SearchOptions searchOptions;
+        partial void OnSearchOptionsChanged(SearchOptions? oldValue, SearchOptions newValue) {
+            lock (ViewModelConstants.SYNC_OBJECT) UpdateSearchCriteria(oldValue, newValue);
+        }
+
+        public string Name { get; private set; }
+
+        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
 
         public void ClearLogs() {
             LogsTrace = [];
@@ -119,6 +120,8 @@ namespace Loginator.ViewModels {
                 }
             }
         }
+
+        internal bool HasLogs => GetLogsFromLevel(LoggingLevel.TRACE).Any();
 
         private void UpdateByLogLevelChange(LoggingLevel? oldLogLevel, LoggingLevel? newLogLevel) {
             if (!IsActive) {
@@ -290,12 +293,6 @@ namespace Loginator.ViewModels {
             var logsToRemove = levelLogs.Take(count).ToList();
             levelLogs.RemoveRange(0, count);
             return logsToRemove;
-        }
-
-        private static void ExecuteLocked(Action action) {
-            lock (ViewModelConstants.SYNC_OBJECT) {
-                action();
-            }
         }
     }
 }

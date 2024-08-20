@@ -5,6 +5,7 @@ using Backend.Events;
 using Backend.Model;
 using Common;
 using Common.Configuration;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Loginator.Collections;
 using Loginator.Controls;
@@ -16,97 +17,31 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
-using System.Windows.Input;
 
 namespace Loginator.ViewModels {
 
-    public sealed class LoginatorViewModel : INotifyPropertyChanged, IDisposable {
+    public sealed partial class LoginatorViewModel : ObservableObject, IDisposable {
 
         private static readonly TimeSpan TIME_INTERVAL_IN_MILLISECONDS = TimeSpan.FromMilliseconds(1000);
 
         private IConfigurationDao ConfigurationDao { get; set; }
-        private IApplicationConfiguration ApplicationConfiguration { get; set; }
-        private ILogger Logger { get; set; }
         private IMapper Mapper { get; set; }
         private IReceiver? Receiver { get; set; }
         private ITimer Timer { get; set; }
         private IStopwatch Stopwatch { get; set; }
+        private ILogger Logger { get; set; }
 
         private LogTimeFormat LogTimeFormat { get; set; }
-
-        private bool isActive;
-        public bool IsActive {
-            get { return isActive; }
-            set {
-                isActive = value;
-                OnPropertyChanged(nameof(IsActive));
-            }
-        }
-
-        private int numberOfLogsPerLevel;
-        public int NumberOfLogsPerLevel {
-            get { return numberOfLogsPerLevel; }
-            private set {
-                numberOfLogsPerLevel = value;
-                OnPropertyChanged(nameof(NumberOfLogsPerLevel));
-                updateNumberOfLogsPerLevelCommand?.NotifyCanExecuteChanged();
-            }
-        }
-
-        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
-
-        private LoggingLevel selectedInitialLogLevel;
-        public LoggingLevel SelectedInitialLogLevel {
-            get { return selectedInitialLogLevel; }
-            set {
-                selectedInitialLogLevel = value;
-                OnPropertyChanged(nameof(SelectedInitialLogLevel));
-            }
-        }
-
-        private LogViewModel? selectedLog;
-        public LogViewModel? SelectedLog {
-            get { return selectedLog; }
-            set {
-                selectedLog = value;
-                SetNamespaceHighlight(selectedLog);
-                OnPropertyChanged(nameof(SelectedLog));
-                copySelectedLogExceptionCommand?.NotifyCanExecuteChanged();
-            }
-        }
-
         private List<LogViewModel> LogsToInsert { get; set; }
 
-        public OrderedObservableCollection Logs { get; private set; }
-        public ObservableCollection<NamespaceViewModel> Namespaces { get; private set; }
-        public ObservableCollection<ApplicationViewModel> Applications { get; private set; }
-
-        private NamespaceViewModel? selectedNamespaceViewModel;
-        public NamespaceViewModel? SelectedNamespaceViewModel {
-            get { return selectedNamespaceViewModel; }
-            set {
-                if (selectedNamespaceViewModel is not null) {
-                    selectedNamespaceViewModel.IsHighlighted = false;
-                }
-                selectedNamespaceViewModel = value;
-                if (selectedNamespaceViewModel is not null) {
-                    selectedNamespaceViewModel.IsHighlighted = true;
-                }
-                OnPropertyChanged(nameof(SelectedNamespaceViewModel));
-            }
-        }
-
-        public SearchViewModel Search { get; private set; }
-
         public LoginatorViewModel(
-            IApplicationConfiguration applicationConfiguration,
             IConfigurationDao configurationDao,
             IMapper mapper,
             IStopwatch stopwatch,
             TimeProvider timeProvider) {
-            ApplicationConfiguration = applicationConfiguration;
             ConfigurationDao = configurationDao;
             ConfigurationDao.OnConfigurationChanged += ConfigurationDao_OnConfigurationChanged;
+
             isActive = true;
             selectedInitialLogLevel = LoggingLevel.TRACE;
             numberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
@@ -122,11 +57,131 @@ namespace Loginator.ViewModels {
             Timer = timeProvider.CreateTimer(Callback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
+        [ObservableProperty]
+        private bool isActive;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(UpdateNumberOfLogsPerLevelCommand))]
+        private int numberOfLogsPerLevel;
+
+        [ObservableProperty]
+        private LoggingLevel selectedInitialLogLevel;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogExceptionCommand))]
+        private LogViewModel? selectedLog;
+        partial void OnSelectedLogChanged(LogViewModel? value) {
+            SetSelectedNamespaceFromLog(value);
+        }
+
+        [ObservableProperty]
+        private NamespaceViewModel? selectedNamespace;
+        partial void OnSelectedNamespaceChanged(NamespaceViewModel? oldValue, NamespaceViewModel? newValue) {
+            if (oldValue is not null) {
+                oldValue.IsHighlighted = false;
+            }
+            if (newValue is not null) {
+                newValue.IsHighlighted = true;
+            }
+        }
+
+        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
+
+        public OrderedObservableCollection Logs { get; private set; }
+        public ObservableCollection<NamespaceViewModel> Namespaces { get; private set; }
+        public ObservableCollection<ApplicationViewModel> Applications { get; private set; }
+
+        public SearchViewModel Search { get; private set; }
+
+        [RelayCommand(CanExecute = nameof(CanClearAnything))]
+        private void ClearLogs() {
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                Logs.Clear();
+                foreach (var application in Applications) {
+                    application.ClearLogs();
+                }
+                foreach (var ns in AllNamespaces()) {
+                    ClearNamespaceData(ns);
+                }
+
+                NotifyApplicationDependentCommands();
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanClearAnything))]
+        private void ClearAll() {
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                Logs.Clear();
+                Namespaces.Clear();
+                Applications.Clear();
+
+                NotifyApplicationDependentCommands();
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanDeactivateAllApplications))]
+        private void DeactivateAllApplications() {
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                foreach (var application in this.Applications) {
+                    application.IsActive = false;
+                }
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanUpdateNumberOfLogsPerLevel))]
+        private void UpdateNumberOfLogsPerLevel(int value) {
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                NumberOfLogsPerLevel = value;
+                foreach (var application in Applications) {
+                    application.MaxNumberOfLogsPerLevel = value;
+                }
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCopySelectedLogException))]
+        private void CopySelectedLogException() {
+            if (SelectedLog is not null) {
+                Clipboard.SetText(SelectedLog.Exception);
+            }
+        }
+
+        [RelayCommand]
+        private void OpenConfiguration() {
+            new ConfigurationWindow().Show();
+        }
+
         public void Dispose() {
             ConfigurationDao.OnConfigurationChanged -= ConfigurationDao_OnConfigurationChanged;
             Search.UpdateSearch -= Search_OnUpdateSearch;
-            if (Receiver is not null) Receiver.LogReceived -= Receiver_LogReceived;
+            if (Receiver is not null) Receiver.LogReceived -= Receiver_OnLogReceived;
             Timer.Dispose();
+            ClearAllCommand.Execute(null);
+        }
+
+        public void StartListener() {
+            if (Receiver is not null) return;
+
+            Receiver = IoC.Get<IReceiver>();
+            Receiver.LogReceived += Receiver_OnLogReceived;
+            ScheduleNextCallback();
+            Receiver.Initialize(ConfigurationDao.Read());
+        }
+
+        internal IEnumerable<NamespaceViewModel> AllNamespaces() =>
+            Namespaces.Flatten(x => x.Children);
+
+        private void ConfigurationDao_OnConfigurationChanged(object? sender, EventArgs e) {
+            Logger.Info("[ConfigurationDao_OnConfigurationChanged] Configuration changed.");
+            LogTimeFormat = ConfigurationDao.Read().LogTimeFormat;
+        }
+
+        private void Receiver_OnLogReceived(object? sender, LogReceivedEventArgs e) {
+            // unnecessary to invoke this on the UI thread, because it does not set any databound fields
+            lock (ViewModelConstants.SYNC_OBJECT) {
+                // Add a log entry only to the list if global logging is active (checkbox)
+                if (!IsActive) return;
+
+                LogViewModel log = ToLogViewModel(e.Log);
+                LogsToInsert.Add(log);
+            }
         }
 
         private void Search_OnUpdateSearch(object? sender, EventArgs e) {
@@ -136,18 +191,10 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void ConfigurationDao_OnConfigurationChanged(object? sender, EventArgs e) {
-            Logger.Info("[ConfigurationDao_OnConfigurationChanged] Configuration changed.");
-            LogTimeFormat = ConfigurationDao.Read().LogTimeFormat;
-        }
-
-        public void StartListener() {
-            if (Receiver is not null) return;
-
-            Receiver = IoC.Get<IReceiver>();
-            Receiver.LogReceived += Receiver_LogReceived;
-            ScheduleNextCallback();
-            Receiver.Initialize(ConfigurationDao.Read());
+        private void Application_OnPropertyChanged(object? sender, PropertyChangedEventArgs e) {
+            if (e.PropertyName == nameof(ApplicationViewModel.IsActive)) {
+                NotifyApplicationDependentCommands();
+            }
         }
 
         private void ScheduleNextCallback() =>
@@ -190,6 +237,7 @@ namespace Loginator.ViewModels {
                 }
                 finally {
                     ScheduleNextCallback();
+                    NotifyApplicationDependentCommands();
                 }
             }
         }
@@ -200,17 +248,6 @@ namespace Loginator.ViewModels {
                 logViewModel.Timestamp = logViewModel.Timestamp.ToLocalTime();
             }
             return logViewModel;
-        }
-
-        private void Receiver_LogReceived(object? sender, LogReceivedEventArgs e) {
-            // unnecessary to invoke this on the UI thread, because it does not set any databound fields
-            lock (ViewModelConstants.SYNC_OBJECT) {
-                // Add a log entry only to the list if global logging is active (checkbox)
-                if (!IsActive) return;
-
-                LogViewModel log = ToLogViewModel(e.Log);
-                LogsToInsert.Add(log);
-            }
         }
 
         private void AddLogs(IEnumerable<LogViewModel> logsToInsert) {
@@ -306,6 +343,7 @@ namespace Loginator.ViewModels {
                             MaxNumberOfLogsPerLevel = NumberOfLogsPerLevel,
                             SearchOptions = Search.ToOptions(),
                         };
+                        application.PropertyChanged += Application_OnPropertyChanged;
                         Applications.Add(application);
                     }
                 }
@@ -315,7 +353,13 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private static void ResetAllCount(NamespaceViewModel ns) {
+        private void SetSelectedNamespaceFromLog(LogViewModel? log) {
+            SelectedNamespace = log is null
+                ? null
+                : AllNamespaces().FirstOrDefault(nsp => nsp.Fullname.Equals($"{log.Application}{Constants.NAMESPACE_SPLITTER}{log.Namespace}"));
+        }
+
+        private static void ClearNamespaceData(NamespaceViewModel ns) {
             ns.Count = 0;
             ns.CountTrace = 0;
             ns.CountDebug = 0;
@@ -323,23 +367,7 @@ namespace Loginator.ViewModels {
             ns.CountWarn = 0;
             ns.CountError = 0;
             ns.CountFatal = 0;
-            foreach (var child in ns.Children) {
-                ResetAllCount(child);
-            }
-        }
-
-        private void SetNamespaceHighlight(LogViewModel? log) {
-            SelectedNamespaceViewModel = log is null
-                ? null
-                : Namespaces
-                    .Flatten(x => x.Children)
-                    .FirstOrDefault(nsp => nsp.Fullname.Equals($"{log.Application}{Constants.NAMESPACE_SPLITTER}{log.Namespace}"));
-        }
-
-        private void ClearNamespaceHighlight() {
-            foreach (var m in Namespaces.Flatten(x => x.Children)) {
-                m.IsHighlighted = false;
-            }
+            ns.IsHighlighted = false;
         }
 
         private static void SetLogCountByLevel(LogViewModel log, NamespaceViewModel ns) {
@@ -364,126 +392,26 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private ICommand? clearLogsCommand;
-        public ICommand ClearLogsCommand {
-            get {
-                clearLogsCommand ??= new RelayCommand(ClearLogs, CanClearLogs);
-                return clearLogsCommand;
-            }
-        }
-        private bool CanClearLogs() {
-            return true;
-        }
-        public void ClearLogs() {
-            DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    Logs.Clear();
-                    foreach (var application in Applications) {
-                        application.ClearLogs();
-                    }
-                    foreach (var ns in Namespaces) {
-                        ResetAllCount(ns);
-                    }
-                    ClearNamespaceHighlight();
-                }
-            });
+        private bool CanClearAnything() {
+            return Applications.Any(app => app.HasLogs);
         }
 
-        private ICommand? clearAllCommand;
-        public ICommand ClearAllCommand {
-            get {
-                clearAllCommand ??= new RelayCommand(ClearAll, CanClearAll);
-                return clearAllCommand;
-            }
+        private bool CanDeactivateAllApplications() {
+            return Applications.Any(app => app.IsActive);
         }
 
-        private ICommand? unselectAllCommand;
-        public ICommand UnselectAllCommand {
-            get {
-                unselectAllCommand ??= new RelayCommand(UnselectAll, CanUnselectAll);
-                return unselectAllCommand;
-            }
-        }
-
-        private bool CanClearAll() {
-            return true;
-        }
-        public void ClearAll() {
-            DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    Logs.Clear();
-                    Namespaces.Clear();
-                    Applications.Clear();
-                }
-            });
-        }
-
-        private bool CanUnselectAll() {
-            return true;
-        }
-        public void UnselectAll() {
-            DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    foreach (var application in this.Applications) {
-                        application.IsActive = false;
-                    }
-                }
-            });
-        }
-
-        private RelayCommand<int>? updateNumberOfLogsPerLevelCommand;
-        public ICommand UpdateNumberOfLogsPerLevelCommand {
-            get {
-                updateNumberOfLogsPerLevelCommand ??= new RelayCommand<int>(UpdateNumberOfLogsPerLevel, CanUpdateNumberOfLogsPerLevel);
-                return updateNumberOfLogsPerLevelCommand;
-            }
-        }
         private bool CanUpdateNumberOfLogsPerLevel(int value) {
             return value > 0 && value != NumberOfLogsPerLevel;
         }
-        public void UpdateNumberOfLogsPerLevel(int value) {
-            DispatcherHelper.CheckBeginInvokeOnUI(() => {
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    NumberOfLogsPerLevel = value;
-                    foreach (var application in Applications) {
-                        application.MaxNumberOfLogsPerLevel = value;
-                    }
-                }
-            });
-        }
 
-        private ICommand? openConfigurationCommand;
-        public ICommand OpenConfigurationCommand {
-            get {
-                openConfigurationCommand ??= new RelayCommand(OpenConfiguration, CanOpenConfiguration);
-                return openConfigurationCommand;
-            }
-        }
-        private bool CanOpenConfiguration() {
-            return true;
-        }
-        public static void OpenConfiguration() {
-            new ConfigurationWindow().Show();
-        }
-
-        private RelayCommand? copySelectedLogExceptionCommand;
-        public ICommand CopySelectedLogExceptionCommand {
-            get {
-                copySelectedLogExceptionCommand ??= new RelayCommand(CopySelectedLogException, CanCopySelectedLogException);
-                return copySelectedLogExceptionCommand;
-            }
-        }
         private bool CanCopySelectedLogException() {
             return !string.IsNullOrEmpty(SelectedLog?.Exception);
         }
-        private void CopySelectedLogException() {
-            if (SelectedLog is not null)
-                Clipboard.SetText(SelectedLog.Exception);
-        }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged(string property) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        private void NotifyApplicationDependentCommands() {
+            deactivateAllApplicationsCommand?.NotifyCanExecuteChanged();
+            clearLogsCommand?.NotifyCanExecuteChanged();
+            clearAllCommand?.NotifyCanExecuteChanged();
         }
     }
 }
