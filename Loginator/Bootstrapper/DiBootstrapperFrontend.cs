@@ -4,35 +4,37 @@ using Backend.Model;
 using Common.Configuration;
 using Loginator.Controls;
 using Loginator.ViewModels;
-using StructureMap;
+using Microsoft.Extensions.DependencyInjection;
+using NLog;
 using System;
 
 namespace Loginator.Bootstrapper {
 
     public static class DiBootstrapperFrontend {
 
-        public static void Initialize(IContainer container) {
-            Console.WriteLine("Bootstrapping DI: Frontend");
-            container.Configure(m => {
-                m.For<TimeProvider>().Singleton().Use(c => TimeProvider.System);
-                m.For<LoginatorViewModel>().Singleton().Use<LoginatorViewModel>();
-                m.For<ConfigurationViewModel>().Use<ConfigurationViewModel>();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-                // TODO: Move this to separate bootstrapper
-                m.For<IApplicationConfiguration>().Use<ApplicationConfiguration>();
+        public static void Initialize(IServiceCollection services) {
+            logger.Debug("Bootstrapping DI: Frontend");
 
-                if (new ApplicationConfiguration().IsTimingTraceEnabled) {
-                    m.For<IStopwatch>().Use<StopwatchEnabled>();
-                }
-                else {
-                    m.For<IStopwatch>().Use<StopwatchDisabled>();
-                }
+            services.AddSingleton(TimeProvider.System);
+            services.AddSingleton<LoginatorViewModel>();
+            services.AddTransient<ConfigurationViewModel>();
 
-                var config = new MapperConfiguration(cfg => cfg.CreateMap<Log, LogViewModel>());
-                m.For<IMapper>().Singleton().Use(c => new Mapper(config));
-            });
+            // TODO: Move this to separate bootstrapper
+            services.AddTransient<IApplicationConfiguration, ApplicationConfiguration>();
 
-            DiBootstrapperBackend.Initialize(container);
+            if (new ApplicationConfiguration().IsTimingTraceEnabled) {
+                services.AddTransient<IStopwatch, StopwatchEnabled>();
+            }
+            else {
+                services.AddTransient<IStopwatch, StopwatchDisabled>();
+            }
+
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<Log, LogViewModel>());
+            services.AddSingleton<IMapper>(new Mapper(config));
+
+            DiBootstrapperBackend.Initialize(services);
         }
     }
 }

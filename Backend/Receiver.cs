@@ -36,14 +36,13 @@ namespace Backend {
 
         public void Initialize(Configuration configuration) {
 
+            Converter = IoC.Get<ILogConverter>();
             LogType = configuration.LogType;
             int port = 0;
             if (LogType == LogType.CHAINSAW) {
                 port = configuration.PortChainsaw;
-                Converter = IoC.Get<ChainsawToLogConverter>();
             } else if (LogType == LogType.LOGCAT) {
                 port = configuration.PortLogcat;
-                Converter = IoC.Get<LogcatToLogConverter>();
             }
             if (Client != null) {
                 Client.Close();

@@ -9,6 +9,7 @@ using FakeItEasy;
 using FluentAssertions;
 using Loginator.Controls;
 using Loginator.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework.Internal;
 using System;
@@ -536,7 +537,7 @@ namespace Loginator.UnitTests.ViewModels {
             var configDao = A.Fake<IConfigurationDao>();
             A.CallTo(() => configDao.Read()).Returns(config);
 
-            IoC.Container.Configure(m => m.For<IReceiver>().Singleton().Use(c => receiver));
+            IoC.Configure(sc => sc.AddSingleton(receiver));
             A.CallTo(receiver, EventAction.Add("LogReceived")).Invokes((EventHandler<LogReceivedEventArgs> h) => logReceivedEventHandler += h);
             A.CallTo(receiver, EventAction.Remove("LogReceived")).Invokes((EventHandler<LogReceivedEventArgs> h) => logReceivedEventHandler -= h);
 

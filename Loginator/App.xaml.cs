@@ -68,7 +68,7 @@ namespace Loginator {
                 // Initialize dispatcher helper so we can access UI thread in view model
                 DispatcherHelper.Initialize();
                 // Bootstrapping
-                DiBootstrapperFrontend.Initialize(IoC.Container);
+                IoC.Configure(DiBootstrapperFrontend.Initialize);
                 Logger.Info("[OnStartup] Application successfully started");
             } catch (Exception exception) {
                 Logger.Fatal(exception, "[OnStartup] Error during starting Application");
