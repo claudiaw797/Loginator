@@ -19,15 +19,13 @@ namespace Loginator {
     public partial class App : Application {
 
         private const string nlogConfig = "Config/nlog.config";
+        private const string nlogDevConfig = "Config/nlog.Development.config";
 
         private readonly IHost host;
         private readonly Logger logger;
 
         public App() {
-            logger = LogManager
-                .Setup()
-                .LoadConfiguration(new XmlLoggingConfiguration(nlogConfig))
-                .GetCurrentClassLogger();
+            logger = SetupLogging();
 
             host = Host
                 .CreateDefaultBuilder()
@@ -50,6 +48,15 @@ namespace Loginator {
                 MessageBoxButton.OK,
                 MessageBoxImage.Stop,
                 MessageBoxResult.OK);
+        }
+
+        private static Logger SetupLogging() {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            var file = env == Environments.Development ? nlogDevConfig : nlogConfig;
+            return LogManager
+                .Setup()
+                .LoadConfiguration(new XmlLoggingConfiguration(file))
+                .GetCurrentClassLogger();
         }
 
         protected override async void OnStartup(StartupEventArgs e) {
