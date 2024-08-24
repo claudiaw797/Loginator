@@ -5,7 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.4] - 2024-08-24
+
+### Added
+
+- Add GPLv3 license and third-party notice file from dependencies
+
+### Changed
+
+- Make application hosted
+- Exchange CommonServiceLocator/StructureMap packages for .NET dependency injection
+- Exchange settings from App.config (.NET Framework style) for appsettings.json
+- Improve logging and respective capabilities by adding a second configuration file for development
+- Upgrade dependencies: Microsoft.NET.Test.Sdk 17.11.0, NUnit 4.2.1
+
 ## [1.7.3] - 2024-08-20
+
+### Added
+
+- Add interface and implementations for Stopwatch, allowing configuration 'IsTimingTraceEnabled' to do nothing if set to false, otherwise provide a simple to use, low resource stopwatch
 
 ### Changed
 
@@ -13,31 +31,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow using fake TimeProvider for testing log entry loading
 - Refactorings (LoginatorViewModel)
 
-### Added
-
-- Add interface and implementations for Stopwatch, allowing configuration 'IsTimingTraceEnabled' to do nothing if set to false, otherwise provide a simple to use, low resource stopwatch
-
 ## [1.7.2] - 2024-08-17
-
-### Changed
-
-- Fix logging
 
 ### Added
 
 - Add 'Copy exception' context menu button to selected log window
 
-## [1.7.1] - 2024-08-16
-
 ### Changed
 
-- Improve user-friendliness of search
-- Refactorings (ApplicationViewModel, LoggingLevel, OrderedObservableCollection)
-- Upgrade dependencies: NLog 5.3.3
+- Fix logging
+
+## [1.7.1] - 2024-08-16
 
 ### Added
 
 - Add test projects for Backend and Loginator
+
+### Changed
+
+
+- Improve user-friendliness of search
+- Refactorings (ApplicationViewModel, LoggingLevel, OrderedObservableCollection)
+- Upgrade dependencies: NLog 5.3.3
 
 ## [1.7.0] - 2024-08-10
 

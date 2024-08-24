@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		CHANGELOG.MD = CHANGELOG.MD
 		README.md = README.md
+		LICENSE.txt = LICENSE.txt
+		Licenses.json = Licenses.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Loginator", "Loginator\Loginator.csproj", "{62FE85E9-B242-4C66-96FC-6F0D02160C44}"
