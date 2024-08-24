@@ -1,6 +1,7 @@
 using Backend.Model;
 using FluentAssertions;
 using Loginator.Collections;
+using Loginator.Model;
 using Loginator.ViewModels;
 using System;
 using System.Collections.Generic;

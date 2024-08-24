@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Backend;
-using Backend.Dao;
 using Backend.Events;
 using Backend.Model;
 using Common;
@@ -9,7 +8,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Loginator.Collections;
 using Loginator.Controls;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -24,28 +24,30 @@ namespace Loginator.ViewModels {
 
         private static readonly TimeSpan TIME_INTERVAL_IN_MILLISECONDS = TimeSpan.FromMilliseconds(1000);
 
-        private IConfigurationDao ConfigurationDao { get; set; }
+        private IOptionsMonitor<Configuration> ConfigurationDao { get; set; }
+        private IDisposable? ConfigurationChangeListener { get; set; }
         private IMapper Mapper { get; set; }
         private IReceiver? Receiver { get; set; }
         private ITimer Timer { get; set; }
         private IStopwatch Stopwatch { get; set; }
-        private ILogger Logger { get; set; }
+        private ILogger<LoginatorViewModel> Logger { get; set; }
 
         private LogTimeFormat LogTimeFormat { get; set; }
         private List<LogViewModel> LogsToInsert { get; set; }
 
         public LoginatorViewModel(
-            IConfigurationDao configurationDao,
+            IOptionsMonitor<Configuration> configurationDao,
             IMapper mapper,
             IStopwatch stopwatch,
-            TimeProvider timeProvider) {
+            TimeProvider timeProvider,
+            ILogger<LoginatorViewModel> logger) {
             ConfigurationDao = configurationDao;
-            ConfigurationDao.OnConfigurationChanged += ConfigurationDao_OnConfigurationChanged;
+            ConfigurationChangeListener = configurationDao.OnChange(ConfigurationDao_OnConfigurationChanged);
 
             isActive = true;
             selectedInitialLogLevel = LoggingLevel.TRACE;
             numberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
-            Logger = LogManager.GetCurrentClassLogger();
+            Logger = logger;
             Logs = [];
             LogsToInsert = [];
             Namespaces = [];
@@ -149,7 +151,7 @@ namespace Loginator.ViewModels {
         }
 
         public void Dispose() {
-            ConfigurationDao.OnConfigurationChanged -= ConfigurationDao_OnConfigurationChanged;
+            ConfigurationChangeListener?.Dispose();
             Search.UpdateSearch -= Search_OnUpdateSearch;
             if (Receiver is not null) Receiver.LogReceived -= Receiver_OnLogReceived;
             Timer.Dispose();
@@ -162,15 +164,15 @@ namespace Loginator.ViewModels {
             Receiver = IoC.Get<IReceiver>();
             Receiver.LogReceived += Receiver_OnLogReceived;
             ScheduleNextCallback();
-            Receiver.Initialize(ConfigurationDao.Read());
+            Receiver.Initialize(ConfigurationDao.CurrentValue);
         }
 
         internal IEnumerable<NamespaceViewModel> AllNamespaces() =>
             Namespaces.Flatten(x => x.Children);
 
-        private void ConfigurationDao_OnConfigurationChanged(object? sender, EventArgs e) {
-            Logger.Info("[ConfigurationDao_OnConfigurationChanged] Configuration changed.");
-            LogTimeFormat = ConfigurationDao.Read().LogTimeFormat;
+        private void ConfigurationDao_OnConfigurationChanged(Configuration logConfig, string? name = null) {
+            Logger.LogInformation("[ConfigurationDao_OnConfigurationChanged] Configuration changed.");
+            LogTimeFormat = logConfig.LogTimeFormat;
         }
 
         private void Receiver_OnLogReceived(object? sender, LogReceivedEventArgs e) {
@@ -212,7 +214,7 @@ namespace Loginator.ViewModels {
         private void ProcessLogsToInsert() {
             lock (ViewModelConstants.SYNC_OBJECT) {
                 try {
-                    Logger.Info("Processing {0} new log items", LogsToInsert.Count);
+                    Logger.LogInformation("Processing {0} new log items", LogsToInsert.Count);
 
                     var logsToInsert = LogsToInsert.OrderBy(m => m.Timestamp);
 
@@ -233,7 +235,7 @@ namespace Loginator.ViewModels {
                     LogsToInsert.Clear();
                 }
                 catch (Exception ex) {
-                    Logger.Error(ex, "Error processing {0} new log items", LogsToInsert.Count);
+                    Logger.LogError(ex, "Error processing {0} new log items", LogsToInsert.Count);
                 }
                 finally {
                     ScheduleNextCallback();
@@ -244,7 +246,7 @@ namespace Loginator.ViewModels {
 
         private LogViewModel ToLogViewModel(Log log) {
             var logViewModel = Mapper.Map<Log, LogViewModel>(log);
-            if (LogTimeFormat == LogTimeFormat.CONVERT_TO_LOCAL_TIME) {
+            if (LogTimeFormat == LogTimeFormat.ConvertToLocalTime) {
                 logViewModel.Timestamp = logViewModel.Timestamp.ToLocalTime();
             }
             return logViewModel;
@@ -255,7 +257,7 @@ namespace Loginator.ViewModels {
                 foreach (var logToInsert in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == logToInsert.Application);
                     if (application == null) {
-                        Logger.Error("[AddLogs] The application has to be set at this point.");
+                        Logger.LogError("[AddLogs] The application has to be set at this point.");
                         return;
                     }
                     application.AddLog(logToInsert);
@@ -271,7 +273,7 @@ namespace Loginator.ViewModels {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
                     if (application == null) {
-                        Logger.Error("[UpdateNamespaces] The application has to be set at this point.");
+                        Logger.LogError("[UpdateNamespaces] The application has to be set at this point.");
                         return;
                     }
                     // Try to get existing root namespace with name of application

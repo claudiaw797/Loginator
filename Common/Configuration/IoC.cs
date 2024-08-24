@@ -5,17 +5,22 @@ namespace Common.Configuration {
 
     public class IoC {
 
-        private static readonly IServiceCollection container = new ServiceCollection();
         private static IServiceProvider? serviceProvider;
 
-        public static IServiceProvider Default =>
-            serviceProvider ??= container.BuildServiceProvider();
-
-        public static void Configure(Action<IServiceCollection> configure) {
-            configure.Invoke(container);
+        internal static IServiceProvider ServiceProvider {
+            private get {
+                if (serviceProvider is null) {
+                    throw new InvalidOperationException("No service provider was injected");
+                }
+                return serviceProvider;
+            }
+            set { serviceProvider = value; }
         }
 
         public static T Get<T>() where T : notnull =>
-            Default.GetRequiredService<T>();
+            ServiceProvider.GetRequiredService<T>();
+
+        public static T Get<T>(object serviceKey) where T : notnull =>
+            ServiceProvider.GetRequiredKeyedService<T>(serviceKey);
     }
 }

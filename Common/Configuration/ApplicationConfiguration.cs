@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using Microsoft.Extensions.Configuration;
 
 namespace Common.Configuration {
-    public class ApplicationConfiguration : IApplicationConfiguration {
 
-        public bool IsMessageTraceEnabled {
-            get { return Convert.ToBoolean(ConfigurationManager.AppSettings[ConfigurationConstants.KEY_IS_MESSAGE_TRACE_ENABLED]); }
-        }
+    public sealed class ApplicationConfiguration {
 
-        public bool IsTimingTraceEnabled {
-            get { return Convert.ToBoolean(ConfigurationManager.AppSettings[ConfigurationConstants.KEY_IS_TIMING_TRACE_ENABLED]); }
-        }
+        public const string SectionName = "AppSettings";
+
+        public bool IsMessageTraceEnabled { get; set; }
+        public bool IsTimingTraceEnabled { get; set; }
+    }
+
+    public static class ApplicationConfigurationExtensions {
+
+        public static ApplicationConfiguration GetAppSettings(this IConfiguration configuration)
+            => configuration.GetSection(ApplicationConfiguration.SectionName).Get<ApplicationConfiguration>() ?? new ApplicationConfiguration();
     }
 }

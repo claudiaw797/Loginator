@@ -1,6 +1,5 @@
 ﻿using Backend.Converter;
-using Backend.Dao;
-using Backend.Manager;
+using Common;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 
@@ -14,14 +13,9 @@ namespace Backend.Bootstrapper {
             logger.Debug("Bootstrapping DI: Backend");
 
             services.AddSingleton<IReceiver, Receiver>();
-            services.AddSingleton<IConfigurationDao, ConfigurationDaoSettings>();
 
-            if (new ConfigurationDaoSettings().Read().LogType == Common.LogType.CHAINSAW) {
-                services.AddTransient<ILogConverter, ChainsawToLogConverter>();
-            }
-            else {
-                services.AddTransient<ILogConverter, LogcatToLogConverter>();
-            }
+            services.AddKeyedTransient<ILogConverter, ChainsawToLogConverter>(LogType.Chainsaw);
+            services.AddKeyedTransient<ILogConverter, LogcatToLogConverter>(LogType.Logcat);
         }
     }
 }

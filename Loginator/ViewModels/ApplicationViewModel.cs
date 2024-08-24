@@ -2,6 +2,7 @@
 using Common;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Loginator.Collections;
+using Loginator.Model;
 using NLog;
 using System;
 using System.Collections.Generic;
