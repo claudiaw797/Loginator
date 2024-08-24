@@ -5,6 +5,7 @@ using Common.Bootstrapper;
 using Common.Configuration;
 using Loginator.Controls;
 using Loginator.ViewModels;
+using Loginator.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

@@ -2,6 +2,7 @@
 using Common.Exceptions;
 using Loginator.Bootstrapper;
 using Loginator.Controls;
+using Loginator.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;

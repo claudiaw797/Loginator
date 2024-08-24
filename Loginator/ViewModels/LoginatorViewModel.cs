@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Loginator.Collections;
 using Loginator.Controls;
+using Loginator.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;

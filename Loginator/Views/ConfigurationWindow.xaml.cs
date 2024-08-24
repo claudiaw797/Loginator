@@ -13,7 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace Loginator {
+namespace Loginator.Views {
     /// <summary>
     /// Interaction logic for ConfigurationWindow.xaml
     /// </summary>
