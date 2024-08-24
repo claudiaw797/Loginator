@@ -1,6 +1,5 @@
 using AutoMapper;
 using Backend;
-using Backend.Dao;
 using Backend.Events;
 using Backend.Model;
 using Common;
@@ -9,6 +8,9 @@ using FakeItEasy;
 using FluentAssertions;
 using Loginator.Controls;
 using Loginator.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework.Internal;
 using System;
@@ -86,11 +88,12 @@ namespace Loginator.UnitTests.ViewModels {
 
         [Test]
         public void Can_create_sut() {
-            var configDao = A.Fake<IConfigurationDao>();
+            var configDao = A.Fake<IOptionsMonitor<Configuration>>();
             var mapper = A.Fake<IMapper>();
             var stopwatch = A.Fake<IStopwatch>();
+            var logger = A.Fake<ILogger<LoginatorViewModel>>();
 
-            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider);
+            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider, logger);
 
             sut.IsActive.Should().BeTrue();
             sut.NumberOfLogsPerLevel.Should().BeGreaterThan(100);
@@ -528,22 +531,26 @@ namespace Loginator.UnitTests.ViewModels {
 
         private LoginatorViewModel Sut() {
             var config = new Configuration {
-                LogType = LogType.CHAINSAW,
+                LogType = LogType.Chainsaw,
                 PortChainsaw = 7071,
                 PortLogcat = 7081,
-                LogTimeFormat = LogTimeFormat.DO_NOT_CHANGE,
+                LogTimeFormat = LogTimeFormat.DoNotChange,
             };
-            var configDao = A.Fake<IConfigurationDao>();
-            A.CallTo(() => configDao.Read()).Returns(config);
+            var configDao = A.Fake<IOptionsMonitor<Configuration>>();
+            A.CallTo(() => configDao.CurrentValue).Returns(config);
 
-            IoC.Container.Configure(m => m.For<IReceiver>().Singleton().Use(c => receiver));
+            var serviceProvider = A.Fake<IServiceProvider>();
+            IoC.ServiceProvider = serviceProvider;
+            A.CallTo(() => serviceProvider.GetService(typeof(IReceiver))).Returns(receiver);
+
             A.CallTo(receiver, EventAction.Add("LogReceived")).Invokes((EventHandler<LogReceivedEventArgs> h) => logReceivedEventHandler += h);
             A.CallTo(receiver, EventAction.Remove("LogReceived")).Invokes((EventHandler<LogReceivedEventArgs> h) => logReceivedEventHandler -= h);
 
             DispatcherHelper.Initialize();
 
             var stopwatch = A.Fake<IStopwatch>();
-            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider);
+            var logger = A.Fake<ILogger<LoginatorViewModel>>();
+            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider, logger);
             sut.StartListener();
 
             return sut;

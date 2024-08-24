@@ -1,6 +1,6 @@
-﻿using Backend.Model;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Loginator.Model;
 using System;
 
 namespace Loginator.ViewModels {

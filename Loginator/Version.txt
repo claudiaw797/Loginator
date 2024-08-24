@@ -1,2 +1,0 @@
-﻿versionCode=12
-versionName=1.7.3

@@ -1,0 +1,182 @@
+[{
+        "PackageName": "AutoMapper",
+        "PackageVersion": "13.0.1",
+        "PackageUrl": "https://automapper.org/",
+        "Copyright": "",
+        "Authors": ["Jimmy Bogard"],
+        "Description": "A convention-based object-object mapper.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "CommunityToolkit.Mvvm",
+        "PackageVersion": "8.2.2",
+        "PackageUrl": "https://github.com/CommunityToolkit/dotnet",
+        "Copyright": "(c) .NET Foundation and Contributors. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "This package includes a .NET MVVM library with helpers such as:\r\n      - ObservableObject: a base class for objects implementing the INotifyPropertyChanged interface.\r\n      - ObservableRecipient: a base class for observable objects with support for the IMessenger service.\r\n      - ObservableValidator: a base class for objects implementing the INotifyDataErrorInfo interface.\r\n      - RelayCommand: a simple delegate command implementing the ICommand interface.\r\n      - AsyncRelayCommand: a delegate command supporting asynchronous operations and cancellation.\r\n      - WeakReferenceMessenger: a messaging system to exchange messages through different loosely-coupled objects.\r\n      - StrongReferenceMessenger: a high-performance messaging system that trades weak references for speed.\r\n      - Ioc: a helper class to configure dependency injection service containers.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "coverlet.collector",
+        "PackageVersion": "6.0.2",
+        "PackageUrl": "https://github.com/coverlet-coverage/coverlet",
+        "Copyright": "",
+        "Authors": ["tonerdo"],
+        "Description": "Coverlet is a cross platform code coverage library for .NET, with support for line, branch and method coverage.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "coverlet.msbuild",
+        "PackageVersion": "6.0.2",
+        "PackageUrl": "https://github.com/coverlet-coverage/coverlet",
+        "Copyright": "",
+        "Authors": ["tonerdo"],
+        "Description": "Coverlet is a cross platform code coverage library for .NET, with support for line, branch and method coverage.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "FakeItEasy",
+        "PackageVersion": "8.3.0",
+        "PackageUrl": "https://fakeiteasy.github.io/",
+        "Copyright": "Copyright (c) FakeItEasy contributors. (fakeiteasyfx@gmail.com)",
+        "Authors": ["Patrik Hägne", " FakeItEasy contributors"],
+        "Description": "It's faking amazing! The easy mocking library for .NET that works great in C# and VB.NET alike. No need to know the difference between a stub, a mock or a spy, everything's a fake! The easy to use, refactoring friendly API makes faking a breeze.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "FluentAssertions",
+        "PackageVersion": "6.12.0",
+        "PackageUrl": "https://www.fluentassertions.com/",
+        "Copyright": "Copyright Dennis Doomen 2010-2023",
+        "Authors": ["Dennis Doomen", "Jonas Nyrup"],
+        "Description": "A very extensive set of extension methods that allow you to more naturally specify the expected outcome of a TDD or\r\n      BDD-style unit tests. Targets .NET Framework 4.7, .NET Core 2.1 and 3.0, .NET 6, as well as .NET Standard 2.0 and 2.1.\r\n      Supports the unit test frameworks MSTest2, NUnit3, XUnit2, MSpec, and NSpec3.\r\n\r\n      Supported by InfoSupport B.V.",
+        "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+        "LicenseType": "Apache-2.0"
+    }, {
+        "PackageName": "Microsoft.Extensions.Configuration.Abstractions",
+        "PackageVersion": "8.0.0",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Provides abstractions of key-value pair based configuration. Interfaces defined in this package are implemented by classes in Microsoft.Extensions.Configuration and other configuration packages.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.Extensions.Configuration.Binder",
+        "PackageVersion": "8.0.2",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Provides the functionality to bind an object to data in configuration providers for Microsoft.Extensions.Configuration. This package enables you to represent the configuration data as strongly-typed classes defined in the application code. To bind a configuration, use the Microsoft.Extensions.Configuration.ConfigurationBinder.Get extension method on the IConfiguration object. To use this package, you also need to install a package for the configuration provider, for example, Microsoft.Extensions.Configuration.Json for the JSON provider.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.Extensions.Configuration.Json",
+        "PackageVersion": "8.0.0",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "JSON configuration provider implementation for Microsoft.Extensions.Configuration. This package enables you to read your application's settings from a JSON file. You can use JsonConfigurationExtensions.AddJsonFile extension method on IConfigurationBuilder to add the JSON configuration provider to the configuration builder.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.Extensions.Hosting",
+        "PackageVersion": "8.0.0",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Hosting and startup infrastructures for applications.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.Extensions.Hosting.Abstractions",
+        "PackageVersion": "8.0.0",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Hosting and startup abstractions for applications.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.Extensions.Options",
+        "PackageVersion": "8.0.2",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Provides a strongly typed way of specifying and accessing settings using dependency injection.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.Extensions.Options.ConfigurationExtensions",
+        "PackageVersion": "8.0.0",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Provides additional configuration specific functionality related to Options.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.Extensions.TimeProvider.Testing",
+        "PackageVersion": "8.8.0",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Hand-crafted fakes to make time-related testing easier.\r\n\r\n    FakeTimeProvider implements the abstract TimeProvider class and is \r\n    specifically designed to be used for testing.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.NET.Test.Sdk",
+        "PackageVersion": "17.11.0",
+        "PackageUrl": "https://github.com/microsoft/vstest",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "The MSbuild targets and properties for building .NET test projects.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "NLog",
+        "PackageVersion": "5.3.3",
+        "PackageUrl": "https://nlog-project.org/",
+        "Copyright": "Copyright (c) 2004-2024 NLog Project - https://nlog-project.org/",
+        "Authors": ["Jarek Kowalski", "Kim Christensen", "Julian Verdurmen"],
+        "Description": "NLog is a logging platform for .NET with rich log routing and management capabilities.\r\nNLog supports traditional logging, structured logging and the combination of both.\r\n\r\nSupported platforms:\r\n\r\n- .NET 5, 6, 7 and 8\r\n- .NET Core 1, 2 and 3\r\n- .NET Standard 1.3+ and 2.0+\r\n- .NET Framework 3.5 - 4.8\r\n- Xamarin Android + iOS (.NET Standard)\r\n- Mono 4\r\n\r\nFor ASP.NET Core, check: https://www.nuget.org/packages/NLog.Web.AspNetCore",
+        "LicenseUrl": "https://licenses.nuget.org/BSD-3-Clause",
+        "LicenseType": "BSD-3-Clause"
+    }, {
+        "PackageName": "NLog.Extensions.Hosting",
+        "PackageVersion": "5.3.12",
+        "PackageUrl": "https://github.com/NLog/NLog.Extensions.Logging",
+        "Copyright": "Copyright (c) 2004-2024 NLog Project - https://nlog-project.org/",
+        "Authors": ["Julian Verdurmen", "Bryan Gonzalez"],
+        "Description": "NLog extension for Microsoft.Extensions.Hosting for logging in .NET Standard libraries and .NET Core applications using IHostBuilder.\r\n    \r\nFor ASP.NET Core, check: https://www.nuget.org/packages/NLog.Web.AspNetCore",
+        "LicenseUrl": "https://licenses.nuget.org/BSD-2-Clause",
+        "LicenseType": "BSD-2-Clause"
+    }, {
+        "PackageName": "NUnit",
+        "PackageVersion": "4.2.1",
+        "PackageUrl": "https://nunit.org/",
+        "Copyright": "Copyright (c) Charlie Poole, Rob Prouse and Contributors. MIT License.",
+        "Authors": ["Charlie Poole", " Rob Prouse"],
+        "Description": "NUnit is a unit-testing framework for all .NET languages.\r\n            It can run on macOS, Linux and Windows operating systems.\r\n            NUnit can be used for a wide range of testing, from unit testing with TDD to full-fledged system and integration testing.\r\n            It is a non-opinionated, broad and deep framework with multiple different ways to assert that your code behaves as expected. Many aspects of NUnit can be extended to suit your specific purposes.\r\n\r\n            The latest version, version 4, is an upgrade from the groundbreaking NUnit 3 framework. It is a modernized version, aimed at taking advantage of the latest .NET features and C# language constructs.\r\n\r\n            If you are upgrading from NUnit 3, be aware of the breaking changes (https://docs.nunit.org/articles/nunit/release-notes/breaking-changes.html#nunit-40). Please see the NUnit 4 Migration Guide (https://docs.nunit.org/articles/nunit/release-notes/Nunit4.0-MigrationGuide.html) and take care to prepare your NUnit 3 code before you do the upgrade.\r\n\r\n            Supported platforms:\r\n            - .NET Framework 4.6.2+\r\n            - .NET 6.0+",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "NUnit.Analyzers",
+        "PackageVersion": "4.3.0",
+        "PackageUrl": "https://github.com/nunit/nunit.analyzers",
+        "Copyright": "Copyright (c) 2018-2024 NUnit project",
+        "Authors": ["NUnit"],
+        "Description": "This package includes analyzers and code fixes for test projects using NUnit 3+. The analyzers will mark wrong usages when writing tests, and the code fixes can be used to used to correct these usages. They will also aid in the transition from NUnit 3 to NUnit 4.\r\n\r\nVersion 3.0 and upwards works in Visual Studio 2019 (version 16.3) or newer and also enables supression of compiler errors such as errors arising from nullable reference types. For Visual Studio 2017 one must use versions below 3.0 - note that these versions are no longer updated, so version 2.10.0 is the last version that works in Visual Studio 2017.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "NUnit3TestAdapter",
+        "PackageVersion": "4.6.0",
+        "PackageUrl": "https://docs.nunit.org/articles/vs-test-adapter/Index.html",
+        "Copyright": "Copyright (c) 2011-2021 Charlie Poole, 2014-2024 Terje Sandstrom",
+        "Authors": ["Charlie Poole", " Terje Sandstrom"],
+        "Description": "The NUnit3 TestAdapter for Visual Studio, all versions from 2012 and onwards, and DotNet (incl. .Net core), versions .net framework 4.6.2 or higher, .net core 3.1, .net 5 or higher.\r\n\r\n      Note that this package ONLY contains the adapter, not the NUnit framework.\r\n      For VS 2017 and forward, you should add this package to every test project in your solution. (Earlier versions only require a single adapter package per solution.)",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }
+]

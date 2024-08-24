@@ -1,45 +1,26 @@
-﻿using Common.Exceptions;
-using CommonServiceLocator;
-using StructureMap;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.Configuration {
-    public class IoC : ServiceLocatorImplBase {
 
-        private static IoC defaultIoC;
+    public class IoC {
 
-        public static Container Container = new Container();
+        private static IServiceProvider? serviceProvider;
 
-        public static IoC Default {
-            get { return defaultIoC ?? (defaultIoC = new IoC()); }
-        }
-
-        public static T Get<T>() {
-            try {
-                return Container.GetInstance<T>();
-            } catch (Exception e) {
-                throw new LoginatorException("Could not setup configuration", e);
+        internal static IServiceProvider ServiceProvider {
+            private get {
+                if (serviceProvider is null) {
+                    throw new InvalidOperationException("No service provider was injected");
+                }
+                return serviceProvider;
             }
+            set { serviceProvider = value; }
         }
 
-        protected override object DoGetInstance(Type serviceType, string key) {
-            try {
-                return Container.GetInstance(serviceType);
-            } catch (Exception e) {
-                throw new LoginatorException("Could not setup configuration for single instance of type: " + serviceType, e);
-            }
-        }
+        public static T Get<T>() where T : notnull =>
+            ServiceProvider.GetRequiredService<T>();
 
-        protected override IEnumerable<object> DoGetAllInstances(Type serviceType) {
-            try {
-                return (IEnumerable<object>)Container.GetAllInstances(serviceType);
-            } catch (Exception e) {
-                throw new LoginatorException("Could not setup configuration for all instances of type: " + serviceType, e);
-            }
-        }
+        public static T Get<T>(object serviceKey) where T : notnull =>
+            ServiceProvider.GetRequiredKeyedService<T>(serviceKey);
     }
 }

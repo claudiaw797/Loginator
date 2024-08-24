@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace Loginator {
+namespace Loginator.Views {
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -21,7 +21,7 @@ namespace Loginator {
         private const string TEMPLATE_APP_NAME = "Loginator v{0}";
         private const string VERSION_CODE = "versionCode";
         private const string VERSION_NAME = "versionName";
-        private const string FILE_VERSION = "Loginator.Version.txt";
+        private const string FILE_VERSION = "Loginator.Resources.Version.txt";
         private const string VERSION_URL = "https://raw.githubusercontent.com/claudiaw797/Loginator/master/Loginator/Version.txt";
         private const string DOWNLOAD_URL = "https://github.com/claudiaw797/Loginator/releases";
 

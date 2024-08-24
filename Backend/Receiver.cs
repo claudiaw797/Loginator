@@ -15,39 +15,35 @@ using Common.Exceptions;
 using Backend.Converter;
 using Common.Configuration;
 using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Backend {
 
-    public class Receiver : IReceiver {
+    public sealed class Receiver : IReceiver, IDisposable {
 
-        private ILogger Logger { get; set; }
-        private LogType LogType { get; set; }
+        private ILogger<Receiver> Logger { get; init; }
         private UdpClient Client { get; set; }
         private ILogConverter Converter { get; set; }
 
-        internal IApplicationConfiguration ApplicationConfiguration { get; set; }
+        private IOptionsMonitor<ApplicationConfiguration> ApplicationConfiguration { get; init; }
 
         public event EventHandler<LogReceivedEventArgs> LogReceived;
 
-        public Receiver(IApplicationConfiguration applicationConfiguration) {
-            Logger = LogManager.GetCurrentClassLogger();
+        public Receiver(IOptionsMonitor<ApplicationConfiguration> applicationConfiguration, ILogger<Receiver> logger) {
+            Logger = logger;
             ApplicationConfiguration = applicationConfiguration;
         }
 
         public void Initialize(Configuration configuration) {
-
-            LogType = configuration.LogType;
+            Converter = IoC.Get<ILogConverter>(configuration.LogType);
             int port = 0;
-            if (LogType == LogType.CHAINSAW) {
+            if (configuration.LogType == LogType.Chainsaw) {
                 port = configuration.PortChainsaw;
-                Converter = IoC.Get<ChainsawToLogConverter>();
-            } else if (LogType == LogType.LOGCAT) {
+            } else if (configuration.LogType == LogType.Logcat) {
                 port = configuration.PortLogcat;
-                Converter = IoC.Get<LogcatToLogConverter>();
             }
-            if (Client != null) {
-                Client.Close();
-            }
+            Dispose();
 
             bool isPortAlreadyInUse = (from p
                                  in IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners()
@@ -61,6 +57,10 @@ namespace Backend {
             Client = new UdpClient(port);
             UdpState state = new UdpState(Client, new IPEndPoint(IPAddress.Any, 0));
             Client.BeginReceive(new AsyncCallback(DataReceived), state);
+        }
+
+        public void Dispose() {
+            Client?.Dispose();
         }
 
         private void DataReceived(IAsyncResult ar) {
@@ -79,8 +79,8 @@ namespace Backend {
                 if (isRightHost && isRightPort) {
                     string receivedText = Encoding.UTF8.GetString(receiveBytes);
 
-                    if (ApplicationConfiguration.IsMessageTraceEnabled) {
-                        Logger.Trace(receivedText);
+                    if (ApplicationConfiguration.CurrentValue.IsMessageTraceEnabled) {
+                        Logger.LogTrace(receivedText);
                     }
 
                     IEnumerable<Log> logs = Converter.Convert(receivedText);

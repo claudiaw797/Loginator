@@ -1,20 +1,21 @@
-﻿using Backend.Dao;
-using Backend.Manager;
-using StructureMap;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Backend.Converter;
+using Common;
+using Microsoft.Extensions.DependencyInjection;
+using NLog;
 
 namespace Backend.Bootstrapper {
+
     public static class DiBootstrapperBackend {
-        public static void Initialize(IContainer container) {
-            Console.WriteLine("Bootstrapping DI: Backend");
-            container.Configure(m => {
-                m.For<IReceiver>().Singleton().Use<Receiver>();
-                m.For<IConfigurationDao>().Singleton().Use<ConfigurationDaoSettings>();
-            });
+
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        public static void Initialize(IServiceCollection services) {
+            logger.Debug("Bootstrapping DI: Backend");
+
+            services.AddSingleton<IReceiver, Receiver>();
+
+            services.AddKeyedTransient<ILogConverter, ChainsawToLogConverter>(LogType.Chainsaw);
+            services.AddKeyedTransient<ILogConverter, LogcatToLogConverter>(LogType.Logcat);
         }
     }
 }

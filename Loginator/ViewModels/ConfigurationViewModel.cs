@@ -1,11 +1,8 @@
 ﻿using Backend;
-using Backend.Dao;
-using Backend.Manager;
 using Backend.Model;
 using Common;
 using Common.Configuration;
 using CommunityToolkit.Mvvm.Input;
-using Loginator.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,7 +17,7 @@ namespace Loginator.ViewModels {
 
     public class ConfigurationViewModel : INotifyPropertyChanged {
 
-        private IConfigurationDao ConfigurationDao { get; set; }
+        private IWritableOptions<Configuration> ConfigurationDao { get; set; }
 
         private LogType logType;
         public LogType LogType {
@@ -60,9 +57,9 @@ namespace Loginator.ViewModels {
 
         public Action CloseAction { get; set; }
 
-        public ConfigurationViewModel(IConfigurationDao configurationDao) {
+        public ConfigurationViewModel(IWritableOptions<Configuration> configurationDao) {
             ConfigurationDao = configurationDao;
-            Configuration configuration = ConfigurationDao.Read();
+            Configuration configuration = configurationDao.Value;
             LogType = configuration.LogType;
             PortChainsaw = configuration.PortChainsaw.ToString();
             PortLogcat = configuration.PortLogcat.ToString();
@@ -97,14 +94,13 @@ namespace Loginator.ViewModels {
         }
         private void AcceptChanges(ConfigurationViewModel serverRule) {
             try {
-                Configuration configuration = new Configuration() {
-                    LogType = LogType,
-                    PortChainsaw = Convert.ToInt32(PortChainsaw),
-                    PortLogcat = Convert.ToInt32(PortLogcat),
-                    LogTimeFormat = LogTimeFormat
-                };
-                ConfigurationDao.Write(configuration);
-                IoC.Get<IReceiver>().Initialize(configuration);
+                ConfigurationDao.Update(c => {
+                    c.LogType = LogType;
+                    c.PortChainsaw = Convert.ToInt32(PortChainsaw);
+                    c.PortLogcat = Convert.ToInt32(PortLogcat);
+                    c.LogTimeFormat = LogTimeFormat;
+                });
+                IoC.Get<IReceiver>().Initialize(ConfigurationDao.Value);
                 CloseAction();
             } catch (Exception ex) {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Stop, MessageBoxResult.OK);

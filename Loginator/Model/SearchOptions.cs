@@ -1,7 +1,8 @@
-﻿namespace Backend.Model
-{
-    public record SearchOptions
-    {
+﻿
+namespace Loginator.Model {
+
+    public record SearchOptions {
+
         /// <summary>
         /// The search criteria, i.e. text to search.
         /// </summary>

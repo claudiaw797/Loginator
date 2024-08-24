@@ -1,15 +1,27 @@
 ﻿using Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using System.Text.Json.Serialization;
 
 namespace Backend.Model {
-    public class Configuration {
+
+    public sealed class Configuration {
+
+        public const string SectionName = "UserSettings";
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogType LogType { get; set; }
+
         public int PortChainsaw { get; set; }
+
         public int PortLogcat { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogTimeFormat LogTimeFormat { get; set; }
+    }
+
+    public static class ConfigurationExtensions {
+
+        public static Configuration GetUserSettings(this IConfiguration configuration)
+            => configuration.GetSection(Configuration.SectionName).Get<Configuration>() ?? new Configuration();
     }
 }

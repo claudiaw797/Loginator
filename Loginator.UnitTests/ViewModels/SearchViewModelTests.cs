@@ -1,7 +1,7 @@
-using Backend.Model;
 using FakeItEasy;
 using FluentAssertions;
 using Loginator.Controls;
+using Loginator.Model;
 using Loginator.ViewModels;
 using System;
 
