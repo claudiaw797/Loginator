@@ -97,7 +97,7 @@
     </Task>
   </UsingTask>
   <Target Name="AfterBuild">
-    <RenameToFileWithVersion PathToInstaller="$(TargetPath)" PathToVersion="%(ProjectReference.RootDir)%(ProjectReference.Directory)Version.txt" />
+    <RenameToFileWithVersion PathToInstaller="$(TargetPath)" PathToVersion="%(ProjectReference.RootDir)%(ProjectReference.Directory)\Resources\Version.txt" />
   </Target>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
