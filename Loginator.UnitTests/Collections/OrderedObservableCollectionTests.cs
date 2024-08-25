@@ -22,7 +22,7 @@ namespace Loginator.UnitTests.Collections {
         private readonly LogViewModel item3;
 
         public OrderedObservableCollectionTests() {
-            DateTime ts = DateTime.Now;
+            var ts = DateTimeOffset.Now;
             item1 = LogVM(ts);
             item2 = LogVM(ts.AddSeconds(5));
             item3 = LogVM(ts.AddSeconds(-5));
@@ -59,7 +59,7 @@ namespace Loginator.UnitTests.Collections {
             Can_add_multiple_items_sorted_by_timestamp_descending();
             sutEvents.Clear();
 
-            var item4 = new LogViewModel { Timestamp = DateTime.Now.AddMinutes(-5) };
+            var item4 = new LogViewModel { Timestamp = DateTimeOffset.Now.AddMinutes(-5) };
             sut.AddLeading(item4);
 
             sut.Should()
@@ -150,7 +150,7 @@ namespace Loginator.UnitTests.Collections {
             Can_add_multiple_items_sorted_by_timestamp_descending();
             sutEvents.Clear();
 
-            var item4 = new LogViewModel { Timestamp = DateTime.Now };
+            var item4 = new LogViewModel { Timestamp = DateTimeOffset.Now };
             var actual = sut.Remove([item1, item2, item3, item4]);
 
             actual.Should().BeTrue();
@@ -164,7 +164,7 @@ namespace Loginator.UnitTests.Collections {
             Can_add_multiple_items_sorted_by_timestamp_descending();
             sutEvents.Clear();
 
-            var item4 = new LogViewModel { Timestamp = DateTime.Now };
+            var item4 = new LogViewModel { Timestamp = DateTimeOffset.Now };
             var actual = sut.Remove([item1, item2, item3, item4], _ => false);
 
             actual.Should().BeFalse();
@@ -187,7 +187,7 @@ namespace Loginator.UnitTests.Collections {
                 this.Select(e => e.Action);
         }
 
-        private static LogViewModel LogVM(DateTime timestamp) =>
+        private static LogViewModel LogVM(DateTimeOffset timestamp) =>
             new() { Timestamp = timestamp };
     }
 }

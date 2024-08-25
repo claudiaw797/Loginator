@@ -64,8 +64,8 @@ namespace Backend.Converter {
                         }
                         attribute = attributes.GetNamedItem("timestamp");
                         if (attribute != null) {
-                            var timespan = TimeSpan.FromMilliseconds(Int64.Parse(attribute.Value));
-                            log.Timestamp = new DateTime(1970, 1, 1).Add(timespan);
+                            var timestamp = long.Parse(attribute.Value);
+                            log.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
                         }
                         attribute = attributes.GetNamedItem("thread");
                         if (attribute != null) {
@@ -108,12 +108,6 @@ namespace Backend.Converter {
                 Logger.Error(e, "Could not read chainsaw data");
             }
             return new Log[] { Log.DEFAULT };
-        }
-
-        private double ConvertToUnixTimestamp(DateTime date) {
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            TimeSpan sinceEpoch = date.ToUniversalTime() - epoch;
-            return Math.Floor(sinceEpoch.TotalMilliseconds);
         }
     }
 }

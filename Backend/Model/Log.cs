@@ -8,7 +8,7 @@ namespace Backend.Model {
         /// <summary>
         /// The date and time the log happened. Either this comes from the logging source or is set when received.
         /// </summary>
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
         /// <summary>
         /// The log level in the form "INFO", "ERROR", etc. This should always be available.
         /// </summary>
@@ -48,7 +48,7 @@ namespace Backend.Model {
 
         public Log() {
             Properties = new List<Property>();
-            Timestamp = DateTime.Now;
+            Timestamp = DateTimeOffset.Now;
             Namespace = Constants.NAMESPACE_GLOBAL;
             Application = Constants.APPLICATION_GLOBAL;
         }

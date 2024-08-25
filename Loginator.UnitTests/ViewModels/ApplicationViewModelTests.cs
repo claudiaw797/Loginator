@@ -30,7 +30,7 @@ namespace Loginator.UnitTests.ViewModels {
             sut = new ApplicationViewModel(APP_NAME, logs, namespaces, LoggingLevel.NOT_SET);
             namespaceApp = new NamespaceViewModel(APP_NAME, sut);
 
-            DateTime ts = DateTime.Now;
+            var ts = DateTimeOffset.Now;
             var itemV = LogVM(LoggingLevel.TRACE, ts.AddMinutes(1));
             var itemD = LogVM(LoggingLevel.DEBUG, ts.AddMinutes(2));
             var itemI = LogVM(LoggingLevel.INFO, ts.AddMinutes(3));
@@ -288,7 +288,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         private IEnumerable<LogViewModel> AddItemsToSut(int tsOffset, string message = "Two") {
-            DateTime ts = DateTime.Now;
+            var ts = DateTimeOffset.Now;
             var itemV2 = LogVM(LoggingLevel.TRACE, ts.AddMinutes(tsOffset++), message);
             var itemD2 = LogVM(LoggingLevel.DEBUG, ts.AddMinutes(tsOffset++), message);
             var itemI2 = LogVM(LoggingLevel.INFO, ts.AddMinutes(tsOffset++), message);
@@ -330,7 +330,7 @@ namespace Loginator.UnitTests.ViewModels {
             ? []
             : (items ?? testItems).TakeWhile(item => item.Level >= level);
 
-        private static LogViewModel LogVM(LoggingLevel level, DateTime ts, string message = "One") =>
+        private static LogViewModel LogVM(LoggingLevel level, DateTimeOffset ts, string message = "One") =>
             new() {
                 Application = APP_NAME,
                 Namespace = NAMESPACE_NAME,

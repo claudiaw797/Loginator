@@ -8,7 +8,7 @@ namespace Loginator.ViewModels {
 
     [DebuggerDisplay("{Timestamp} {Level.Id} {Application}.{Namespace} '{Message}'")]
     public class LogViewModel : INotifyPropertyChanged {
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
         public LoggingLevel Level { get; set; }
         public string Message { get; set; }
         public string Exception { get; set; }

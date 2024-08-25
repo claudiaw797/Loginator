@@ -247,7 +247,7 @@ namespace Loginator.ViewModels {
 
         private LogViewModel ToLogViewModel(Log log) {
             var logViewModel = Mapper.Map<Log, LogViewModel>(log);
-            if (LogTimeFormat == LogTimeFormat.ConvertToLocalTime) {
+            if (ConfigurationDao.CurrentValue.LogTimeFormat == LogTimeFormat.ConvertToLocalTime) {
                 logViewModel.Timestamp = logViewModel.Timestamp.ToLocalTime();
             }
             return logViewModel;

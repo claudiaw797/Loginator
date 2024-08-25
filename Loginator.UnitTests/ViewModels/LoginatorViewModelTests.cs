@@ -60,7 +60,7 @@ namespace Loginator.UnitTests.ViewModels {
 
             sut = Sut();
 
-            DateTime ts = DateTime.Now;
+            var ts = DateTimeOffset.Now;
             var itemV = Log(LoggingLevel.TRACE, ts.AddMinutes(1));
             var itemD = Log(LoggingLevel.DEBUG, ts.AddMinutes(2));
             var itemI = Log(LoggingLevel.INFO, ts.AddMinutes(3));
@@ -474,7 +474,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         private IEnumerable<Log> AddItemsToSut(int tsOffset, string message = "Two", int appId = 1) {
-            DateTime ts = DateTime.Now;
+            var ts = DateTimeOffset.Now;
             var itemV2 = Log(LoggingLevel.TRACE, ts.AddMinutes(tsOffset++), message, appId);
             var itemD2 = Log(LoggingLevel.DEBUG, ts.AddMinutes(tsOffset++), message, appId);
             var itemI2 = Log(LoggingLevel.INFO, ts.AddMinutes(tsOffset++), message, appId);
@@ -565,7 +565,7 @@ namespace Loginator.UnitTests.ViewModels {
             sut.Search.UpdateCommand.Execute(null);
         }
 
-        private static Log Log(LoggingLevel level, DateTime ts, string message = "One", int appId = 1) =>
+        private static Log Log(LoggingLevel level, DateTimeOffset ts, string message = "One", int appId = 1) =>
             new() {
                 Application = APP_NAMES[appId],
                 Namespace = NAMESPACE_NAME,
