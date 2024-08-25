@@ -76,11 +76,10 @@ namespace Backend.Converter {
                                 continue;
                             }
                             if (child.Name.EndsWith("message")) {
-                                log.Message += child.InnerText;
+                                log.Message = InsertIntoMessage(log.Message, child.InnerText, append: true);
                             }
-                            if (child.Name.EndsWith("NDC"))
-                            {
-                                log.Message = $"{child.InnerText} {log.Message}";
+                            if (child.Name.EndsWith("NDC")) {
+                                log.Message = InsertIntoMessage(log.Message, child.InnerText, append: false);
                             }
                             if (child.Name.EndsWith("throwable")) {
                                 log.Exception = child.InnerText;
@@ -109,5 +108,12 @@ namespace Backend.Converter {
             }
             return new Log[] { Log.DEFAULT };
         }
+
+        private static string InsertIntoMessage(string message, string text, bool append = true, string separator = " ") =>
+            string.IsNullOrWhiteSpace(text)
+                ? message
+                : string.IsNullOrWhiteSpace(message)
+                ? text
+                : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
     }
 }
