@@ -61,7 +61,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="4" />
-                <RowDefinition Height="150" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <ListView Grid.Row="0"
                 SelectedItem="{Binding SelectedLog}"
@@ -89,7 +89,7 @@
                         <GridViewColumn Header="Context" controls:GridViewColumnResize.Width="100">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Context}" Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                                    <TextBlock Text="{Binding Context, Converter={StaticResource SingleLineTextConverter}}" Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -114,13 +114,61 @@
                 </ListView.Resources>-->
             </ListView>
             <GridSplitter Grid.Row="1" ResizeBehavior="BasedOnAlignment" ResizeDirection="Rows" Height="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-            <ScrollViewer Grid.Row="2">
+            <ScrollViewer Grid.Row="2" Height="170" Visibility="{Binding SelectedLog, Converter={StaticResource ExistsToVisibilityConverter}}">
                 <ScrollViewer.ContextMenu>
                     <ContextMenu>
+                        <MenuItem Header="Copy" Command="{Binding CopySelectedLogCommand}" />
+                        <MenuItem Header="Copy message" Command="{Binding CopySelectedLogMessageCommand}" />
                         <MenuItem Header="Copy exception" Command="{Binding CopySelectedLogExceptionCommand}" />
                     </ContextMenu>
                 </ScrollViewer.ContextMenu>
-                <TextBox Background="Transparent" BorderThickness="0" Text="{Binding SelectedLog, Converter={StaticResource LogToTextConverter}}" VerticalAlignment="Top" VerticalContentAlignment="Top" IsReadOnly="True" TextWrapping="Wrap" Height="Auto" Margin="0,0,0,0" />
+                <Grid Background="Transparent" VerticalAlignment="Top" Margin="0,2,0,0"
+                      DataContext="{Binding SelectedLog}">
+                    <Grid.Resources>
+                        <Style TargetType="Label">
+                            <Setter Property="Margin" Value="0,-5,0,-3"/>
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                        </Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextWrapping" Value="Wrap"/>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="Application:" />
+                    <TextBlock Grid.Row="0" Grid.Column="1"
+                               Text="{Binding Application}" />
+                    <Label Grid.Row="1" Grid.Column="0" Content="Namespace:" />
+                    <TextBlock Grid.Row="1" Grid.Column="1"
+                               Text="{Binding Namespace}" />
+                    <Label Grid.Row="2" Grid.Column="0" Content="Context:" />
+                    <TextBlock Grid.Row="2" Grid.Column="1"
+                               Text="{Binding Context}" />
+                    <Label Grid.Row="3" Grid.Column="0" Content="Thread:" />
+                    <TextBlock Grid.Row="3" Grid.Column="1"
+                               Text="{Binding Thread}" />
+                    <Label Grid.Row="4" Grid.Column="0" Content="Message:" />
+                    <TextBlock Grid.Row="4" Grid.Column="1"
+                               Text="{Binding Message}" />
+                    <Label Grid.Row="5" Grid.Column="0" Content="Exception:"
+                               Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
+                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Exception}"
+                               Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
+                    <Label Grid.Row="6" Grid.Column="0" Content="Host:" />
+                    <TextBlock Grid.Row="6" Grid.Column="1"
+                               Text="{Binding MachineName}" />
+                </Grid>
             </ScrollViewer>
         </Grid>
         <GridSplitter Grid.Row="1" Grid.Column="1" ResizeBehavior="BasedOnAlignment" ResizeDirection="Columns" Width="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />

@@ -31,6 +31,7 @@ namespace Loginator.ViewModels {
         public override string ToString() {
             // TODO: Localize this with .resx
             StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{Level}: {Timestamp}");
             sb.Append("Application: ");
             sb.AppendLine(Application);
             sb.Append("Namespace: ");

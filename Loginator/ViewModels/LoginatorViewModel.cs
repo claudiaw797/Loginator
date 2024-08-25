@@ -139,6 +139,20 @@ namespace Loginator.ViewModels {
             }
         }
 
+        [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
+        private void CopySelectedLog() {
+            if (SelectedLog is not null) {
+                Clipboard.SetText(SelectedLog.ToString());
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
+        private void CopySelectedLogMessage() {
+            if (SelectedLog is not null) {
+                Clipboard.SetText(SelectedLog.Message);
+            }
+        }
+
         [RelayCommand(CanExecute = nameof(CanCopySelectedLogException))]
         private void CopySelectedLogException() {
             if (SelectedLog is not null) {
@@ -405,6 +419,10 @@ namespace Loginator.ViewModels {
 
         private bool CanUpdateNumberOfLogsPerLevel(int value) {
             return value > 0 && value != NumberOfLogsPerLevel;
+        }
+        
+        private bool CanCopySelectedLog() {
+            return SelectedLog is not null;
         }
 
         private bool CanCopySelectedLogException() {
