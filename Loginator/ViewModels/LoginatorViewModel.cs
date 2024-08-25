@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
 using Backend;
 using Backend.Events;
 using Backend.Model;
@@ -27,18 +28,16 @@ namespace Loginator.ViewModels {
 
         private IOptionsMonitor<Configuration> ConfigurationDao { get; set; }
         private IDisposable? ConfigurationChangeListener { get; set; }
-        private IMapper Mapper { get; set; }
         private IReceiver? Receiver { get; set; }
         private ITimer Timer { get; set; }
         private IStopwatch Stopwatch { get; set; }
         private ILogger<LoginatorViewModel> Logger { get; set; }
 
         private LogTimeFormat LogTimeFormat { get; set; }
-        private List<LogViewModel> LogsToInsert { get; set; }
+        private List<Log> LogsToInsert { get; set; }
 
         public LoginatorViewModel(
             IOptionsMonitor<Configuration> configurationDao,
-            IMapper mapper,
             IStopwatch stopwatch,
             TimeProvider timeProvider,
             ILogger<LoginatorViewModel> logger) {
@@ -54,7 +53,6 @@ namespace Loginator.ViewModels {
             LogsToInsert = [];
             Namespaces = [];
             Applications = [];
-            Mapper = mapper;
             Stopwatch = stopwatch;
             Search = new SearchViewModel();
             Search.UpdateSearch += Search_OnUpdateSearch;
@@ -200,8 +198,7 @@ namespace Loginator.ViewModels {
                 // Add a log entry only to the list if global logging is active (checkbox)
                 if (!IsActive) return;
 
-                var log = Mapper.Map<Log, LogViewModel>(e.Log);
-                LogsToInsert.Add(log);
+                LogsToInsert.Add(e.Log);
             }
         }
 
@@ -263,7 +260,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void AddLogs(IEnumerable<LogViewModel> logsToInsert) {
+        private void AddLogs(IEnumerable<Log> logsToInsert) {
             try {
                 foreach (var logToInsert in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == logToInsert.Application);
@@ -279,7 +276,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void UpdateNamespaces(IEnumerable<LogViewModel> logsToInsert) {
+        private void UpdateNamespaces(IEnumerable<Log> logsToInsert) {
             try {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
@@ -323,7 +320,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private static void HandleNamespace(NamespaceViewModel parent, string suffix, ApplicationViewModel application, LogViewModel log) {
+        private static void HandleNamespace(NamespaceViewModel parent, string suffix, ApplicationViewModel application, Log log) {
             // Example: VerbTeX.View (Verbosus was processed before)
             var nsLogFull = suffix;
             // Example: VerbTeX
@@ -347,7 +344,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void UpdateApplications(IEnumerable<LogViewModel> logsToInsert) {
+        private void UpdateApplications(IEnumerable<Log> logsToInsert) {
             try {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
@@ -383,7 +380,7 @@ namespace Loginator.ViewModels {
             ns.IsHighlighted = false;
         }
 
-        private static void SetLogCountByLevel(LogViewModel log, NamespaceViewModel ns) {
+        private static void SetLogCountByLevel(Log log, NamespaceViewModel ns) {
             ns.Count++;
             if (log.Level == LoggingLevel.TRACE) {
                 ns.CountTrace++;

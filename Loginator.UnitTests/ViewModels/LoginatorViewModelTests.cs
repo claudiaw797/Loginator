@@ -1,4 +1,5 @@
-using AutoMapper;
+// Copyright (C) 2024 Claudia Wagner
+
 using Backend;
 using Backend.Events;
 using Backend.Model;
@@ -8,7 +9,6 @@ using FakeItEasy;
 using FluentAssertions;
 using Loginator.Controls;
 using Loginator.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -49,13 +49,11 @@ namespace Loginator.UnitTests.ViewModels {
         private readonly LoginatorViewModel sut;
         private readonly IReceiver receiver = A.Fake<IReceiver>();
         private EventHandler<LogReceivedEventArgs>? logReceivedEventHandler;
-        private readonly IMapper mapper;
         private readonly FakeTimeProvider timeProvider;
 
         private readonly IEnumerable<Log> testItems;
 
         public LoginatorViewModelTests() {
-            mapper = new MapperConfiguration(cfg => cfg.CreateMap<Log, LogViewModel>()).CreateMapper();
             timeProvider = new FakeTimeProvider();
 
             sut = Sut();
@@ -89,11 +87,10 @@ namespace Loginator.UnitTests.ViewModels {
         [Test]
         public void Can_create_sut() {
             var configDao = A.Fake<IOptionsMonitor<Configuration>>();
-            var mapper = A.Fake<IMapper>();
             var stopwatch = A.Fake<IStopwatch>();
             var logger = A.Fake<ILogger<LoginatorViewModel>>();
 
-            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider, logger);
+            var sut = new LoginatorViewModel(configDao, stopwatch, timeProvider, logger);
 
             sut.IsActive.Should().BeTrue();
             sut.NumberOfLogsPerLevel.Should().BeGreaterThan(100);
@@ -346,6 +343,16 @@ namespace Loginator.UnitTests.ViewModels {
             }
         }
 
+        [Test, Apartment(ApartmentState.STA)]
+        public void Can_copy_message_from_selected_log() {
+            AssertCanCopySelectedLog(checkMessageOnly: true);
+        }
+
+        [Test, Apartment(ApartmentState.STA)]
+        public void Can_copy_selected_log() {
+            AssertCanCopySelectedLog(checkMessageOnly: false);
+        }
+
         private void AssertOrderLevelItems(LoggingLevel level) {
             var expectedItems = GetExpectedItemsFromLevel(level);
             sut.SelectedInitialLogLevel = level;
@@ -426,6 +433,24 @@ namespace Loginator.UnitTests.ViewModels {
             return actual;
         }
 
+        private void AssertCanCopySelectedLog(bool checkMessageOnly = false) {
+            var command = checkMessageOnly ? sut.CopySelectedLogMessageCommand : sut.CopySelectedLogCommand;
+            var expectedItems = GetExpectedItemsFromLevel(LoggingLevel.TRACE).ToArray();
+            expectedItems.Should().HaveCount(6);
+
+            for (int i = 0; i < expectedItems.Length; i++) {
+                var current = GetViewModel(expectedItems[i]);
+                var expected = checkMessageOnly ? current.Message : current.ToString();
+
+                sut.SelectedLog = current;
+                command.CanExecute(null).Should().BeTrue();
+
+                command.Execute(null);
+
+                Clipboard.GetText().Should().Be(expected);
+            }
+        }
+
         private static void AssertNamespaceLevelCounts(NamespaceViewModel ns, bool expectZero = false) {
             foreach (var l in LoggingLevel.GetAllLogLevels()) {
                 var actual = GetLevelCount(l, ns);
@@ -460,8 +485,7 @@ namespace Loginator.UnitTests.ViewModels {
             ? []
             : (items ?? testItems).TakeWhile(item => item.Level >= level);
 
-        private LogViewModel GetViewModel(Log log) =>
-             mapper.Map<Log, LogViewModel>(log);
+        private LogViewModel GetViewModel(Log log) => new(log);
 
         private IEnumerable<LogViewModel> GetViewModels(IEnumerable<Log> logs) =>
             logs.Select(GetViewModel);
@@ -550,7 +574,7 @@ namespace Loginator.UnitTests.ViewModels {
 
             var stopwatch = A.Fake<IStopwatch>();
             var logger = A.Fake<ILogger<LoginatorViewModel>>();
-            var sut = new LoginatorViewModel(configDao, mapper, stopwatch, timeProvider, logger);
+            var sut = new LoginatorViewModel(configDao, stopwatch, timeProvider, logger);
             sut.StartListener();
 
             return sut;

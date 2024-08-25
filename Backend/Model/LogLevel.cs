@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -29,14 +31,14 @@ namespace Backend.Model {
             ShortName = shortName;
         }
 
-        public static LoggingLevel? FromId(int id) =>
-            GetAllLogLevels().FirstOrDefault(m => m.Id == id);
+        public static LoggingLevel FromId(int id) =>
+            GetAllLogLevels().FirstOrDefault(m => m.Id == id, NOT_SET);
 
-        public static LoggingLevel? FromName(string name) =>
-            GetAllLogLevels().FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        public static LoggingLevel FromName(string? name) =>
+            GetAllLogLevels().FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase), NOT_SET);
 
-        public static LoggingLevel? FromShortName(char shortName) =>
-            GetAllLogLevels().FirstOrDefault(m => m.ShortName == shortName);
+        public static LoggingLevel FromShortName(char shortName) =>
+            GetAllLogLevels().FirstOrDefault(m => m.ShortName == shortName, NOT_SET);
 
         public static IEnumerable<LoggingLevel> GetAllLogLevels() =>
             Levels.Skip(1).SkipLast(1);

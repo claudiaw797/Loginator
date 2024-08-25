@@ -1,4 +1,6 @@
-﻿using Common;
+﻿// Copyright (C) Daniel Kuster
+
+using Common;
 using System;
 using System.Collections.Generic;
 
@@ -8,43 +10,43 @@ namespace Backend.Model {
         /// <summary>
         /// The date and time the log happened. Either this comes from the logging source or is set when received.
         /// </summary>
-        public DateTimeOffset Timestamp { get; set; }
+        public DateTimeOffset Timestamp { get; internal set; }
         /// <summary>
         /// The log level in the form "INFO", "ERROR", etc. This should always be available.
         /// </summary>
-        public LoggingLevel Level { get; set; }
+        public LoggingLevel Level { get; internal set; }
         /// <summary>
         /// The log message. Can be anything the logging source writes. This should always be available.
         /// </summary>
-        public string Message { get; set; }
+        public string Message { get; internal set; }
         /// <summary>
         /// The exception details including the stacktrace. May not be available.
         /// </summary>
-        public string? Exception { get; set; }
+        public string? Exception { get; internal set; }
         /// <summary>
         /// Gets or sets the machine name of the log. May not be available.
         /// </summary>
-        public string MachineName { get; set; }
+        public string MachineName { get; internal set; }
         /// <summary>
         /// The namespace of the log. May be set to "global" if no namespace is available.
         /// </summary>
-        public string Namespace { get; set; }
+        public string Namespace { get; internal set; }
         /// <summary>
         /// The application of the log. May be set to "global" if no application is available.
         /// </summary>
-        public string Application { get; set; }
+        public string Application { get; internal set; }
         /// <summary>
         /// The thread id of the logging application. May not be available.
         /// </summary>
-        public string Thread { get; set; }
+        public string Thread { get; internal set; }
         /// <summary>
         /// The context of the logging application. May not be available.
         /// </summary>
-        public string Context { get; set; }
+        public string Context { get; internal set; }
         /// <summary>
         /// Additional properties. May not be available.
         /// </summary>
-        public IEnumerable<Property> Properties { get; set; }
+        public IEnumerable<Property> Properties { get; internal set; }
 
         public Log() {
             Properties = new List<Property>();

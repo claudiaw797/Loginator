@@ -64,7 +64,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <ListView Grid.Row="0"
-                SelectedItem="{Binding SelectedLog}"
+                SelectedItem="{Binding SelectedLog, Converter={StaticResource ViewModelToLogConverter}}"
                 ItemsSource="{Binding Logs}"
                 Name="lvLogs"
                 SelectionMode="Single"

@@ -1,4 +1,6 @@
-﻿using Backend.Model;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Backend.Model;
 using Common;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Loginator.Collections;
@@ -21,12 +23,12 @@ namespace Loginator.ViewModels {
     public partial class ApplicationViewModel : ObservableObject {
 
         private OrderedObservableCollection Logs { get; set; }
-        private List<LogViewModel> LogsTrace { get; set; }
-        private List<LogViewModel> LogsDebug { get; set; }
-        private List<LogViewModel> LogsInfo { get; set; }
-        private List<LogViewModel> LogsWarn { get; set; }
-        private List<LogViewModel> LogsError { get; set; }
-        private List<LogViewModel> LogsFatal { get; set; }
+        private List<Log> LogsTrace { get; set; }
+        private List<Log> LogsDebug { get; set; }
+        private List<Log> LogsInfo { get; set; }
+        private List<Log> LogsWarn { get; set; }
+        private List<Log> LogsError { get; set; }
+        private List<Log> LogsFatal { get; set; }
         private ObservableCollection<NamespaceViewModel> Namespaces { get; set; }
         private ILogger Logger { get; set; }
 
@@ -105,7 +107,7 @@ namespace Loginator.ViewModels {
                 Logs.Remove(logs);
         }
 
-        public void AddLog(LogViewModel log) {
+        public void AddLog(Log log) {
             var logToRemove = AddByLevelPossiblyRemovingFirst(log);
 
             if (IsActive &&
@@ -196,7 +198,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private bool IsSearchCriteriaMatch(LogViewModel log) {
+        private bool IsSearchCriteriaMatch(Log log) {
             try {
                 var criteria = SearchOptions.Criteria;
 
@@ -220,7 +222,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private bool IsNamespaceActive(LogViewModel log) {
+        private bool IsNamespaceActive(Log log) {
             // Try to get existing root namespace with name of application
             var nsApplication = Namespaces.FirstOrDefault(m => m.Name == log.Application);
             return nsApplication is not null && IsNamespaceActive(nsApplication, log.Namespace);
@@ -243,10 +245,10 @@ namespace Loginator.ViewModels {
                 : nsChild.IsChecked;
         }
 
-        private bool IsNamespaceActiveSearchCriteriaMatch(LogViewModel log) =>
+        private bool IsNamespaceActiveSearchCriteriaMatch(Log log) =>
             IsNamespaceActive(log) && IsSearchCriteriaMatch(log);
 
-        private List<LogViewModel>? GetLogsByLevel(LoggingLevel level) =>
+        private List<Log>? GetLogsByLevel(LoggingLevel level) =>
             level switch {
                 var l when l == LoggingLevel.TRACE => LogsTrace,
                 var l when l == LoggingLevel.DEBUG => LogsDebug,
@@ -257,7 +259,7 @@ namespace Loginator.ViewModels {
                 _ => null,
             };
 
-        private IEnumerable<LogViewModel> GetLogsFromLevel(LoggingLevel level) =>
+        private IEnumerable<Log> GetLogsFromLevel(LoggingLevel level) =>
             level switch {
                 var l when l == LoggingLevel.TRACE => LogsTrace.Concat(LogsDebug).Concat(LogsInfo).Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
                 var l when l == LoggingLevel.DEBUG => LogsDebug.Concat(LogsInfo).Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
@@ -268,8 +270,8 @@ namespace Loginator.ViewModels {
                 _ => [],
             };
 
-        private LogViewModel? AddByLevelPossiblyRemovingFirst(LogViewModel log) {
-            LogViewModel? logToRemove = null;
+        private Log? AddByLevelPossiblyRemovingFirst(Log log) {
+            Log? logToRemove = null;
 
             var currentLevelLogs = GetLogsByLevel(log.Level);
             if (currentLevelLogs is not null) {
@@ -285,7 +287,7 @@ namespace Loginator.ViewModels {
             return logToRemove;
         }
 
-        private List<LogViewModel> RemoveSurplus(List<LogViewModel> levelLogs) {
+        private List<Log> RemoveSurplus(List<Log> levelLogs) {
             var count = levelLogs.Count - MaxNumberOfLogsPerLevel;
             if (count <= 0) {
                 return [];
