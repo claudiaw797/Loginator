@@ -39,6 +39,7 @@
         <converter:SingleLineTextConverter x:Key="SingleLineTextConverter"></converter:SingleLineTextConverter>
         <converter:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter"></converter:RadioButtonCheckedConverter>
         <converter:ExistsToVisibilityConverter x:Key="ExistsToVisibilityConverter"></converter:ExistsToVisibilityConverter>
+        <converter:TimestampConverter x:Key="TimestampConverter"></converter:TimestampConverter>
 
         <viewModels:ViewModelLocator x:Key="Locator" d:IsDataSource="True"/>
         

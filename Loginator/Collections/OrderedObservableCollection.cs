@@ -58,6 +58,10 @@ namespace Loginator.Collections {
         protected override void InsertItem(int index, LogViewModel item) =>
             throw new InvalidOperationException("Only adding items controlled is allowed");
 
+        internal void RaiseReset() {
+            OnCollectionChanged(EventArgsCache.ResetCollectionChanged);
+        }
+
         private int FindNewIndex(LogViewModel item) {
             for (int i = 0; i < Items.Count; i++) {
                 if (Items.ElementAt(i).Timestamp < item.Timestamp) {
@@ -81,7 +85,7 @@ namespace Loginator.Collections {
             OnCollectionChanged(EventArgsCache.ResetCollectionChanged);
         }
 
-        internal static class EventArgsCache {
+        private static class EventArgsCache {
             internal static readonly PropertyChangedEventArgs CountPropertyChanged = new("Count");
             internal static readonly PropertyChangedEventArgs IndexerPropertyChanged = new("Item[]");
             internal static readonly NotifyCollectionChangedEventArgs ResetCollectionChanged = new(NotifyCollectionChangedAction.Reset);

@@ -44,6 +44,7 @@ namespace Loginator.ViewModels {
             ILogger<LoginatorViewModel> logger) {
             ConfigurationDao = configurationDao;
             ConfigurationChangeListener = configurationDao.OnChange(ConfigurationDao_OnConfigurationChanged);
+            LogTimeFormat = configurationDao.CurrentValue.LogTimeFormat;
 
             isActive = true;
             selectedInitialLogLevel = LoggingLevel.TRACE;
@@ -186,8 +187,11 @@ namespace Loginator.ViewModels {
             Namespaces.Flatten(x => x.Children);
 
         private void ConfigurationDao_OnConfigurationChanged(Configuration logConfig, string? name = null) {
-            Logger.LogInformation("[ConfigurationDao_OnConfigurationChanged] Configuration changed.");
-            LogTimeFormat = logConfig.LogTimeFormat;
+            if (LogTimeFormat != logConfig.LogTimeFormat) {
+                Logs.RaiseReset();
+                Logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", LogTimeFormat, logConfig.LogTimeFormat);
+                LogTimeFormat = logConfig.LogTimeFormat;
+            }
         }
 
         private void Receiver_OnLogReceived(object? sender, LogReceivedEventArgs e) {
@@ -196,7 +200,7 @@ namespace Loginator.ViewModels {
                 // Add a log entry only to the list if global logging is active (checkbox)
                 if (!IsActive) return;
 
-                LogViewModel log = ToLogViewModel(e.Log);
+                var log = Mapper.Map<Log, LogViewModel>(e.Log);
                 LogsToInsert.Add(log);
             }
         }
@@ -257,14 +261,6 @@ namespace Loginator.ViewModels {
                     NotifyApplicationDependentCommands();
                 }
             }
-        }
-
-        private LogViewModel ToLogViewModel(Log log) {
-            var logViewModel = Mapper.Map<Log, LogViewModel>(log);
-            if (ConfigurationDao.CurrentValue.LogTimeFormat == LogTimeFormat.ConvertToLocalTime) {
-                logViewModel.Timestamp = logViewModel.Timestamp.ToLocalTime();
-            }
-            return logViewModel;
         }
 
         private void AddLogs(IEnumerable<LogViewModel> logsToInsert) {

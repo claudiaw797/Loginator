@@ -75,28 +75,32 @@
                         <GridViewColumn Header="Timestamp" controls:GridViewColumnResize.Width="140">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss.fff}'}" Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss.fff}', Converter={StaticResource TimestampConverter}}"
+                                               Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Header="Level" controls:GridViewColumnResize.Width="50">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=Level.Name}" Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                                    <TextBlock Text="{Binding Path=Level.Name}"
+                                               Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Header="Context" controls:GridViewColumnResize.Width="100">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Context, Converter={StaticResource SingleLineTextConverter}}" Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                                    <TextBlock Text="{Binding Context, Converter={StaticResource SingleLineTextConverter}}"
+                                               Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Header="Message" controls:GridViewColumnResize.Width="*">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Message, Converter={StaticResource SingleLineTextConverter}}" Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                                    <TextBlock Text="{Binding Message, Converter={StaticResource SingleLineTextConverter}}"
+                                               Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
