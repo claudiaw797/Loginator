@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Add 'Copy' and 'Copy message' context menu buttons to selected log window
+
+### Changed
+
+- Selected log is displayed in grid style instead of as one text block
+- Datetime format switching affects all currently cached logs, not just new ones
+
+### Fixed
+
+- Datetime format switching was not working
+
+## Removed
+
+- Remove AutoMapper dependency
+
 ## [1.7.4] - 2024-08-24
 
 ### Added
