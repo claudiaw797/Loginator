@@ -1,3 +1,5 @@
+// Copyright (C) 2024 Claudia Wagner
+
 using Backend.Model;
 using FluentAssertions;
 using Loginator.Collections;
@@ -24,19 +26,19 @@ namespace Loginator.UnitTests.ViewModels {
         private readonly ObservableCollection<NamespaceViewModel> namespaces = [];
         private readonly OrderedObservableCollection logs = [];
 
-        private readonly IEnumerable<LogViewModel> testItems;
+        private readonly IEnumerable<Log> testItems;
 
         public ApplicationViewModelTests() {
             sut = new ApplicationViewModel(APP_NAME, logs, namespaces, LoggingLevel.NOT_SET);
             namespaceApp = new NamespaceViewModel(APP_NAME, sut);
 
-            DateTime ts = DateTime.Now;
-            var itemV = LogVM(LoggingLevel.TRACE, ts.AddMinutes(1));
-            var itemD = LogVM(LoggingLevel.DEBUG, ts.AddMinutes(2));
-            var itemI = LogVM(LoggingLevel.INFO, ts.AddMinutes(3));
-            var itemW = LogVM(LoggingLevel.WARN, ts.AddMinutes(4));
-            var itemE = LogVM(LoggingLevel.ERROR, ts.AddMinutes(5));
-            var itemF = LogVM(LoggingLevel.FATAL, ts.AddMinutes(6));
+            var ts = DateTimeOffset.Now;
+            var itemV = Log(LoggingLevel.TRACE, ts.AddMinutes(1));
+            var itemD = Log(LoggingLevel.DEBUG, ts.AddMinutes(2));
+            var itemI = Log(LoggingLevel.INFO, ts.AddMinutes(3));
+            var itemW = Log(LoggingLevel.WARN, ts.AddMinutes(4));
+            var itemE = Log(LoggingLevel.ERROR, ts.AddMinutes(5));
+            var itemF = Log(LoggingLevel.FATAL, ts.AddMinutes(6));
 
             testItems = [itemF, itemE, itemW, itemI, itemD, itemV];
         }
@@ -275,10 +277,10 @@ namespace Loginator.UnitTests.ViewModels {
             AssertLogs(expectedItems3, expectedItems1);
         }
 
-        private void AssertLogs(params IEnumerable<LogViewModel>[] expected) =>
+        private void AssertLogs(params IEnumerable<Log>[] expected) =>
             logs.Should().BeEquivalentTo(expected.SelectMany(e => e), c => c.WithStrictOrdering());
 
-        private IEnumerable<LogViewModel> AddItemsToSut(bool setNamespaceFirst = false) {
+        private IEnumerable<Log> AddItemsToSut(bool setNamespaceFirst = false) {
             if (setNamespaceFirst)
                 namespaces.Add(namespaceApp);
 
@@ -287,22 +289,22 @@ namespace Loginator.UnitTests.ViewModels {
             return testItems;
         }
 
-        private IEnumerable<LogViewModel> AddItemsToSut(int tsOffset, string message = "Two") {
-            DateTime ts = DateTime.Now;
-            var itemV2 = LogVM(LoggingLevel.TRACE, ts.AddMinutes(tsOffset++), message);
-            var itemD2 = LogVM(LoggingLevel.DEBUG, ts.AddMinutes(tsOffset++), message);
-            var itemI2 = LogVM(LoggingLevel.INFO, ts.AddMinutes(tsOffset++), message);
-            var itemW2 = LogVM(LoggingLevel.WARN, ts.AddMinutes(tsOffset++), message);
-            var itemE2 = LogVM(LoggingLevel.ERROR, ts.AddMinutes(tsOffset++), message);
-            var itemF2 = LogVM(LoggingLevel.FATAL, ts.AddMinutes(tsOffset++), message);
+        private IEnumerable<Log> AddItemsToSut(int tsOffset, string message = "Two") {
+            var ts = DateTimeOffset.Now;
+            var itemV2 = Log(LoggingLevel.TRACE, ts.AddMinutes(tsOffset++), message);
+            var itemD2 = Log(LoggingLevel.DEBUG, ts.AddMinutes(tsOffset++), message);
+            var itemI2 = Log(LoggingLevel.INFO, ts.AddMinutes(tsOffset++), message);
+            var itemW2 = Log(LoggingLevel.WARN, ts.AddMinutes(tsOffset++), message);
+            var itemE2 = Log(LoggingLevel.ERROR, ts.AddMinutes(tsOffset++), message);
+            var itemF2 = Log(LoggingLevel.FATAL, ts.AddMinutes(tsOffset++), message);
 
-            IEnumerable<LogViewModel> items = [itemF2, itemE2, itemW2, itemI2, itemD2, itemV2];
+            IEnumerable<Log> items = [itemF2, itemE2, itemW2, itemI2, itemD2, itemV2];
             AddItemsReversed(items);
 
             return items;
         }
 
-        private (IEnumerable<LogViewModel>, IEnumerable<LogViewModel>, IEnumerable<LogViewModel>) AddItemsOneTwoThreeToSut(LoggingLevel level) {
+        private (IEnumerable<Log>, IEnumerable<Log>, IEnumerable<Log>) AddItemsOneTwoThreeToSut(LoggingLevel level) {
             // message contains "One"
             var allItems1 = AddItemsToSut(setNamespaceFirst: true);
             var expectedItems1 = GetExpectedItemsFromLevel(level, allItems1);
@@ -318,19 +320,19 @@ namespace Loginator.UnitTests.ViewModels {
             return (expectedItems1, expectedItems2, expectedItems3);
         }
 
-        private void AddItemsReversed(IEnumerable<LogViewModel> items) {
+        private void AddItemsReversed(IEnumerable<Log> items) {
             foreach (var item in items.Reverse()) {
                 // items are added in front without timestamp ordering
                 sut.AddLog(item);
             }
         }
 
-        private IEnumerable<LogViewModel> GetExpectedItemsFromLevel(LoggingLevel level, IEnumerable<LogViewModel>? items = null) =>
+        private IEnumerable<Log> GetExpectedItemsFromLevel(LoggingLevel level, IEnumerable<Log>? items = null) =>
             level == LoggingLevel.NOT_SET
             ? []
             : (items ?? testItems).TakeWhile(item => item.Level >= level);
 
-        private static LogViewModel LogVM(LoggingLevel level, DateTime ts, string message = "One") =>
+        private static Log Log(LoggingLevel level, DateTimeOffset ts, string message = "One") =>
             new() {
                 Application = APP_NAME,
                 Namespace = NAMESPACE_NAME,

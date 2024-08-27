@@ -9,4 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Loginator.UnitTests" />
+  </ItemGroup>
 </Project>

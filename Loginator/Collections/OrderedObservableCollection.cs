@@ -1,4 +1,6 @@
-﻿using Loginator.ViewModels;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Backend.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,21 +10,21 @@ using System.Linq;
 
 namespace Loginator.Collections {
 
-    public class OrderedObservableCollection : ObservableCollection<LogViewModel> {
+    public class OrderedObservableCollection : ObservableCollection<Log> {
 
-        public void AddLeading(LogViewModel item) {
+        public void AddLeading(Log item) {
             ArgumentNullException.ThrowIfNull(item, nameof(item));
 
             InsertItem(() => 0, item);
         }
 
-        public new void Add(LogViewModel item) {
+        public new void Add(Log item) {
             ArgumentNullException.ThrowIfNull(item, nameof(item));
 
             InsertItem(() => FindNewIndex(item), item);
         }
 
-        public void Add(IEnumerable<LogViewModel> items, Predicate<LogViewModel>? predicate = null) {
+        public void Add(IEnumerable<Log> items, Predicate<Log>? predicate = null) {
             ArgumentNullException.ThrowIfNull(items, nameof(items));
             predicate ??= _ => true;
 
@@ -38,7 +40,7 @@ namespace Loginator.Collections {
             if (isChanged) OnReset();
         }
 
-        public bool Remove(IEnumerable<LogViewModel> items, Predicate<LogViewModel>? predicate = null) {
+        public bool Remove(IEnumerable<Log> items, Predicate<Log>? predicate = null) {
             ArgumentNullException.ThrowIfNull(items, nameof(items));
             predicate ??= l => true;
 
@@ -55,10 +57,14 @@ namespace Loginator.Collections {
             return isChanged;
         }
 
-        protected override void InsertItem(int index, LogViewModel item) =>
+        protected override void InsertItem(int index, Log item) =>
             throw new InvalidOperationException("Only adding items controlled is allowed");
 
-        private int FindNewIndex(LogViewModel item) {
+        internal void RaiseReset() {
+            OnCollectionChanged(EventArgsCache.ResetCollectionChanged);
+        }
+
+        private int FindNewIndex(Log item) {
             for (int i = 0; i < Items.Count; i++) {
                 if (Items.ElementAt(i).Timestamp < item.Timestamp) {
                     return i;
@@ -67,7 +73,7 @@ namespace Loginator.Collections {
             return Items.Count;
         }
 
-        private void InsertItem(Func<int> index, LogViewModel item) {
+        private void InsertItem(Func<int> index, Log item) {
             if (Items.Contains(item)) {
                 return;
             }
@@ -81,7 +87,7 @@ namespace Loginator.Collections {
             OnCollectionChanged(EventArgsCache.ResetCollectionChanged);
         }
 
-        internal static class EventArgsCache {
+        private static class EventArgsCache {
             internal static readonly PropertyChangedEventArgs CountPropertyChanged = new("Count");
             internal static readonly PropertyChangedEventArgs IndexerPropertyChanged = new("Item[]");
             internal static readonly NotifyCollectionChangedEventArgs ResetCollectionChanged = new(NotifyCollectionChangedAction.Reset);

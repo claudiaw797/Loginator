@@ -1,13 +1,4 @@
 [{
-        "PackageName": "AutoMapper",
-        "PackageVersion": "13.0.1",
-        "PackageUrl": "https://automapper.org/",
-        "Copyright": "",
-        "Authors": ["Jimmy Bogard"],
-        "Description": "A convention-based object-object mapper.",
-        "LicenseUrl": "https://licenses.nuget.org/MIT",
-        "LicenseType": "MIT"
-    }, {
         "PackageName": "CommunityToolkit.Mvvm",
         "PackageVersion": "8.2.2",
         "PackageUrl": "https://github.com/CommunityToolkit/dotnet",

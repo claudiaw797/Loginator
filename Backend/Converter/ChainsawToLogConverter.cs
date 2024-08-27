@@ -64,8 +64,8 @@ namespace Backend.Converter {
                         }
                         attribute = attributes.GetNamedItem("timestamp");
                         if (attribute != null) {
-                            var timespan = TimeSpan.FromMilliseconds(Int64.Parse(attribute.Value));
-                            log.Timestamp = new DateTime(1970, 1, 1).Add(timespan);
+                            var timestamp = long.Parse(attribute.Value);
+                            log.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
                         }
                         attribute = attributes.GetNamedItem("thread");
                         if (attribute != null) {
@@ -76,11 +76,10 @@ namespace Backend.Converter {
                                 continue;
                             }
                             if (child.Name.EndsWith("message")) {
-                                log.Message += child.InnerText;
+                                log.Message = InsertIntoMessage(log.Message, child.InnerText, append: true);
                             }
-                            if (child.Name.EndsWith("NDC"))
-                            {
-                                log.Message = $"{child.InnerText} {log.Message}";
+                            if (child.Name.EndsWith("NDC")) {
+                                log.Message = InsertIntoMessage(log.Message, child.InnerText, append: false);
                             }
                             if (child.Name.EndsWith("throwable")) {
                                 log.Exception = child.InnerText;
@@ -110,10 +109,11 @@ namespace Backend.Converter {
             return new Log[] { Log.DEFAULT };
         }
 
-        private double ConvertToUnixTimestamp(DateTime date) {
-            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            TimeSpan sinceEpoch = date.ToUniversalTime() - epoch;
-            return Math.Floor(sinceEpoch.TotalMilliseconds);
-        }
+        private static string InsertIntoMessage(string message, string text, bool append = true, string separator = " ") =>
+            string.IsNullOrWhiteSpace(text)
+                ? message
+                : string.IsNullOrWhiteSpace(message)
+                ? text
+                : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
     }
 }

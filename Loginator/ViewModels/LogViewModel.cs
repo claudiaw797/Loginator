@@ -1,36 +1,33 @@
-﻿using Backend.Model;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Backend.Model;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 
 namespace Loginator.ViewModels {
 
     [DebuggerDisplay("{Timestamp} {Level.Id} {Application}.{Namespace} '{Message}'")]
-    public class LogViewModel : INotifyPropertyChanged {
-        public DateTime Timestamp { get; set; }
-        public LoggingLevel Level { get; set; }
-        public string Message { get; set; }
-        public string Exception { get; set; }
-        public string Namespace { get; set; }
-        public string Application { get; set; }
-        public string Thread { get; set; }
-        public string Context { get; set; }
-        public string MachineName { get; set; }
+    public class LogViewModel(Log log) {
 
-        public LogViewModel() { }
+        private readonly Log log = log;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public DateTimeOffset Timestamp => log.Timestamp;
+        public LoggingLevel Level => log.Level;
+        public string Message => log.Message;
+        public string? Exception => log.Exception;
+        public string Namespace => log.Namespace;
+        public string Application => log.Application;
+        public string Thread => log.Thread;
+        public string Context => log.Context;
+        public string MachineName => log.MachineName;
 
-        private void OnPropertyChanged(string property) {
-            if (PropertyChanged != null) {
-                PropertyChanged(this, new PropertyChangedEventArgs(property));
-            }
-        }
+        internal Log Log => log;
 
         public override string ToString() {
             // TODO: Localize this with .resx
             StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{Level}: {Timestamp}");
             sb.Append("Application: ");
             sb.AppendLine(Application);
             sb.Append("Namespace: ");

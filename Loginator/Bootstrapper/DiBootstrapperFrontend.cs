@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
 using Backend.Bootstrapper;
 using Backend.Model;
 using Common.Bootstrapper;
@@ -49,9 +50,6 @@ namespace Loginator.Bootstrapper {
             else {
                 services.AddTransient<IStopwatch, StopwatchDisabled>();
             }
-
-            var mapConfig = new MapperConfiguration(cfg => cfg.CreateMap<Log, LogViewModel>());
-            services.AddSingleton<IMapper>(new Mapper(mapConfig));
 
             DiBootstrapperBackend.Initialize(services);
         }
