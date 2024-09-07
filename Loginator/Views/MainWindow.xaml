@@ -59,9 +59,9 @@
         </Grid>
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="4" />
+                <RowDefinition Height="*" MinHeight="60" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" x:Name="SelectedLogRow" />
             </Grid.RowDefinitions>
             <ListView Grid.Row="0"
                 SelectedItem="{Binding SelectedLog, Converter={StaticResource ViewModelToLogConverter}}"
@@ -117,8 +117,10 @@
                     </Style>
                 </ListView.Resources>-->
             </ListView>
-            <GridSplitter Grid.Row="1" ResizeBehavior="BasedOnAlignment" ResizeDirection="Rows" Height="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-            <ScrollViewer Grid.Row="2" Height="170" Visibility="{Binding SelectedLog, Converter={StaticResource ExistsToVisibilityConverter}}">
+            <GridSplitter Grid.Row="1" ResizeBehavior="PreviousAndNext" ResizeDirection="Rows" Height="4" HorizontalAlignment="Stretch" />
+            <ScrollViewer Grid.Row="2" Height="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding SelectedLog, Converter={StaticResource ExistsToVisibilityConverter}}"
+                          controls:ScrollViewerRowHeightBehavior.TargetRow="{Binding ElementName=SelectedLogRow}">
                 <ScrollViewer.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Copy" Command="{Binding CopySelectedLogCommand}" />

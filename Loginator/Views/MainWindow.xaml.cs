@@ -1,4 +1,6 @@
-﻿using Common;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Common;
 using Loginator.ViewModels;
 using NLog;
 using System;
