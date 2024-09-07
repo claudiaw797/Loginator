@@ -68,7 +68,7 @@ namespace Loginator.ViewModels {
         [ObservableProperty]
         private LoggingLevel selectedInitialLogLevel;
 
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogExceptionCommand))]
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogCommand), nameof(CopySelectedLogExceptionCommand), nameof(CopySelectedLogMessageCommand))]
         private LogViewModel? selectedLog;
         partial void OnSelectedLogChanged(LogViewModel? value) {
             SetSelectedNamespaceFromLog(value);
@@ -413,7 +413,7 @@ namespace Loginator.ViewModels {
         private bool CanUpdateNumberOfLogsPerLevel(int value) {
             return value > 0 && value != NumberOfLogsPerLevel;
         }
-        
+
         private bool CanCopySelectedLog() {
             return SelectedLog is not null;
         }

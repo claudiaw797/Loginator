@@ -10,7 +10,8 @@ namespace Loginator.Converter {
     public class ExistsToVisibilityConverter : IValueConverter {
 
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
-            return value is null || value is string s && string.IsNullOrEmpty(s) ? Visibility.Collapsed : Visibility.Visible;
+            var hasNoValue = value is null || value is string s && string.IsNullOrEmpty(s);
+            return hasNoValue ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) {
