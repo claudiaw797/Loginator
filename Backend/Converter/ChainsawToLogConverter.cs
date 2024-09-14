@@ -1,26 +1,53 @@
-﻿using System;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Backend.Model;
+using Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
 using System.Xml;
-using Backend.Model;
-using NLog;
-using Common;
 
 namespace Backend.Converter {
 
     public class ChainsawToLogConverter : ILogConverter {
 
-        private ILogger Logger { get; set; }
+        private const string NS_URI = "https://logging.apache.org/xml/ns";
+        private const string NS_PFX = "log4j";
 
-        public ChainsawToLogConverter() {
-            Logger = LogManager.GetCurrentClassLogger();
+        private const string EVENT_TAG = "event";
+        private const string DATA_TAG = "data";
+
+        private readonly ILogger<ChainsawToLogConverter> logger;
+        private readonly IOptionsMonitor<Configuration> configuration;
+
+        private static readonly XmlReaderSettings settings;
+        private static readonly XmlParserContext context;
+
+        static ChainsawToLogConverter() {
+            settings = new XmlReaderSettings {
+                NameTable = new NameTable(),
+                ConformanceLevel = ConformanceLevel.Fragment
+            };
+            var xmlns = new XmlNamespaceManager(settings.NameTable);
+            xmlns.AddNamespace(NS_PFX, NS_URI);
+            context = new XmlParserContext(null, xmlns, string.Empty, XmlSpace.Default);
+        }
+
+        public ChainsawToLogConverter(IOptionsMonitor<Configuration> configuration, ILogger<ChainsawToLogConverter> logger) {
+            this.logger = logger;
+            this.configuration = configuration;
         }
 
         /*
             <log4j:event logger="WorldDirect.ChimneySweeper.Server.ChimneyService.BaseApplication" level="INFO" timestamp="1439817232886" thread="1">
 	            <log4j:message>Starting Rauchfangkehrer</log4j:message>
+                <log4j:throwable>System.InvalidOperationException: test exception...</log4j:throwable>
+                <log4j:NDC/>
+                <log4j:locationInfo class="Example.Runner" method="Void TrySomething(System.String)" file="C:\temp\Solution\Project\Folders\Program.cs" line="75"/>
 	            <log4j:properties>
 		            <log4j:data name="log4japp" value="Server.ChimneyService.exe(8428)" />
 		            <log4j:data name="log4jmachinename" value="DKU" />
@@ -28,92 +55,174 @@ namespace Backend.Converter {
             </log4j:event>
         */
 
-        public IEnumerable<Log> Convert(string text) {
+        public IReadOnlyCollection<Log> Convert(string text) {
             try {
-                Log log = new Log();
+                var byteArray = Encoding.UTF8.GetBytes(text);
+                using var memoryStream = new MemoryStream(byteArray);
 
-                XmlReaderSettings settings = new XmlReaderSettings() {
-                    ConformanceLevel = ConformanceLevel.Fragment
-                };
+                // read with namespace check
+                var logs = ReadEvents(memoryStream, checkNamespace: true);
 
-                MemoryStream stream = new MemoryStream();
-                StreamWriter writer = new StreamWriter(stream, Encoding.UTF8);
-                writer.Write(text);
-                writer.Flush();
-                stream.Position = 0;
-
-                var doc = new XmlDocument();
-
-                using (var sr = new StringReader(text)) {
-                    using (var xtr = new XmlTextReader(sr) { Namespaces = false }) {
-                        doc.Load(xtr);
-                    }
+                // if no log was found and settings allow it => read without namespace check
+                if (logs.Length == 0 && configuration.CurrentValue.AllowAnonymousLogs) {
+                    logs = ReadEvents(memoryStream, checkNamespace: false);
                 }
 
-                if (doc.ChildNodes.Count == 1) {
-                    XmlNode root = doc.ChildNodes[0];
-                    if (root.NodeType == XmlNodeType.Element) {
-                        var attributes = root.Attributes;
-                        XmlNode attribute = attributes.GetNamedItem("logger");
-                        if (attribute != null) {
-                            log.Namespace = attribute.Value;
-                        }
-                        attribute = attributes.GetNamedItem("level");
-                        if (attribute != null) {
-                            log.Level = LoggingLevel.FromName(attribute.Value);
-                        }
-                        attribute = attributes.GetNamedItem("timestamp");
-                        if (attribute != null) {
-                            var timestamp = long.Parse(attribute.Value);
-                            log.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
-                        }
-                        attribute = attributes.GetNamedItem("thread");
-                        if (attribute != null) {
-                            log.Thread = attribute.Value;
-                        }
-                        foreach (XmlNode child in root.ChildNodes) {
-                            if (child.NodeType != XmlNodeType.Element) {
-                                continue;
-                            }
-                            if (child.Name.EndsWith("message")) {
-                                log.Message = InsertIntoMessage(log.Message, child.InnerText, append: true);
-                            }
-                            if (child.Name.EndsWith("NDC")) {
-                                log.Message = InsertIntoMessage(log.Message, child.InnerText, append: false);
-                            }
-                            if (child.Name.EndsWith("throwable")) {
-                                log.Exception = child.InnerText;
-                            }
-                            if (child.Name.EndsWith("properties")) {
-                                IList<Property> properties = new List<Property>();
-                                foreach (XmlNode property in child.ChildNodes) {
-                                    properties.Add(new Property(property.Attributes.GetNamedItem("name").Value, property.Attributes.GetNamedItem("value").Value));
-                                }
-                                log.Properties = properties;
-
-                                var application = log.Properties.FirstOrDefault(m => m.Name == "log4japp");
-                                log.Application = application == null ? Constants.APPLICATION_GLOBAL : application.Value;
-
-                                log.MachineName = log.Properties.FirstOrDefault(m => m.Name == "log4jmachinename")?.Value;
-
-                                var context = log.Properties.Where(m => !m.Name.StartsWith("log4j")).OrderBy(m => m.Name).Select(m => m.Name + ": " + m.Value);
-                                log.Context = String.Join(", ", context);
-                            }
-                        }
-                    }
-                }
-                return new Log[] { log };
-            } catch (Exception e) {
-                Logger.Error(e, "Could not read chainsaw data");
+                return logs;
             }
-            return new Log[] { Log.DEFAULT };
+            catch (Exception e) {
+                logger.LogError(e, "Could not read Log4j data");
+            }
+            return [Log.DEFAULT];
         }
 
-        private static string InsertIntoMessage(string message, string text, bool append = true, string separator = " ") =>
-            string.IsNullOrWhiteSpace(text)
-                ? message
-                : string.IsNullOrWhiteSpace(message)
-                ? text
-                : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
+        private static Log[] ReadEvents(Stream stream, bool checkNamespace) {
+            stream.Position = 0;
+            using var xmlReader = new ChainSawLogReader(stream, checkNamespace);
+            return xmlReader.ReadLogs().ToArray();
+        }
+
+        private class ChainSawLogReader : IDisposable {
+
+            private readonly XmlReader xmlReader;
+            private readonly bool checkNamespace;
+
+            public ChainSawLogReader(Stream stream, bool checkNamespace) {
+                stream.Position = 0;
+                xmlReader = XmlReader.Create(stream, settings, context);
+
+                this.checkNamespace = checkNamespace;
+            }
+
+            public void Dispose() => xmlReader.Dispose();
+
+            public IEnumerable<Log> ReadLogs() {
+                while (HasNext(EVENT_TAG)) {
+                    var log = new Log();
+
+                    ReadEventTag(log);
+                    ReadEventContent(log);
+
+                    yield return log;
+                }
+            }
+
+            private static string InsertIntoMessage(string message, string text, bool append = true, string separator = " ") =>
+                string.IsNullOrWhiteSpace(text)
+                    ? message
+                    : string.IsNullOrWhiteSpace(message)
+                    ? text
+                    : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
+
+            private void ReadEventTag(Log log) {
+                while (xmlReader.MoveToNextAttribute()) {
+                    switch (xmlReader.LocalName) {
+                        case "logger":
+                            log.Namespace = xmlReader.Value;
+                            break;
+                        case "level":
+                            log.Level = LoggingLevel.FromName(xmlReader.Value);
+                            break;
+                        case "timestamp":
+                            var timestamp = long.Parse(xmlReader.Value);
+                            log.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(timestamp);
+                            break;
+                        case "thread":
+                            log.Thread = xmlReader.Value;
+                            break;
+                    }
+                }
+            }
+
+            private void ReadEventContent(Log log) {
+                do {
+                    if (xmlReader.MoveToContent() == XmlNodeType.Element) {
+                        switch (xmlReader.LocalName) {
+                            case "message":
+                                log.Message = InsertIntoMessage(log.Message, xmlReader.ReadElementContentAsString(), append: true);
+                                break;
+                            case "throwable":
+                                log.Exception = xmlReader.ReadElementContentAsString();
+                                break;
+                            case "NDC":
+                                log.Message = InsertIntoMessage(log.Message, xmlReader.ReadElementContentAsString(), append: false);
+                                break;
+                            case "properties":
+                                ReadPropertiesContent(log);
+                                break;
+                            case "locationInfo":
+                                ReadLocationTag(log);
+                                goto default;
+                            default:
+                                xmlReader.Read();
+                                break;
+                        }
+                    }
+                    else if (xmlReader.NodeType == XmlNodeType.EndElement &&
+                             xmlReader.LocalName == EVENT_TAG &&
+                             (xmlReader.NamespaceURI == NS_URI || !checkNamespace)) {
+                        break;
+                    }
+                    else {
+                        xmlReader.Read();
+                    }
+                } while (true);
+            }
+
+            private void ReadPropertiesContent(Log log) {
+                var properties = new List<Property>();
+                if (HasDescendant(DATA_TAG)) {
+                    do {
+                        var name = xmlReader.GetAttribute("name");
+                        if (!string.IsNullOrEmpty(name)) {
+                            properties.Add(new Property(name, xmlReader.GetAttribute("value") ?? string.Empty));
+                        }
+                    } while (HasNext(DATA_TAG));
+                }
+                log.Properties = properties;
+
+                log.Application = log.Properties
+                    .FirstOrDefault(m => m.Name == "log4japp")?.Value ?? Constants.APPLICATION_GLOBAL;
+
+                log.MachineName = log.Properties
+                    .FirstOrDefault(m => m.Name == "log4jmachinename")?.Value;
+
+                var context = log.Properties
+                    .Where(m => !m.Name.StartsWith(NS_PFX))
+                    .OrderBy(m => m.Name)
+                    .Select(m => $"{m.Name}: {m.Value}");
+                log.Context = string.Join(", ", context);
+            }
+
+            private void ReadLocationTag(Log log) {
+                log.Location = new LocationInfo();
+                while (xmlReader.MoveToNextAttribute()) {
+                    switch (xmlReader.LocalName) {
+                        case "class":
+                            log.Location.ClassName = xmlReader.Value;
+                            break;
+                        case "method":
+                            log.Location.MethodName = xmlReader.Value;
+                            break;
+                        case "file":
+                            log.Location.FileName = xmlReader.Value;
+                            break;
+                        case "line":
+                            log.Location.LineNumber = xmlReader.Value;
+                            break;
+                    }
+                }
+            }
+
+            private bool HasDescendant(string localName) =>
+                checkNamespace
+                    ? xmlReader.ReadToDescendant(localName, NS_URI)
+                    : xmlReader.ReadToDescendant(localName);
+
+            private bool HasNext(string localName) =>
+                checkNamespace
+                    ? xmlReader.ReadToNextSibling(localName, NS_URI)
+                    : xmlReader.ReadToNextSibling(localName);
+        }
     }
 }

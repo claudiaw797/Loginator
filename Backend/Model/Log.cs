@@ -1,4 +1,4 @@
-﻿// Copyright (C) Daniel Kuster
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
 using Common;
 using System;
@@ -26,7 +26,7 @@ namespace Backend.Model {
         /// <summary>
         /// Gets or sets the machine name of the log. May not be available.
         /// </summary>
-        public string MachineName { get; internal set; }
+        public string? MachineName { get; internal set; }
         /// <summary>
         /// The namespace of the log. May be set to "global" if no namespace is available.
         /// </summary>
@@ -44,25 +44,30 @@ namespace Backend.Model {
         /// </summary>
         public string Context { get; internal set; }
         /// <summary>
+        /// The location info of the caller making the logging request. May not be available.
+        /// </summary>
+        public LocationInfo Location { get; internal set; }
+        /// <summary>
         /// Additional properties. May not be available.
         /// </summary>
         public IEnumerable<Property> Properties { get; internal set; }
 
         public Log() {
-            Properties = new List<Property>();
+            Properties = [];
             Timestamp = DateTimeOffset.Now;
             Namespace = Constants.NAMESPACE_GLOBAL;
             Application = Constants.APPLICATION_GLOBAL;
+            Location = new();
         }
 
-        private static Log def = new Log();
+        private static readonly Log def = new();
         public static Log DEFAULT {
             get {
                 return def;
             }
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             if (obj == null || GetType() != obj.GetType()) {
                 return false;
             }

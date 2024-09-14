@@ -1,4 +1,6 @@
-﻿using Common;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Common;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json.Serialization;
 
@@ -14,6 +16,8 @@ namespace Backend.Model {
         public int PortChainsaw { get; set; }
 
         public int PortLogcat { get; set; }
+
+        public bool AllowAnonymousLogs { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogTimeFormat LogTimeFormat { get; set; }
