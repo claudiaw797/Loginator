@@ -9,12 +9,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml;
+using static Common.Constants;
 
 namespace Backend.Converter {
 
-    public partial class ChainsawToLogConverter : ILogConverter {
+    public class ChainsawToLogConverter : ILogConverter {
 
         private readonly ILogger<ChainsawToLogConverter> logger;
         private readonly IOptionsMonitor<Configuration> configuration;
@@ -64,7 +64,7 @@ namespace Backend.Converter {
             return xmlReader.ReadLogs().ToArray();
         }
 
-        private partial class ChainSawLogReader : IDisposable {
+        private class ChainSawLogReader : IDisposable {
 
             private const string NS_URI = "https://logging.apache.org/xml/ns";
             private const string NS_PFX = "log4j";
@@ -73,9 +73,6 @@ namespace Backend.Converter {
 
             private static readonly XmlReaderSettings settings;
             private static readonly XmlParserContext context;
-
-            [GeneratedRegex(@"^(?<app>.+)\((?<pid>[^)]+)\)\s*$")]
-            private static partial Regex RxLog4jApp();
 
             private readonly XmlReader xmlReader;
             private readonly bool checkNamespace;
@@ -122,7 +119,7 @@ namespace Backend.Converter {
             private static void ParseApplication(Log log, bool dontChange) {
                 var property = log.Properties.FirstOrDefault(m => m.Name == "log4japp")?.Value;
                 if (property is not null) {
-                    var application = RxLog4jApp().Match(property);
+                    var application = RegexLog4jApp().Match(property);
                     if (application.Success) {
                         log.Application = application.Groups["app"].Value.Trim();
                         log.Process = application.Groups["pid"].Value.Trim();

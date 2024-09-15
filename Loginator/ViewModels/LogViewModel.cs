@@ -4,6 +4,7 @@ using Backend.Model;
 using System;
 using System.Diagnostics;
 using System.Text;
+using static Common.Constants;
 
 namespace Loginator.ViewModels {
 
@@ -29,7 +30,7 @@ namespace Loginator.ViewModels {
 
         public string ApplicationProcess {
             get {
-                return string.IsNullOrEmpty(log.Process)
+                return string.IsNullOrEmpty(log.Process) || RegexLog4jApp().IsMatch(log.Application)
                     ? log.Application
                     : $"{log.Application} ({log.Process})";
             }
