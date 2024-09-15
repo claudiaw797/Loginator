@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
 using Backend.Model;
+using Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -57,9 +58,9 @@ namespace Backend.Converter {
             return [Log.DEFAULT];
         }
 
-        private static Log[] ReadEvents(Stream stream, bool checkNamespace) {
+        private Log[] ReadEvents(Stream stream, bool checkNamespace) {
             stream.Position = 0;
-            using var xmlReader = new ChainSawLogReader(stream, checkNamespace);
+            using var xmlReader = new ChainSawLogReader(stream, checkNamespace, configuration.CurrentValue.ApplicationFormat);
             return xmlReader.ReadLogs().ToArray();
         }
 
@@ -78,6 +79,7 @@ namespace Backend.Converter {
 
             private readonly XmlReader xmlReader;
             private readonly bool checkNamespace;
+            private readonly ApplicationFormat applicationFormat;
 
             static ChainSawLogReader() {
                 settings = new XmlReaderSettings {
@@ -89,11 +91,12 @@ namespace Backend.Converter {
                 context = new XmlParserContext(null, xmlns, string.Empty, XmlSpace.Default);
             }
 
-            public ChainSawLogReader(Stream stream, bool checkNamespace) {
+            public ChainSawLogReader(Stream stream, bool checkNamespace, ApplicationFormat applicationFormat) {
                 stream.Position = 0;
                 xmlReader = XmlReader.Create(stream, settings, context);
 
                 this.checkNamespace = checkNamespace;
+                this.applicationFormat = applicationFormat;
             }
 
             public void Dispose() => xmlReader.Dispose();
@@ -116,7 +119,7 @@ namespace Backend.Converter {
                     ? text
                     : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
 
-            private static void ParseApplication(Log log) {
+            private static void ParseApplication(Log log, bool dontChange) {
                 var property = log.Properties.FirstOrDefault(m => m.Name == "log4japp")?.Value;
                 if (property is not null) {
                     var application = RxLog4jApp().Match(property);
@@ -124,7 +127,8 @@ namespace Backend.Converter {
                         log.Application = application.Groups["app"].Value.Trim();
                         log.Process = application.Groups["pid"].Value.Trim();
                     }
-                    else {
+
+                    if (!application.Success || dontChange) {
                         log.Application = property.Trim();
                     }
                 }
@@ -197,7 +201,7 @@ namespace Backend.Converter {
                 }
                 log.Properties = properties;
 
-                ParseApplication(log);
+                ParseApplication(log, applicationFormat != ApplicationFormat.Consolidate);
 
                 log.MachineName = log.Properties
                     .FirstOrDefault(m => m.Name == "log4jmachinename")?.Value;

@@ -2,6 +2,7 @@
 
 using Backend.Converter;
 using Backend.Model;
+using Common;
 using FakeItEasy;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -41,7 +42,10 @@ namespace Backend.UnitTests.Converter {
         }
 
         private static ChainsawToLogConverter Sut() {
-            var config = new Configuration { AllowAnonymousLogs = true };
+            var config = new Configuration {
+                AllowAnonymousLogs = true,
+                ApplicationFormat = ApplicationFormat.Consolidate
+            };
             var configDao = A.Fake<IOptionsMonitor<Configuration>>();
             A.CallTo(() => configDao.CurrentValue).Returns(config);
 

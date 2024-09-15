@@ -1,4 +1,5 @@
-﻿<Window x:Class="Loginator.Views.MainWindow"
+﻿<!-- Copyright (C) 2024 Claudia Wagner, Daniel Kuster -->
+<Window x:Class="Loginator.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Loginator.Controls"
@@ -100,6 +101,14 @@
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Message, Converter={StaticResource SingleLineTextConverter}}"
+                                               Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Process" controls:GridViewColumnResize.Width="50">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Process}"
                                                Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>

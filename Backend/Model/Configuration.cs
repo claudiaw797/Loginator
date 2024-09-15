@@ -21,6 +21,9 @@ namespace Backend.Model {
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogTimeFormat LogTimeFormat { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ApplicationFormat ApplicationFormat { get; set; }
     }
 
     public static class ConfigurationExtensions {
