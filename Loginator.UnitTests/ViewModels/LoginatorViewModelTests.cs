@@ -382,8 +382,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         private void AssertLogs(params IEnumerable<Log>[] expected) =>
-            sut.Logs.Should().BeEquivalentTo(expected.SelectMany(GetViewModels),
-                c => c.WithStrictOrdering());
+            sut.Logs.Should().BeEquivalentTo(expected.SelectMany(l => l), c => c.WithStrictOrdering());
 
         private void AssertApplicationAndNamespaces(params LoggingLevel[] levels) {
             var expectedCount = levels.Length;
@@ -486,9 +485,6 @@ namespace Loginator.UnitTests.ViewModels {
             : (items ?? testItems).TakeWhile(item => item.Level >= level);
 
         private LogViewModel GetViewModel(Log log) => new(log);
-
-        private IEnumerable<LogViewModel> GetViewModels(IEnumerable<Log> logs) =>
-            logs.Select(GetViewModel);
 
         private IEnumerable<Log> AddItemsToSut() {
             AddItemsReversed(testItems);

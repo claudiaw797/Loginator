@@ -296,29 +296,8 @@ namespace Loginator.ViewModels {
                         Namespaces.Add(nsApplication);
                     }
 
-                    // Example: Verbosus.VerbTeX.View
-                    var nsLogFull = log.Namespace;
-                    // Example: Verbosus
-                    var nsLogPart = nsLogFull?.Split([Constants.NAMESPACE_SPLITTER], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-                    // Try to get existing namespace with name Verbosus
-                    var nsChild = nsApplication.Children.FirstOrDefault(m => m.Name == nsLogPart);
-                    if (nsChild == null) {
-                        nsChild = new NamespaceViewModel(nsLogPart, application) {
-                            IsChecked = nsApplication.IsChecked
-                        };
-                        nsApplication.Children.Add(nsChild);
-                        nsChild.Parent = nsApplication;
-                    }
-
-                    var index = nsLogFull is null ? -1 : nsLogFull.IndexOf(Constants.NAMESPACE_SPLITTER);
-                    if (index >= 0) {
-                        HandleNamespace(nsChild, nsLogFull![(index + 1)..], application, log);
-                    }
-                    else {
-                        SetLogCountByLevel(log, nsChild);
-                    }
+                    HandleNamespace(nsApplication, log.Namespace, application, log);
                 }
-
             }
             catch (Exception e) {
                 Console.WriteLine("Could not update namespaces: " + e);
@@ -326,11 +305,11 @@ namespace Loginator.ViewModels {
         }
 
         private static void HandleNamespace(NamespaceViewModel parent, string suffix, ApplicationViewModel application, Log log) {
-            // Example: VerbTeX.View (Verbosus was processed before)
+            // Example: Verbosus.VerbTeX.View
             var nsLogFull = suffix;
-            // Example: VerbTeX
+            // Example: 1st Verbosus, 2nd VerbTeX, 3rd View
             var nsLogPart = nsLogFull?.Split([Constants.NAMESPACE_SPLITTER], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            // Try to get existing namespace with name VerbTeX
+            // Try to get existing namespace with name 1st Verbosus, 2nd VerbTeX, 3rd View
             var nsChild = parent.Children.FirstOrDefault(m => m.Name == nsLogPart);
             if (nsChild == null) {
                 nsChild = new NamespaceViewModel(nsLogPart, application) {

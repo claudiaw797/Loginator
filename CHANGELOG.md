@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add 'Copy' and 'Copy message' context menu buttons to selected log window
+- Add log fields: process id, location (class, method, file, line)
+- Add namespace check to log4j converter
+- Add configuration option 'AllowAnonymous' to recognize log entries without log4j namespace
+- Add configuration option 'ApplicationFormat':
+  - 'DoNotChange' to collect applications per process (as before)
+  - 'Consolidate' to collect applications across processes
 
 ### Changed
 

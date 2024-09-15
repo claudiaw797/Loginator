@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Xml;
-using System.Xml.Linq;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
 using Backend.Model;
 using Common;
 using NLog;
+using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Backend.Converter {
@@ -23,7 +19,7 @@ namespace Backend.Converter {
             Logger = LogManager.GetCurrentClassLogger();
         }
 
-        public IEnumerable<Log> Convert(string text) {
+        public IReadOnlyCollection<Log> Convert(string text) {
             if (text == null) {
                 return new Log[] { Log.DEFAULT };
             }
@@ -50,13 +46,14 @@ namespace Backend.Converter {
                         log.Namespace = Constants.NAMESPACE_LOGCAT + Constants.NAMESPACE_SPLITTER + group[5].Value.Trim() + Constants.NAMESPACE_SPLITTER + log.Namespace;
                         log.Message = group[8].Value.Trim();
                     }
-                    
+
                     if (!String.IsNullOrEmpty(log.Message)) {
                         logs.Add(log);
                     }
                 }
-                return logs;
-            } catch (Exception e) {
+                return [.. logs];
+            }
+            catch (Exception e) {
                 Logger.Error(e, "Could not read logcat data");
             }
 
@@ -64,20 +61,8 @@ namespace Backend.Converter {
         }
 
         private LoggingLevel GetLogLevel(string logLevel) {
-            LoggingLevel level = LoggingLevel.NOT_SET;
-            if (logLevel == "V") {
-                level = LoggingLevel.TRACE;
-            } else if (logLevel == "D") {
-                level = LoggingLevel.DEBUG;
-            } else if (logLevel == "I") {
-                level = LoggingLevel.INFO;
-            } else if (logLevel == "W") {
-                level = LoggingLevel.WARN;
-            } else if (logLevel == "E") {
-                level = LoggingLevel.ERROR;
-            } else if (logLevel == "F") {
-                level = LoggingLevel.FATAL;
-            }
+            var shortName = logLevel?.Length == 1 ? System.Convert.ToChar(logLevel) : '-';
+            var level = LoggingLevel.FromShortName(shortName) ?? LoggingLevel.NOT_SET;
             return level;
         }
     }
