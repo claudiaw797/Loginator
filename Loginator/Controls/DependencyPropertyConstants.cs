@@ -9,7 +9,6 @@ namespace Loginator.Controls {
         public static readonly string ENABLED = "Enabled";
         public static readonly string LIST_VIEW_RESIZE_BEHAVIOUR_PROPERTY = "ListViewResizeBehaviorProperty";
 
-        public const string TARGETROW_PROPERTY = "TargetRow";
-        public const string TARGETROW_PREVIOUS_HEIGHT_PROPERTY = "TargetRowPreviousHeight";
+        public const string ROW_RESIZE_PROPERTY = "RowResize";
     }
 }

@@ -5,7 +5,7 @@
         xmlns:converters="clr-namespace:Loginator.Converter"
         DataContext="{Binding LoginatorViewModel, Source={StaticResource Locator}}"
         WindowStartupLocation="CenterScreen"
-        Title="Loginator" Height="600" Width="920" MinHeight="600" MinWidth="920"
+        Title="Loginator" Height="700" Width="1000" MinHeight="600" MinWidth="920"
         Icon="../Resources/icon.ico">
     <Grid Margin="2">
         <Grid.Resources>
@@ -117,10 +117,11 @@
                     </Style>
                 </ListView.Resources>-->
             </ListView>
-            <GridSplitter Grid.Row="1" ResizeBehavior="PreviousAndNext" ResizeDirection="Rows" Height="4" HorizontalAlignment="Stretch" />
+            <GridSplitter Grid.Row="1" x:Name="SplitterRow"
+                          ResizeBehavior="PreviousAndNext" ResizeDirection="Rows" Height="4" HorizontalAlignment="Stretch" />
             <ScrollViewer Grid.Row="2" Height="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                           Visibility="{Binding SelectedLog, Converter={StaticResource ExistsToVisibilityConverter}}"
-                          controls:ScrollViewerRowHeightBehavior.TargetRow="{Binding ElementName=SelectedLogRow}">
+                          controls:ScrollViewerBehavior.RowResize="{Binding Path=GridRowBehavior, RelativeSource={RelativeSource AncestorType=Window}}">
                 <ScrollViewer.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Copy" Command="{Binding CopySelectedLogCommand}" />
