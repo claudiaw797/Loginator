@@ -147,6 +147,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -154,7 +155,7 @@
                     </Grid.ColumnDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="Application:" />
                     <TextBlock Grid.Row="0" Grid.Column="1"
-                               Text="{Binding Application}" />
+                               Text="{Binding ApplicationProcess}" />
                     <Label Grid.Row="1" Grid.Column="0" Content="Namespace:" />
                     <TextBlock Grid.Row="1" Grid.Column="1"
                                Text="{Binding Namespace}" />
@@ -171,13 +172,17 @@
                                Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
                     <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Exception}"
                                Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
-                    <Label Grid.Row="6" Grid.Column="0" Content="Host:" />
+                    <Label Grid.Row="6" Grid.Column="0" Content="Location:" />
                     <TextBlock Grid.Row="6" Grid.Column="1"
+                               Text="{Binding Location}" />
+                    <Label Grid.Row="7" Grid.Column="0" Content="Host:" />
+                    <TextBlock Grid.Row="7" Grid.Column="1"
                                Text="{Binding MachineName}" />
                 </Grid>
             </ScrollViewer>
         </Grid>
-        <GridSplitter Grid.Row="1" Grid.Column="1" ResizeBehavior="BasedOnAlignment" ResizeDirection="Columns" Width="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+        <GridSplitter Grid.Row="1" Grid.Column="1"
+                      ResizeBehavior="BasedOnAlignment" ResizeDirection="Columns" Width="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
         <Grid Grid.Row="1" Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="200" />

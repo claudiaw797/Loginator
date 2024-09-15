@@ -1,7 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
 using Backend.Model;
-using Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -9,33 +8,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Backend.Converter {
 
-    public class ChainsawToLogConverter : ILogConverter {
-
-        private const string NS_URI = "https://logging.apache.org/xml/ns";
-        private const string NS_PFX = "log4j";
-
-        private const string EVENT_TAG = "event";
-        private const string DATA_TAG = "data";
+    public partial class ChainsawToLogConverter : ILogConverter {
 
         private readonly ILogger<ChainsawToLogConverter> logger;
         private readonly IOptionsMonitor<Configuration> configuration;
-
-        private static readonly XmlReaderSettings settings;
-        private static readonly XmlParserContext context;
-
-        static ChainsawToLogConverter() {
-            settings = new XmlReaderSettings {
-                NameTable = new NameTable(),
-                ConformanceLevel = ConformanceLevel.Fragment
-            };
-            var xmlns = new XmlNamespaceManager(settings.NameTable);
-            xmlns.AddNamespace(NS_PFX, NS_URI);
-            context = new XmlParserContext(null, xmlns, string.Empty, XmlSpace.Default);
-        }
 
         public ChainsawToLogConverter(IOptionsMonitor<Configuration> configuration, ILogger<ChainsawToLogConverter> logger) {
             this.logger = logger;
@@ -82,10 +63,31 @@ namespace Backend.Converter {
             return xmlReader.ReadLogs().ToArray();
         }
 
-        private class ChainSawLogReader : IDisposable {
+        private partial class ChainSawLogReader : IDisposable {
+
+            private const string NS_URI = "https://logging.apache.org/xml/ns";
+            private const string NS_PFX = "log4j";
+            private const string EVENT_TAG = "event";
+            private const string DATA_TAG = "data";
+
+            private static readonly XmlReaderSettings settings;
+            private static readonly XmlParserContext context;
+
+            [GeneratedRegex(@"^(?<app>.+)\((?<pid>[^)]+)\)\s*$")]
+            private static partial Regex RxLog4jApp();
 
             private readonly XmlReader xmlReader;
             private readonly bool checkNamespace;
+
+            static ChainSawLogReader() {
+                settings = new XmlReaderSettings {
+                    NameTable = new NameTable(),
+                    ConformanceLevel = ConformanceLevel.Fragment
+                };
+                var xmlns = new XmlNamespaceManager(settings.NameTable);
+                xmlns.AddNamespace(NS_PFX, NS_URI);
+                context = new XmlParserContext(null, xmlns, string.Empty, XmlSpace.Default);
+            }
 
             public ChainSawLogReader(Stream stream, bool checkNamespace) {
                 stream.Position = 0;
@@ -107,12 +109,26 @@ namespace Backend.Converter {
                 }
             }
 
-            private static string InsertIntoMessage(string message, string text, bool append = true, string separator = " ") =>
+            private static string? InsertIntoMessage(string? message, string? text, bool append = true, string separator = " ") =>
                 string.IsNullOrWhiteSpace(text)
                     ? message
                     : string.IsNullOrWhiteSpace(message)
                     ? text
                     : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
+
+            private static void ParseApplication(Log log) {
+                var property = log.Properties.FirstOrDefault(m => m.Name == "log4japp")?.Value;
+                if (property is not null) {
+                    var application = RxLog4jApp().Match(property);
+                    if (application.Success) {
+                        log.Application = application.Groups["app"].Value.Trim();
+                        log.Process = application.Groups["pid"].Value.Trim();
+                    }
+                    else {
+                        log.Application = property.Trim();
+                    }
+                }
+            }
 
             private void ReadEventTag(Log log) {
                 while (xmlReader.MoveToNextAttribute()) {
@@ -181,8 +197,7 @@ namespace Backend.Converter {
                 }
                 log.Properties = properties;
 
-                log.Application = log.Properties
-                    .FirstOrDefault(m => m.Name == "log4japp")?.Value ?? Constants.APPLICATION_GLOBAL;
+                ParseApplication(log);
 
                 log.MachineName = log.Properties
                     .FirstOrDefault(m => m.Name == "log4jmachinename")?.Value;
@@ -195,7 +210,6 @@ namespace Backend.Converter {
             }
 
             private void ReadLocationTag(Log log) {
-                log.Location = new LocationInfo();
                 while (xmlReader.MoveToNextAttribute()) {
                     switch (xmlReader.LocalName) {
                         case "class":

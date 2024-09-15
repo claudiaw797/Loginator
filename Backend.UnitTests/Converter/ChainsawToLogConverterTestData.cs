@@ -20,7 +20,7 @@ namespace Backend.UnitTests.Converter {
 
         private static readonly XElementDictionary XElems = new();
 
-        private static readonly Log LogFromValidLog4jXml = new() {
+        internal static readonly Log LogFromValidLog4jXml = new() {
             Timestamp = Value.Timestamp,
             Level = Value.Level,
             Message = Value.Message,
@@ -28,6 +28,7 @@ namespace Backend.UnitTests.Converter {
             MachineName = Value.MachineName,
             Namespace = Value.Nspace,
             Application = Value.Application,
+            Process = Value.Process,
             Thread = Value.Thread,
             Context = Value.Context,
             Location = new() {
@@ -179,7 +180,8 @@ namespace Backend.UnitTests.Converter {
             """;
             public const string MachineName = "TEST-MACHINE";
             public const string Nspace = "Example.Runner";
-            public const string Application = "ChainsawRunnerExample(10888)";
+            public const string Application = "ChainsawRunnerExample";
+            public const string Process = "10888";
             public const string Thread = "19";
             public const string Context = "Action: What action?, EventId: 23504";
             public const string ClassName = "Example.Runner";

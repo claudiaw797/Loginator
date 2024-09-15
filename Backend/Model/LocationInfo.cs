@@ -2,7 +2,7 @@
 
 namespace Backend.Model {
 
-    public class LocationInfo {
+    public record LocationInfo {
 
         /// <summary>
         /// Gets or sets the fully qualified class name of the caller making the logging request.
