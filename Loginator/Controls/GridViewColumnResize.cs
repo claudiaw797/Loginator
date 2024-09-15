@@ -73,7 +73,7 @@ namespace Loginator.Controls {
         }
 
         private static ListViewResizeBehavior GetOrCreateBehavior(ListView element) {
-            var behavior = element.GetValue(GridViewColumnResizeBehaviorProperty) as ListViewResizeBehavior;
+            var behavior = element.GetValue(ListViewResizeBehaviorProperty) as ListViewResizeBehavior;
             if (behavior == null) {
                 behavior = new ListViewResizeBehavior(element);
                 element.SetValue(ListViewResizeBehaviorProperty, behavior);

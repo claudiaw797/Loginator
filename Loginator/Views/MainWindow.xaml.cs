@@ -1,8 +1,9 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
 using Common;
+using Loginator.Controls;
 using Loginator.ViewModels;
-using NLog;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -33,12 +34,12 @@ namespace Loginator.Views {
         [GeneratedRegex("^[^0-9]+$")]
         private static partial Regex RxNumbersOnly();
 
-        private ILogger Logger { get; set; }
+        private readonly ILogger<MainWindow> logger;
 
-        private int Version { get; set; }
+        private int version;
 
-        public MainWindow() {
-            Logger = LogManager.GetCurrentClassLogger();
+        public MainWindow(ILogger<MainWindow> logger) {
+            this.logger = logger;
 
             InitializeComponent();
             SetTitleVersionFromFile();
@@ -53,6 +54,8 @@ namespace Loginator.Views {
             }
         }
 
+        public ScrollViewerBehavior.RowResize GridRowBehavior => new(SplitterRow, SelectedLogRow, 250);
+
         private void SetTitleVersionFromFile() {
             var assembly = Assembly.GetExecutingAssembly();
             using var stream = assembly?.GetManifestResourceStream(FILE_VERSION);
@@ -60,7 +63,7 @@ namespace Loginator.Views {
                 using var reader = new StreamReader(stream);
                 string text = reader.ReadToEnd();
                 Title = GetVersionName(text);
-                Version = GetVersionCode(text);
+                version = GetVersionCode(text);
             }
         }
 
@@ -92,19 +95,19 @@ namespace Loginator.Views {
                 using var webClient = new HttpClient();
                 string text = await webClient.GetStringAsync(VERSION_URL);
                 int latestVersion = GetVersionCode(text);
-                if (Version < latestVersion) {
-                    Logger.Info("New version available. Current: '{0}'. Latest: '{1}'", Version, latestVersion);
+                if (version < latestVersion) {
+                    logger.LogInformation("New version available. Current: '{0}'. Latest: '{1}'", version, latestVersion);
                     MessageBoxResult messageBoxResult = MessageBox.Show(L10n.Language.NewVersionAvailable, L10n.Language.UpdateAvailable, MessageBoxButton.YesNo);
                     if (messageBoxResult == MessageBoxResult.Yes) {
                         Process.Start(DOWNLOAD_URL);
                     }
                 }
                 else {
-                    Logger.Info("No new version available. Current: '{0}'", Version);
+                    logger.LogInformation("No new version available. Current: '{0}'", version);
                 }
             }
             catch (Exception e) {
-                Logger.Error(e, "Could not check for new version");
+                logger.LogError(e, "Could not check for new version");
             }
         }
 

@@ -68,7 +68,7 @@ namespace Loginator.ViewModels {
         [ObservableProperty]
         private LoggingLevel selectedInitialLogLevel;
 
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogCommand), nameof(CopySelectedLogExceptionCommand), nameof(CopySelectedLogMessageCommand))]
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogCommand), nameof(CopySelectedLogExceptionCommand), nameof(CopySelectedLogMessageCommand), nameof(UnselectLogCommand))]
         private LogViewModel? selectedLog;
         partial void OnSelectedLogChanged(LogViewModel? value) {
             SetSelectedNamespaceFromLog(value);
@@ -160,8 +160,13 @@ namespace Loginator.ViewModels {
         }
 
         [RelayCommand]
-        private void OpenConfiguration() {
+        private static void OpenConfiguration() {
             new ConfigurationWindow().Show();
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
+        private void UnselectLog() {
+            SelectedLog = null;
         }
 
         public void Dispose() {
