@@ -66,8 +66,10 @@ namespace Backend.Converter {
 
         private class ChainSawLogReader : IDisposable {
 
-            private const string NS_URI = "https://logging.apache.org/xml/ns";
-            private const string NS_PFX = "log4j";
+            private const string NS_URI_LOG4J = "https://logging.apache.org/xml/ns";
+            private const string NS_PFX_LOG4J = "log4j";
+            private const string NS_URI_NLOG = "https://nlog-project.org";
+            private const string NS_PFX_NLOG = "nlog";
             private const string EVENT_TAG = "event";
             private const string DATA_TAG = "data";
 
@@ -84,7 +86,8 @@ namespace Backend.Converter {
                     ConformanceLevel = ConformanceLevel.Fragment
                 };
                 var xmlns = new XmlNamespaceManager(settings.NameTable);
-                xmlns.AddNamespace(NS_PFX, NS_URI);
+                xmlns.AddNamespace(NS_PFX_LOG4J, NS_URI_LOG4J);
+                xmlns.AddNamespace(NS_PFX_NLOG, NS_URI_NLOG);
                 context = new XmlParserContext(null, xmlns, string.Empty, XmlSpace.Default);
             }
 
@@ -177,7 +180,7 @@ namespace Backend.Converter {
                     }
                     else if (xmlReader.NodeType == XmlNodeType.EndElement &&
                              xmlReader.LocalName == EVENT_TAG &&
-                             (xmlReader.NamespaceURI == NS_URI || !checkNamespace)) {
+                             (xmlReader.NamespaceURI == NS_URI_LOG4J || !checkNamespace)) {
                         break;
                     }
                     else {
@@ -204,7 +207,7 @@ namespace Backend.Converter {
                     .FirstOrDefault(m => m.Name == "log4jmachinename")?.Value;
 
                 var context = log.Properties
-                    .Where(m => !m.Name.StartsWith(NS_PFX))
+                    .Where(m => !m.Name.StartsWith(NS_PFX_LOG4J))
                     .OrderBy(m => m.Name)
                     .Select(m => $"{m.Name}: {m.Value}");
                 log.Context = string.Join(", ", context);
@@ -231,12 +234,12 @@ namespace Backend.Converter {
 
             private bool HasDescendant(string localName) =>
                 checkNamespace
-                    ? xmlReader.ReadToDescendant(localName, NS_URI)
+                    ? xmlReader.ReadToDescendant(localName, NS_URI_LOG4J)
                     : xmlReader.ReadToDescendant(localName);
 
             private bool HasNext(string localName) =>
                 checkNamespace
-                    ? xmlReader.ReadToNextSibling(localName, NS_URI)
+                    ? xmlReader.ReadToNextSibling(localName, NS_URI_LOG4J)
                     : xmlReader.ReadToNextSibling(localName);
         }
     }
