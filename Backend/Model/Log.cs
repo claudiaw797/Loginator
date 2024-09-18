@@ -3,6 +3,7 @@
 using Common;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Backend.Model {
 
@@ -17,6 +18,7 @@ namespace Backend.Model {
         /// The log level in the form "INFO", "ERROR", etc. This should always be available.
         /// </summary>
         public LoggingLevel Level { get; internal set; }
+
         /// <summary>
         /// The log message. Can be anything the logging source writes. This should always be available.
         /// </summary>
@@ -43,7 +45,7 @@ namespace Backend.Model {
         public string Application { get; internal set; }
 
         /// <summary>
-        /// The process id of the application the log originated from.
+        /// The process id of the application the log originated from. May not be available.
         /// </summary>
         public string? Process { get; internal set; }
 
@@ -53,32 +55,39 @@ namespace Backend.Model {
         public string? Thread { get; internal set; }
 
         /// <summary>
-        /// The context of the logging application. May not be available.
+        /// The location info of the caller making the logging request. May not be available.
         /// </summary>
+        public LocationInfo? Location { get; internal set; }
+
+        /// <summary>
+        /// The nested diagnostic contexts of the log. May not be available.
         public string? Context { get; internal set; }
 
         /// <summary>
-        /// The location info of the caller making the logging request. May not be available.
+        /// The mapped diagnostic contexts and additional properties of the log. May be empty.
         /// </summary>
-        public LocationInfo Location { get; internal set; }
-
-        /// <summary>
-        /// Additional properties. May not be available.
-        /// </summary>
-        public IEnumerable<Property> Properties { get; internal set; }
+        public IReadOnlyCollection<Property> Properties { get; private set; }
 
         public Log() {
             Timestamp = DateTimeOffset.Now;
             Level = LoggingLevel.NOT_SET;
             Namespace = Constants.NAMESPACE_GLOBAL;
             Application = Constants.APPLICATION_GLOBAL;
-            Location = new();
             Properties = [];
         }
 
         private static readonly Log def = new();
 
         public static Log DEFAULT => def;
+
+        /// <summary>
+        /// Adds <paramref name="properties"/> to <see cref="Properties"/> and sorts the result.
+        /// </summary>
+        /// <param name="properties"></param>
+        internal void AddProperties(IEnumerable<Property> properties) {
+            var final = Properties.Count > 0 ? Properties.Concat(properties) : properties;
+            Properties = [.. final.OrderBy(p => p.Name)];
+        }
 
         public bool Equals(Log? other) =>
             other is not null &&

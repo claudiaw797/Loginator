@@ -71,8 +71,8 @@ namespace Backend.UnitTests.Converter {
                     x.Application == y.Application &&
                     x.Process == y.Process &&
                     x.Thread == y.Thread &&
-                    x.Context?.ReplaceLineEndings() == y.Context?.ReplaceLineEndings() &&
                     x.Location == y.Location &&
+                    x.Context?.ReplaceLineEndings() == y.Context?.ReplaceLineEndings() &&
                     Enumerable.SequenceEqual(x.Properties.OrderBy(p => p.Name), y.Properties.OrderBy(p => p.Name));
             }
 
@@ -87,8 +87,8 @@ namespace Backend.UnitTests.Converter {
                 hash.Add(obj.Application);
                 hash.Add(obj.Process);
                 hash.Add(obj.Thread);
-                hash.Add(obj.Context);
                 hash.Add(obj.Location);
+                hash.Add(obj.Context);
                 foreach (var property in obj.Properties) {
                     hash.Add(property);
                 }
