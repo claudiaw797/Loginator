@@ -1,6 +1,8 @@
+// Copyright (C) 2024 Claudia Wagner
+
+using Backend.Model;
 using FluentAssertions;
 using Loginator.Collections;
-using Loginator.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -17,15 +19,15 @@ namespace Loginator.UnitTests.Collections {
         private readonly OrderedObservableCollection sut = [];
         private readonly SutEvents sutEvents = [];
 
-        private readonly LogViewModel item1;
-        private readonly LogViewModel item2;
-        private readonly LogViewModel item3;
+        private readonly Log item1;
+        private readonly Log item2;
+        private readonly Log item3;
 
         public OrderedObservableCollectionTests() {
-            DateTime ts = DateTime.Now;
-            item1 = LogVM(ts);
-            item2 = LogVM(ts.AddSeconds(5));
-            item3 = LogVM(ts.AddSeconds(-5));
+            var ts = DateTimeOffset.Now;
+            item1 = Log(ts);
+            item2 = Log(ts.AddSeconds(5));
+            item3 = Log(ts.AddSeconds(-5));
         }
 
         [SetUp]
@@ -40,7 +42,7 @@ namespace Loginator.UnitTests.Collections {
 
         [Test]
         public void Cannot_insert_item() {
-            var action = () => sut.Insert(0, new LogViewModel());
+            var action = () => sut.Insert(0, new Log());
 
             action.Should().Throw<InvalidOperationException>();
             sutEvents.Should().BeEmpty();
@@ -59,7 +61,7 @@ namespace Loginator.UnitTests.Collections {
             Can_add_multiple_items_sorted_by_timestamp_descending();
             sutEvents.Clear();
 
-            var item4 = new LogViewModel { Timestamp = DateTime.Now.AddMinutes(-5) };
+            var item4 = new Log { Timestamp = DateTimeOffset.Now.AddMinutes(-5) };
             sut.AddLeading(item4);
 
             sut.Should()
@@ -150,7 +152,7 @@ namespace Loginator.UnitTests.Collections {
             Can_add_multiple_items_sorted_by_timestamp_descending();
             sutEvents.Clear();
 
-            var item4 = new LogViewModel { Timestamp = DateTime.Now };
+            var item4 = new Log { Timestamp = DateTimeOffset.Now };
             var actual = sut.Remove([item1, item2, item3, item4]);
 
             actual.Should().BeTrue();
@@ -164,7 +166,7 @@ namespace Loginator.UnitTests.Collections {
             Can_add_multiple_items_sorted_by_timestamp_descending();
             sutEvents.Clear();
 
-            var item4 = new LogViewModel { Timestamp = DateTime.Now };
+            var item4 = new Log { Timestamp = DateTimeOffset.Now };
             var actual = sut.Remove([item1, item2, item3, item4], _ => false);
 
             actual.Should().BeFalse();
@@ -187,7 +189,7 @@ namespace Loginator.UnitTests.Collections {
                 this.Select(e => e.Action);
         }
 
-        private static LogViewModel LogVM(DateTime timestamp) =>
+        private static Log Log(DateTimeOffset timestamp) =>
             new() { Timestamp = timestamp };
     }
 }

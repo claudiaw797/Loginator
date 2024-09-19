@@ -1,4 +1,6 @@
-﻿using Common.Configuration;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Common.Configuration;
 using Common.Exceptions;
 using Loginator.Bootstrapper;
 using Loginator.Controls;

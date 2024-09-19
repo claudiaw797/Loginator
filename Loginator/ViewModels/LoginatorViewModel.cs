@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
 using Backend;
 using Backend.Events;
 using Backend.Model;
@@ -27,23 +28,22 @@ namespace Loginator.ViewModels {
 
         private IOptionsMonitor<Configuration> ConfigurationDao { get; set; }
         private IDisposable? ConfigurationChangeListener { get; set; }
-        private IMapper Mapper { get; set; }
         private IReceiver? Receiver { get; set; }
         private ITimer Timer { get; set; }
         private IStopwatch Stopwatch { get; set; }
         private ILogger<LoginatorViewModel> Logger { get; set; }
 
         private LogTimeFormat LogTimeFormat { get; set; }
-        private List<LogViewModel> LogsToInsert { get; set; }
+        private List<Log> LogsToInsert { get; set; }
 
         public LoginatorViewModel(
             IOptionsMonitor<Configuration> configurationDao,
-            IMapper mapper,
             IStopwatch stopwatch,
             TimeProvider timeProvider,
             ILogger<LoginatorViewModel> logger) {
             ConfigurationDao = configurationDao;
             ConfigurationChangeListener = configurationDao.OnChange(ConfigurationDao_OnConfigurationChanged);
+            LogTimeFormat = configurationDao.CurrentValue.LogTimeFormat;
 
             isActive = true;
             selectedInitialLogLevel = LoggingLevel.TRACE;
@@ -53,7 +53,6 @@ namespace Loginator.ViewModels {
             LogsToInsert = [];
             Namespaces = [];
             Applications = [];
-            Mapper = mapper;
             Stopwatch = stopwatch;
             Search = new SearchViewModel();
             Search.UpdateSearch += Search_OnUpdateSearch;
@@ -69,7 +68,7 @@ namespace Loginator.ViewModels {
         [ObservableProperty]
         private LoggingLevel selectedInitialLogLevel;
 
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogExceptionCommand))]
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogCommand), nameof(CopySelectedLogExceptionCommand), nameof(CopySelectedLogMessageCommand), nameof(UnselectLogCommand))]
         private LogViewModel? selectedLog;
         partial void OnSelectedLogChanged(LogViewModel? value) {
             SetSelectedNamespaceFromLog(value);
@@ -139,6 +138,20 @@ namespace Loginator.ViewModels {
             }
         }
 
+        [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
+        private void CopySelectedLog() {
+            if (SelectedLog is not null) {
+                Clipboard.SetText(SelectedLog.ToString());
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
+        private void CopySelectedLogMessage() {
+            if (SelectedLog is not null) {
+                Clipboard.SetText(SelectedLog.Message);
+            }
+        }
+
         [RelayCommand(CanExecute = nameof(CanCopySelectedLogException))]
         private void CopySelectedLogException() {
             if (SelectedLog is not null) {
@@ -147,8 +160,13 @@ namespace Loginator.ViewModels {
         }
 
         [RelayCommand]
-        private void OpenConfiguration() {
+        private static void OpenConfiguration() {
             new ConfigurationWindow().Show();
+        }
+
+        [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
+        private void UnselectLog() {
+            SelectedLog = null;
         }
 
         public void Dispose() {
@@ -172,8 +190,11 @@ namespace Loginator.ViewModels {
             Namespaces.Flatten(x => x.Children);
 
         private void ConfigurationDao_OnConfigurationChanged(Configuration logConfig, string? name = null) {
-            Logger.LogInformation("[ConfigurationDao_OnConfigurationChanged] Configuration changed.");
-            LogTimeFormat = logConfig.LogTimeFormat;
+            if (LogTimeFormat != logConfig.LogTimeFormat) {
+                Logs.RaiseReset();
+                Logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", LogTimeFormat, logConfig.LogTimeFormat);
+                LogTimeFormat = logConfig.LogTimeFormat;
+            }
         }
 
         private void Receiver_OnLogReceived(object? sender, LogReceivedEventArgs e) {
@@ -182,8 +203,7 @@ namespace Loginator.ViewModels {
                 // Add a log entry only to the list if global logging is active (checkbox)
                 if (!IsActive) return;
 
-                LogViewModel log = ToLogViewModel(e.Log);
-                LogsToInsert.Add(log);
+                LogsToInsert.Add(e.Log);
             }
         }
 
@@ -245,15 +265,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private LogViewModel ToLogViewModel(Log log) {
-            var logViewModel = Mapper.Map<Log, LogViewModel>(log);
-            if (LogTimeFormat == LogTimeFormat.ConvertToLocalTime) {
-                logViewModel.Timestamp = logViewModel.Timestamp.ToLocalTime();
-            }
-            return logViewModel;
-        }
-
-        private void AddLogs(IEnumerable<LogViewModel> logsToInsert) {
+        private void AddLogs(IEnumerable<Log> logsToInsert) {
             try {
                 foreach (var logToInsert in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == logToInsert.Application);
@@ -269,7 +281,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void UpdateNamespaces(IEnumerable<LogViewModel> logsToInsert) {
+        private void UpdateNamespaces(IEnumerable<Log> logsToInsert) {
             try {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
@@ -284,41 +296,20 @@ namespace Loginator.ViewModels {
                         Namespaces.Add(nsApplication);
                     }
 
-                    // Example: Verbosus.VerbTeX.View
-                    var nsLogFull = log.Namespace;
-                    // Example: Verbosus
-                    var nsLogPart = nsLogFull?.Split([Constants.NAMESPACE_SPLITTER], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-                    // Try to get existing namespace with name Verbosus
-                    var nsChild = nsApplication.Children.FirstOrDefault(m => m.Name == nsLogPart);
-                    if (nsChild == null) {
-                        nsChild = new NamespaceViewModel(nsLogPart, application) {
-                            IsChecked = nsApplication.IsChecked
-                        };
-                        nsApplication.Children.Add(nsChild);
-                        nsChild.Parent = nsApplication;
-                    }
-
-                    var index = nsLogFull is null ? -1 : nsLogFull.IndexOf(Constants.NAMESPACE_SPLITTER);
-                    if (index >= 0) {
-                        HandleNamespace(nsChild, nsLogFull![(index + 1)..], application, log);
-                    }
-                    else {
-                        SetLogCountByLevel(log, nsChild);
-                    }
+                    HandleNamespace(nsApplication, log.Namespace, application, log);
                 }
-
             }
             catch (Exception e) {
                 Console.WriteLine("Could not update namespaces: " + e);
             }
         }
 
-        private static void HandleNamespace(NamespaceViewModel parent, string suffix, ApplicationViewModel application, LogViewModel log) {
-            // Example: VerbTeX.View (Verbosus was processed before)
+        private static void HandleNamespace(NamespaceViewModel parent, string suffix, ApplicationViewModel application, Log log) {
+            // Example: Verbosus.VerbTeX.View
             var nsLogFull = suffix;
-            // Example: VerbTeX
+            // Example: 1st Verbosus, 2nd VerbTeX, 3rd View
             var nsLogPart = nsLogFull?.Split([Constants.NAMESPACE_SPLITTER], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
-            // Try to get existing namespace with name VerbTeX
+            // Try to get existing namespace with name 1st Verbosus, 2nd VerbTeX, 3rd View
             var nsChild = parent.Children.FirstOrDefault(m => m.Name == nsLogPart);
             if (nsChild == null) {
                 nsChild = new NamespaceViewModel(nsLogPart, application) {
@@ -337,7 +328,7 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void UpdateApplications(IEnumerable<LogViewModel> logsToInsert) {
+        private void UpdateApplications(IEnumerable<Log> logsToInsert) {
             try {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
@@ -373,7 +364,7 @@ namespace Loginator.ViewModels {
             ns.IsHighlighted = false;
         }
 
-        private static void SetLogCountByLevel(LogViewModel log, NamespaceViewModel ns) {
+        private static void SetLogCountByLevel(Log log, NamespaceViewModel ns) {
             ns.Count++;
             if (log.Level == LoggingLevel.TRACE) {
                 ns.CountTrace++;
@@ -405,6 +396,10 @@ namespace Loginator.ViewModels {
 
         private bool CanUpdateNumberOfLogsPerLevel(int value) {
             return value > 0 && value != NumberOfLogsPerLevel;
+        }
+
+        private bool CanCopySelectedLog() {
+            return SelectedLog is not null;
         }
 
         private bool CanCopySelectedLogException() {

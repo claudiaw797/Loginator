@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.5] - 2024-09-19
+
+### Added
+
+- 'Copy' and 'Copy message' context menu buttons in selected log window
+- Log fields: process id, location (class, method, file, line), properties
+- Namespace checking in log4j converter
+- Configuration option 'AllowAnonymous' to recognize log entries without log4j namespace
+- Configuration option 'ApplicationFormat':
+  - 'DoNotChange' to collect applications per process (as before)
+  - 'Consolidate' to collect applications across processes
+- Dependencies: FakeItEasy 8.3.0
+
+### Changed
+
+- Datetime format switching affects all currently cached logs
+- Selected log is displayed in grid style
+- Content of log fields:
+  - log4j:NDC is displayed as context
+  - log4j:MDC is added to properties
+  - properties are displayed on their own
+- Upgrade dependencies: CommunityToolkit.Mvvm 8.3.2, FluentAssertions 6.12.1, Microsoft.Extensions.TimeProvider.Testing 8.9.1, Microsoft.NET.Test.Sdk 17.11.1, NLog 5.3.4, NLog.Extensions.Hosting 5.3.13, NUnit 4.2.2
+
+### Fixed
+
+- Datetime format switching
+
+## Removed
+
+- Dependencies: AutoMapper
+
 ## [1.7.4] - 2024-08-24
 
 ### Added

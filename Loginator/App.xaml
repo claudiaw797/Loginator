@@ -37,8 +37,10 @@
         <converter:LevelToForegroundConverter x:Key="LevelToForegroundConverter"></converter:LevelToForegroundConverter>
         <converter:IsEqualsConverter x:Key="IsEqualsConverter"></converter:IsEqualsConverter>
         <converter:SingleLineTextConverter x:Key="SingleLineTextConverter"></converter:SingleLineTextConverter>
-        <converter:LogToTextConverter x:Key="LogToTextConverter"></converter:LogToTextConverter>
         <converter:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter"></converter:RadioButtonCheckedConverter>
+        <converter:ExistsToVisibilityConverter x:Key="ExistsToVisibilityConverter"></converter:ExistsToVisibilityConverter>
+        <converter:TimestampConverter x:Key="TimestampConverter"></converter:TimestampConverter>
+        <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter"></converter:ViewModelToLogConverter>
 
         <viewModels:ViewModelLocator x:Key="Locator" d:IsDataSource="True"/>
         
