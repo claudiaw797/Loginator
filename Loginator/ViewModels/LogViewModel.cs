@@ -3,6 +3,7 @@
 using Backend.Model;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using static Common.Constants;
 
@@ -23,10 +24,10 @@ namespace Loginator.ViewModels {
         public string? Process => log.Process;
         public string? Thread => log.Thread;
         public string? Context => log.Context;
-        public string? ClassName => log.Location.ClassName;
-        public string? FileName => log.Location.FileName;
-        public string? MethodName => log.Location.MethodName;
-        public string? LineNumber => log.Location.LineNumber;
+        public string? ClassName => log.Location?.ClassName;
+        public string? FileName => log.Location?.FileName;
+        public string? MethodName => log.Location?.MethodName;
+        public string? LineNumber => log.Location?.LineNumber.ToString();
 
         public string ApplicationProcess {
             get {
@@ -38,6 +39,8 @@ namespace Loginator.ViewModels {
 
         public string? Location {
             get {
+                if (log.Location is null) return null;
+
                 var sb = new StringBuilder();
                 AppendLine(sb, "Class", ClassName);
                 AppendLine(sb, "Method", MethodName);
@@ -45,6 +48,15 @@ namespace Loginator.ViewModels {
                     AppendLine(sb, "File", $"{FileName}, line {LineNumber}");
                 }
                 return sb.ToString().Trim();
+            }
+        }
+
+        public string? Properties {
+            get {
+                if (log.Properties is null || log.Properties.Count == 0) return null;
+
+                var properties = log.Properties.Select(p => $"{p.Name}: {p.Value}");
+                return string.Join(Environment.NewLine, properties);
             }
         }
 

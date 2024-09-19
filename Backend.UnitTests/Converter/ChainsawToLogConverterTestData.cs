@@ -36,14 +36,16 @@ namespace Backend.UnitTests.Converter {
                 FileName = Value.FileName,
                 MethodName = Value.MethodName,
                 LineNumber = Value.LineNumber,
-            },
-            Properties = [
-                new(Name.Action, Value.Action),
-                new(Name.EventId, Value.EventId),
-                new(Name.Log4jApp, Value.Log4jApp),
-                new(Name.Log4jMachine, Value.Log4jMachine),
-            ]
+            }
         };
+
+        static ChainsawToLogConverterTestData() {
+            LogFromValidLog4jXml.AddProperties([
+                new(Name.FromMdc, Value.FromMdc),
+                new(Name.Action, Value.Action),
+                new(Name.EventId, Value.EventId)
+            ]);
+        }
 
         public static IEnumerable<TestCaseData> ValidLog4jDataOptions() {
             SaveOptions[] options = [
@@ -69,8 +71,9 @@ namespace Backend.UnitTests.Converter {
 
         internal static XElement Log4JDefault(bool withNs, bool withPrefix, bool mixed) {
             var @event = XElement(Tag.Event, withNs, withPrefix, mixed, XAtt.Logger, XAtt.Level, XAtt.Timestamp, XAtt.Thread);
+            var mdc = Properties(withNs, withPrefix, mixed, Tag.Mdc, [XElems[Key(Name.FromMdc, withNs, withPrefix, mixed)]]);
             var locationInfo = XElement(Tag.Locationinfo, withNs, withPrefix, mixed, XAtt.Class, XAtt.Method, XAtt.File, XAtt.Line);
-            var properties = Properties(withNs, withPrefix, mixed,
+            var properties = Properties(withNs, withPrefix, mixed, Tag.Properties,
                     XElems[Key(Name.Action, withNs, withPrefix, mixed)],
                     XElems[Key(Name.EventId, withNs, withPrefix, mixed)],
                     XElems[Key(Name.Log4jApp, withNs, withPrefix, mixed)],
@@ -80,6 +83,7 @@ namespace Backend.UnitTests.Converter {
                 XElems[Key(Tag.Message, withNs, withPrefix)],
                 XElems[Key(Tag.Throwable, withNs, withPrefix)],
                 XElems[Key(Tag.Ndc, withNs, withPrefix)],
+                mdc,
                 locationInfo,
                 properties);
 
@@ -105,8 +109,8 @@ namespace Backend.UnitTests.Converter {
             return e;
         }
 
-        private static XElement Properties(bool withNs, bool withPrefix, bool mixed, params XElement[] elements) {
-            var p = new XElement(XElems[Key(Tag.Properties, withNs, withPrefix)]);
+        private static XElement Properties(bool withNs, bool withPrefix, bool mixed, string key, params XElement[] elements) {
+            var p = new XElement(XElems[Key(key, withNs, withPrefix)]);
             p.ReplaceNodes(mixed ? elements.Shuffle() : elements);
             return p;
         }
@@ -135,6 +139,8 @@ namespace Backend.UnitTests.Converter {
             public static readonly XAttribute Log4jApp_Value = new(Att.Value, Value.Log4jApp);
             public static readonly XAttribute Log4jMachine_Name = new(Att.Name, Name.Log4jMachine);
             public static readonly XAttribute Log4jMachine_Value = new(Att.Value, Value.Log4jMachine);
+            public static readonly XAttribute Mdc_Name = new(Att.Name, Name.FromMdc);
+            public static readonly XAttribute Mdc_Value = new(Att.Value, Value.FromMdc);
         }
 
         private class Tag {
@@ -142,6 +148,7 @@ namespace Backend.UnitTests.Converter {
             public const string Message = "message";
             public const string Throwable = "throwable";
             public const string Ndc = "NDC";
+            public const string Mdc = "MDC";
             public const string Locationinfo = "locationInfo";
             public const string Properties = "properties";
             public const string Data = "data";
@@ -165,6 +172,7 @@ namespace Backend.UnitTests.Converter {
             public const string EventId = "EventId";
             public const string Log4jApp = "log4japp";
             public const string Log4jMachine = "log4jmachinename";
+            public const string FromMdc = "MdcName";
         }
 
         private class Value {
@@ -183,15 +191,16 @@ namespace Backend.UnitTests.Converter {
             public const string Application = "ChainsawRunnerExample";
             public const string Process = "10888";
             public const string Thread = "19";
-            public const string Context = "Action: What action?, EventId: 23504";
+            public const string Context = "ScopeNested1_ScopeNested2_ScopeLocal";
             public const string ClassName = "Example.Runner";
             public const string FileName = @"C:\temp\Solution\Project\Folders\Program.cs";
             public const string MethodName = "Void TrySomething(System.String)";
-            public const string LineNumber = "71";
+            public const int LineNumber = 71;
             public const string Action = "What action?";
             public const string EventId = "23504";
             public const string Log4jApp = "ChainsawRunnerExample(10888)";
             public const string Log4jMachine = "TEST-MACHINE";
+            public const string FromMdc = "MdcValue";
         }
 
         private class XElementDictionary : Dictionary<string, XElement> {
@@ -217,13 +226,15 @@ namespace Backend.UnitTests.Converter {
                 this.AddXData(Name.EventId, XAtt.EventId_Name, XAtt.EventId_Value, withNs, withPrefix, reversed);
                 this.AddXData(Name.Log4jApp, XAtt.Log4jApp_Name, XAtt.Log4jApp_Value, withNs, withPrefix, reversed);
                 this.AddXData(Name.Log4jMachine, XAtt.Log4jMachine_Name, XAtt.Log4jMachine_Value, withNs, withPrefix, reversed);
+                this.AddXData(Name.FromMdc, XAtt.Mdc_Name, XAtt.Mdc_Value, withNs, withPrefix, reversed);
             }
 
             private void AddXElements(bool withNs, bool withPrefix) {
                 this.AddXElement(Tag.Event, withNs, withPrefix);
                 this.AddXElement(Tag.Message, withNs, withPrefix, Value.Message);
                 this.AddXElement(Tag.Throwable, withNs, withPrefix, Value.Exception);
-                this.AddXElement(Tag.Ndc, withNs, withPrefix);
+                this.AddXElement(Tag.Ndc, withNs, withPrefix, Value.Context);
+                this.AddXElement(Tag.Mdc, withNs, withPrefix);
                 this.AddXElement(Tag.Locationinfo, withNs, withPrefix);
                 this.AddXElement(Tag.Properties, withNs, withPrefix);
             }

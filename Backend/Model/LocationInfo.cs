@@ -22,6 +22,12 @@ namespace Backend.Model {
         /// <summary>
         /// Gets or sets the line number of the caller making the logging request.
         /// </summary>
-        public string? LineNumber { get; internal set; }
+        public int LineNumber { get; internal set; }
+
+        public bool IsEmpty() =>
+            string.IsNullOrEmpty(ClassName) &&
+            string.IsNullOrEmpty(FileName) &&
+            string.IsNullOrEmpty(MethodName) &&
+            LineNumber <= 0;
     }
 }

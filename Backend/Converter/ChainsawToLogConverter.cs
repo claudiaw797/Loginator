@@ -66,10 +66,14 @@ namespace Backend.Converter {
 
         private class ChainSawLogReader : IDisposable {
 
-            private const string NS_URI = "https://logging.apache.org/xml/ns";
-            private const string NS_PFX = "log4j";
+            private const string NS_URI_LOG4J = "https://logging.apache.org/xml/ns";
+            private const string NS_PFX_LOG4J = "log4j";
+            private const string NS_URI_NLOG = "https://nlog-project.org";
+            private const string NS_PFX_NLOG = "nlog";
             private const string EVENT_TAG = "event";
             private const string DATA_TAG = "data";
+            private const string LOG4J_APP = "log4japp";
+            private const string LOG4J_HOST = "log4jmachinename";
 
             private static readonly XmlReaderSettings settings;
             private static readonly XmlParserContext context;
@@ -84,7 +88,8 @@ namespace Backend.Converter {
                     ConformanceLevel = ConformanceLevel.Fragment
                 };
                 var xmlns = new XmlNamespaceManager(settings.NameTable);
-                xmlns.AddNamespace(NS_PFX, NS_URI);
+                xmlns.AddNamespace(NS_PFX_LOG4J, NS_URI_LOG4J);
+                xmlns.AddNamespace(NS_PFX_NLOG, NS_URI_NLOG);
                 context = new XmlParserContext(null, xmlns, string.Empty, XmlSpace.Default);
             }
 
@@ -116,8 +121,8 @@ namespace Backend.Converter {
                     ? text
                     : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
 
-            private static void ParseApplication(Log log, bool dontChange) {
-                var property = log.Properties.FirstOrDefault(m => m.Name == "log4japp")?.Value;
+            private static void ParseApplication(Log log, IEnumerable<Property> properties, bool dontChange) {
+                var property = properties.FirstOrDefault(m => m.Name == LOG4J_APP)?.Value;
                 if (property is not null) {
                     var application = RegexLog4jApp().Match(property);
                     if (application.Success) {
@@ -129,6 +134,10 @@ namespace Backend.Converter {
                         log.Application = property.Trim();
                     }
                 }
+            }
+
+            private static void ParseMachineName(Log log, IEnumerable<Property> properties) {
+                log.MachineName = properties.FirstOrDefault(m => m.Name == LOG4J_HOST)?.Value;
             }
 
             private void ReadEventTag(Log log) {
@@ -156,13 +165,16 @@ namespace Backend.Converter {
                     if (xmlReader.MoveToContent() == XmlNodeType.Element) {
                         switch (xmlReader.LocalName) {
                             case "message":
-                                log.Message = InsertIntoMessage(log.Message, xmlReader.ReadElementContentAsString(), append: true);
+                                log.Message = xmlReader.ReadElementContentAsString();
                                 break;
                             case "throwable":
                                 log.Exception = xmlReader.ReadElementContentAsString();
                                 break;
                             case "NDC":
-                                log.Message = InsertIntoMessage(log.Message, xmlReader.ReadElementContentAsString(), append: false);
+                                log.Context = xmlReader.ReadElementContentAsString();
+                                break;
+                            case "MDC":
+                                log.AddProperties(ReadDataTags(log));
                                 break;
                             case "properties":
                                 ReadPropertiesContent(log);
@@ -177,7 +189,7 @@ namespace Backend.Converter {
                     }
                     else if (xmlReader.NodeType == XmlNodeType.EndElement &&
                              xmlReader.LocalName == EVENT_TAG &&
-                             (xmlReader.NamespaceURI == NS_URI || !checkNamespace)) {
+                             (xmlReader.NamespaceURI == NS_URI_LOG4J || !checkNamespace)) {
                         break;
                     }
                     else {
@@ -186,7 +198,7 @@ namespace Backend.Converter {
                 } while (true);
             }
 
-            private void ReadPropertiesContent(Log log) {
+            private IEnumerable<Property> ReadDataTags(Log log) {
                 var properties = new List<Property>();
                 if (HasDescendant(DATA_TAG)) {
                     do {
@@ -196,47 +208,47 @@ namespace Backend.Converter {
                         }
                     } while (HasNext(DATA_TAG));
                 }
-                log.Properties = properties;
+                return properties;
+            }
 
-                ParseApplication(log, applicationFormat != ApplicationFormat.Consolidate);
+            private void ReadPropertiesContent(Log log) {
+                var properties = ReadDataTags(log);
 
-                log.MachineName = log.Properties
-                    .FirstOrDefault(m => m.Name == "log4jmachinename")?.Value;
+                ParseApplication(log, properties, applicationFormat != ApplicationFormat.Consolidate);
+                ParseMachineName(log, properties);
 
-                var context = log.Properties
-                    .Where(m => !m.Name.StartsWith(NS_PFX))
-                    .OrderBy(m => m.Name)
-                    .Select(m => $"{m.Name}: {m.Value}");
-                log.Context = string.Join(", ", context);
+                log.AddProperties(properties.ExceptBy([LOG4J_APP, LOG4J_HOST], p => p.Name));
             }
 
             private void ReadLocationTag(Log log) {
+                var locationInfo = new LocationInfo();
                 while (xmlReader.MoveToNextAttribute()) {
                     switch (xmlReader.LocalName) {
                         case "class":
-                            log.Location.ClassName = xmlReader.Value;
+                            locationInfo.ClassName = xmlReader.Value;
                             break;
                         case "method":
-                            log.Location.MethodName = xmlReader.Value;
+                            locationInfo.MethodName = xmlReader.Value;
                             break;
                         case "file":
-                            log.Location.FileName = xmlReader.Value;
+                            locationInfo.FileName = xmlReader.Value;
                             break;
                         case "line":
-                            log.Location.LineNumber = xmlReader.Value;
+                            if (int.TryParse(xmlReader.Value, out var line)) locationInfo.LineNumber = line;
                             break;
                     }
                 }
+                if (!locationInfo.IsEmpty()) log.Location = locationInfo;
             }
 
             private bool HasDescendant(string localName) =>
                 checkNamespace
-                    ? xmlReader.ReadToDescendant(localName, NS_URI)
+                    ? xmlReader.ReadToDescendant(localName, NS_URI_LOG4J)
                     : xmlReader.ReadToDescendant(localName);
 
             private bool HasNext(string localName) =>
                 checkNamespace
-                    ? xmlReader.ReadToNextSibling(localName, NS_URI)
+                    ? xmlReader.ReadToNextSibling(localName, NS_URI_LOG4J)
                     : xmlReader.ReadToNextSibling(localName);
         }
     }
