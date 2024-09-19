@@ -166,28 +166,43 @@
                     <Label Grid.Row="0" Grid.Column="0" Content="Application" />
                     <TextBlock Grid.Row="0" Grid.Column="1"
                                Text="{Binding ApplicationProcess}" />
+
                     <Label Grid.Row="1" Grid.Column="0" Content="Namespace" />
                     <TextBlock Grid.Row="1" Grid.Column="1"
                                Text="{Binding Namespace}" />
+
                     <Label Grid.Row="2" Grid.Column="0" Content="Thread" />
                     <TextBlock Grid.Row="2" Grid.Column="1"
                                Text="{Binding Thread}" />
+
                     <Label Grid.Row="3" Grid.Column="0" Content="Message" />
                     <TextBlock Grid.Row="3" Grid.Column="1"
                                Text="{Binding Message}" />
-                    <Label Grid.Row="4" Grid.Column="0" Content="Exception"
+
+                    <Label Grid.Row="4" Grid.Column="0" Content="Exception"                           
+                               Visibility="{Binding Visibility, ElementName=SelectedLogException}" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Name="SelectedLogException"
+                               Text="{Binding Exception}"
                                Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
-                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Exception}"
-                               Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
-                    <Label Grid.Row="5" Grid.Column="0" Content="Context" />
-                    <TextBlock Grid.Row="5" Grid.Column="1"
-                               Text="{Binding Context}" />
-                    <Label Grid.Row="6" Grid.Column="0" Content="Properties" />
-                    <TextBlock Grid.Row="6" Grid.Column="1"
-                               Text="{Binding Properties}" />
-                    <Label Grid.Row="7" Grid.Column="0" Content="Location" />
-                    <TextBlock Grid.Row="7" Grid.Column="1"
-                               Text="{Binding Location}" />
+
+                    <Label Grid.Row="5" Grid.Column="0" Content="Context"
+                               Visibility="{Binding Visibility, ElementName=SelectedLogContext}" />
+                    <TextBlock Grid.Row="5" Grid.Column="1" Name="SelectedLogContext"
+                               Text="{Binding Context}"
+                               Visibility="{Binding Context, Converter={StaticResource ExistsToVisibilityConverter}}" />
+
+                    <Label Grid.Row="6" Grid.Column="0" Content="Properties"
+                               Visibility="{Binding Visibility, ElementName=SelectedLogProperties}" />
+                    <TextBlock Grid.Row="6" Grid.Column="1" Name="SelectedLogProperties"
+                               Text="{Binding Properties}"
+                               Visibility="{Binding Properties, Converter={StaticResource ExistsToVisibilityConverter}}" />
+
+                    <Label Grid.Row="7" Grid.Column="0" Content="Location"
+                               Visibility="{Binding Visibility, ElementName=SelectedLogLocation}" />
+                    <TextBlock Grid.Row="7" Grid.Column="1" Name="SelectedLogLocation"
+                               Text="{Binding Location}"
+                               Visibility="{Binding Location, Converter={StaticResource ExistsToVisibilityConverter}}" />
+
                     <Label Grid.Row="8" Grid.Column="0" Content="Host" />
                     <TextBlock Grid.Row="8" Grid.Column="1"
                                Text="{Binding MachineName}" />

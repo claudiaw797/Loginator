@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.7.5] - 2024-09-19
 
 ### Added
 
@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration option 'ApplicationFormat':
   - 'DoNotChange' to collect applications per process (as before)
   - 'Consolidate' to collect applications across processes
+- Dependencies: FakeItEasy 8.3.0
 
 ### Changed
 
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - log4j:NDC is displayed as context
   - log4j:MDC is added to properties
   - properties are displayed on their own
+- Upgrade dependencies: CommunityToolkit.Mvvm 8.3.2, FluentAssertions 6.12.1, Microsoft.Extensions.TimeProvider.Testing 8.9.1, Microsoft.NET.Test.Sdk 17.11.1, NLog 5.3.4, NLog.Extensions.Hosting 5.3.13, NUnit 4.2.2
 
 ### Fixed
 
@@ -32,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Removed
 
-- AutoMapper dependency
+- Dependencies: AutoMapper
 
 ## [1.7.4] - 2024-08-24
 
