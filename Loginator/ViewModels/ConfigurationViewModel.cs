@@ -1,6 +1,5 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend;
 using Backend.Model;
 using Common;
 using Common.Configuration;
@@ -63,7 +62,6 @@ namespace Loginator.ViewModels {
                     c.LogTimeFormat = LogTimeFormat;
                     c.ApplicationFormat = ApplicationFormat;
                 });
-                IoC.Get<IReceiver>().Initialize(configurationDao.Value);
 
                 CloseAction?.Invoke();
             }

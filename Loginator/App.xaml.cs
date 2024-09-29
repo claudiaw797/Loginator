@@ -86,9 +86,9 @@ namespace Loginator {
                 await host.StartAsync();
 
                 // Initialize dispatcher helper so we can access UI thread in view model
-                DispatcherHelper.Initialize();
                 IoC.ServiceProvider = host.Services;
 
+                host.Services.GetRequiredService<IDispatcher>().Initialize();
                 host.Services.GetRequiredService<MainWindow>().Show();
 
                 logger.Info("[OnStartup] Application successfully started");

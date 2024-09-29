@@ -1,103 +1,88 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
-using System.Net.Sockets;
-using System.Xml;
-using System.Xml.Linq;
-using Backend.Events;
-using Backend.Model;
-using Common;
-using System.Net.NetworkInformation;
-using Common.Exceptions;
+﻿// Copyright (C) 2024 Claudia Wagner
+
 using Backend.Converter;
+using Backend.Model;
 using Common.Configuration;
-using NLog;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Backend {
 
-    public sealed class Receiver : IReceiver, IDisposable {
+    public sealed class Receiver : IReceiver {
 
-        private ILogger<Receiver> Logger { get; init; }
-        private UdpClient Client { get; set; }
-        private ILogConverter Converter { get; set; }
+        private const int BUFFER_LENGTH = 0x10000;
 
-        private IOptionsMonitor<ApplicationConfiguration> ApplicationConfiguration { get; init; }
+        private readonly ILogConverter converter;
+        private readonly IOptionsMonitor<ApplicationConfiguration> applicationConfiguration;
+        private readonly ILogger<Receiver> logger;
 
-        public event EventHandler<LogReceivedEventArgs> LogReceived;
-
-        public Receiver(IOptionsMonitor<ApplicationConfiguration> applicationConfiguration, ILogger<Receiver> logger) {
-            Logger = logger;
-            ApplicationConfiguration = applicationConfiguration;
+        public Receiver(ILogConverter converter, IOptionsMonitor<ApplicationConfiguration> applicationConfiguration, ILogger<Receiver> logger) {
+            this.converter = converter;
+            this.applicationConfiguration = applicationConfiguration;
+            this.logger = logger;
         }
 
-        public void Initialize(Configuration configuration) {
-            Converter = IoC.Get<ILogConverter>(configuration.LogType);
-            int port = 0;
-            if (configuration.LogType == LogType.Chainsaw) {
-                port = configuration.PortChainsaw;
-            } else if (configuration.LogType == LogType.Logcat) {
-                port = configuration.PortLogcat;
+        public async IAsyncEnumerable<Log> ReadAsync(int port, [EnumeratorCancellation] CancellationToken ct) {
+            using var udpSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+            using var cancelReg = ct.Register(() => udpSocket?.Close());
+
+            udpSocket.Bind(new IPEndPoint(IPAddress.Any, port));
+
+            await foreach (var pooledBytes in ReceiveAsync(udpSocket, ct)) {
+                LogReceivedText(pooledBytes);
+
+                foreach (var log in converter.Convert(pooledBytes).Where(l => l != Log.DEFAULT)) {
+                    yield return log;
+                }
+                pooledBytes.Dispose();
+            };
+        }
+
+        private void LogReceivedText(Stream stream) {
+            if (applicationConfiguration.CurrentValue.IsMessageTraceEnabled) {
+                Task.Run(() => {
+                    var receivedText = new StreamReader(stream).ReadToEnd();
+                    logger.LogTrace(receivedText);
+                });
             }
-            Dispose();
-
-            bool isPortAlreadyInUse = (from p
-                                 in IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners()
-                                 where p.Port == port
-                                 select p).Count() == 1;
-
-            if (isPortAlreadyInUse) {
-                throw new LoginatorException("Port " + port + " is already in use.");
-            }
-
-            Client = new UdpClient(port);
-            UdpState state = new UdpState(Client, new IPEndPoint(IPAddress.Any, 0));
-            Client.BeginReceive(new AsyncCallback(DataReceived), state);
         }
 
-        public void Dispose() {
-            Client?.Dispose();
-        }
+        private async IAsyncEnumerable<PooledBytes> ReceiveAsync(Socket udpSocket, [EnumeratorCancellation] CancellationToken ct) {
+            // taking advantage of pre-pinned memory, using the .NET5 POH (pinned object heap)
+            var buffer = GC.AllocateArray<byte>(length: BUFFER_LENGTH, pinned: true);
+            var bufferMem = buffer.AsMemory();
+            var receivedAddress = new SocketAddress(udpSocket.AddressFamily);
+            int received;
 
-        private void DataReceived(IAsyncResult ar) {
-
-            try {
-                UdpClient c = (UdpClient)((UdpState)ar.AsyncState).u;
-                IPEndPoint wantedIpEndPoint = (IPEndPoint)((UdpState)(ar.AsyncState)).e;
-                IPEndPoint receivedIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                Byte[] receiveBytes = c.EndReceive(ar, ref receivedIpEndPoint);
-
-                // Check sender
-                bool isRightHost = (wantedIpEndPoint.Address.Equals(receivedIpEndPoint.Address)
-                                   || wantedIpEndPoint.Address.Equals(IPAddress.Any));
-                bool isRightPort = (wantedIpEndPoint.Port == receivedIpEndPoint.Port)
-                                   || wantedIpEndPoint.Port == 0;
-                if (isRightHost && isRightPort) {
-                    string receivedText = Encoding.UTF8.GetString(receiveBytes);
-
-                    if (ApplicationConfiguration.CurrentValue.IsMessageTraceEnabled) {
-                        Logger.LogTrace(receivedText);
-                    }
-
-                    IEnumerable<Log> logs = Converter.Convert(receivedText);
-                    if (LogReceived != null) {
-                        foreach (Log log in logs) {
-                            if (log == Log.DEFAULT) {
-                                continue;
-                            }
-                            LogReceived(this, new LogReceivedEventArgs(log));
-                        }
-                    }
+            while (!ct.IsCancellationRequested) {
+                try {
+                    received = await udpSocket
+                        .ReceiveFromAsync(bufferMem, SocketFlags.None, receivedAddress, ct)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException ex) {
+                    logger.LogInformation("Receiver stopped: {0}", ex.Message);
+                    break;
+                }
+                catch (Exception ex) {
+                    logger.LogError(ex, "Could not read package");
+                    received = 0;
                 }
 
-                // Restart listening for udp data packages
-                c.BeginReceive(new AsyncCallback(DataReceived), ar.AsyncState);
-            } catch (Exception e) {
-                Console.WriteLine("Could not read package: " + e);
+                if (received > 0) {
+                    var pooledBytes = PooledBytes.Rent(received);
+                    Array.Copy(buffer, pooledBytes, received);
+                    yield return pooledBytes;
+                }
             }
         }
     }

@@ -37,17 +37,17 @@ namespace Backend.Converter {
             </log4j:event>
         */
 
-        public IReadOnlyCollection<Log> Convert(string text) {
-            try {
-                var byteArray = Encoding.UTF8.GetBytes(text);
-                using var memoryStream = new MemoryStream(byteArray);
+        public IReadOnlyCollection<Log> Convert(string text) =>
+            Convert(new MemoryStream(Encoding.UTF8.GetBytes(text)));
 
+        public IReadOnlyCollection<Log> Convert(Stream stream) {
+            try {
                 // read with namespace check
-                var logs = ReadEvents(memoryStream, checkNamespace: true);
+                var logs = ReadEvents(stream, checkNamespace: true);
 
                 // if no log was found and settings allow it => read without namespace check
                 if (logs.Length == 0 && configuration.CurrentValue.AllowAnonymousLogs) {
-                    logs = ReadEvents(memoryStream, checkNamespace: false);
+                    logs = ReadEvents(stream, checkNamespace: false);
                 }
 
                 return logs;
@@ -165,13 +165,13 @@ namespace Backend.Converter {
                     if (xmlReader.MoveToContent() == XmlNodeType.Element) {
                         switch (xmlReader.LocalName) {
                             case "message":
-                                log.Message = xmlReader.ReadElementContentAsString();
+                                log.Message = ReadElementContent();
                                 break;
                             case "throwable":
-                                log.Exception = xmlReader.ReadElementContentAsString();
+                                log.Exception = ReadElementContent();
                                 break;
                             case "NDC":
-                                log.Context = xmlReader.ReadElementContentAsString();
+                                log.Context = ReadElementContent();
                                 break;
                             case "MDC":
                                 log.AddProperties(ReadDataTags(log));
@@ -196,6 +196,11 @@ namespace Backend.Converter {
                         xmlReader.Read();
                     }
                 } while (true);
+            }
+
+            private string? ReadElementContent() {
+                var content = xmlReader.ReadElementContentAsString();
+                return string.IsNullOrWhiteSpace(content) ? null : content.Trim();
             }
 
             private IEnumerable<Property> ReadDataTags(Log log) {

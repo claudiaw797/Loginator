@@ -1,7 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
 using Backend;
-using Backend.Events;
 using Backend.Model;
 using Common;
 using Common.Configuration;
@@ -18,28 +17,31 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace Loginator.ViewModels {
 
     public sealed partial class LoginatorViewModel : ObservableObject, IDisposable {
 
-        private static readonly TimeSpan TIME_INTERVAL_IN_MILLISECONDS = TimeSpan.FromMilliseconds(1000);
+        private static readonly TimeSpan BATCH_TIME_INTERVAL = TimeSpan.FromMilliseconds(300);
 
         private IOptionsMonitor<Configuration> ConfigurationDao { get; set; }
         private IDisposable? ConfigurationChangeListener { get; set; }
         private IReceiver? Receiver { get; set; }
-        private ITimer Timer { get; set; }
+        private TimeProvider TimeProvider { get; set; }
         private IStopwatch Stopwatch { get; set; }
         private ILogger<LoginatorViewModel> Logger { get; set; }
+        private readonly IDispatcher dispatcher;
 
         private LogTimeFormat LogTimeFormat { get; set; }
-        private List<Log> LogsToInsert { get; set; }
+        private readonly CancellationTokenSource cancellationTokenSource = new();
 
         public LoginatorViewModel(
             IOptionsMonitor<Configuration> configurationDao,
             IStopwatch stopwatch,
             TimeProvider timeProvider,
+            IDispatcher dispatcher,
             ILogger<LoginatorViewModel> logger) {
             ConfigurationDao = configurationDao;
             ConfigurationChangeListener = configurationDao.OnChange(ConfigurationDao_OnConfigurationChanged);
@@ -48,15 +50,15 @@ namespace Loginator.ViewModels {
             isActive = true;
             selectedInitialLogLevel = LoggingLevel.TRACE;
             numberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
+            this.dispatcher = dispatcher;
             Logger = logger;
             Logs = [];
-            LogsToInsert = [];
             Namespaces = [];
             Applications = [];
             Stopwatch = stopwatch;
             Search = new SearchViewModel();
             Search.UpdateSearch += Search_OnUpdateSearch;
-            Timer = timeProvider.CreateTimer(Callback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            TimeProvider = timeProvider;
         }
 
         [ObservableProperty]
@@ -170,20 +172,35 @@ namespace Loginator.ViewModels {
         }
 
         public void Dispose() {
+            cancellationTokenSource.Cancel();
             ConfigurationChangeListener?.Dispose();
             Search.UpdateSearch -= Search_OnUpdateSearch;
-            if (Receiver is not null) Receiver.LogReceived -= Receiver_OnLogReceived;
-            Timer.Dispose();
             ClearAllCommand.Execute(null);
         }
 
         public void StartListener() {
             if (Receiver is not null) return;
 
-            Receiver = IoC.Get<IReceiver>();
-            Receiver.LogReceived += Receiver_OnLogReceived;
-            ScheduleNextCallback();
-            Receiver.Initialize(ConfigurationDao.CurrentValue);
+            Task.Run(async () => {
+                Receiver = IoC.Get<IReceiver>(ConfigurationDao.CurrentValue.LogType);
+
+                try {
+                    var logQuery = Receiver
+                        .ReadAsync(ConfigurationDao.CurrentValue.PortChainsaw, cancellationTokenSource.Token)
+                        .Batch(BATCH_TIME_INTERVAL, TimeProvider, cancellationTokenSource.Token);
+                    await foreach (var logs in logQuery) {
+                        if (!IsActive) {
+                            Logger.LogInformation("Discarded {0} log items", logs.Count);
+                            continue;
+                        }
+
+                        dispatcher.CheckBeginInvokeOnUI(() => ProcessLogs(logs));
+                    }
+                }
+                catch (Exception ex) {
+                    Logger.LogError(ex, "Cannot read from receiver on port {0}", ConfigurationDao.CurrentValue.PortChainsaw);
+                }
+            });
         }
 
         internal IEnumerable<NamespaceViewModel> AllNamespaces() =>
@@ -194,16 +211,6 @@ namespace Loginator.ViewModels {
                 Logs.RaiseReset();
                 Logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", LogTimeFormat, logConfig.LogTimeFormat);
                 LogTimeFormat = logConfig.LogTimeFormat;
-            }
-        }
-
-        private void Receiver_OnLogReceived(object? sender, LogReceivedEventArgs e) {
-            // unnecessary to invoke this on the UI thread, because it does not set any databound fields
-            lock (ViewModelConstants.SYNC_OBJECT) {
-                // Add a log entry only to the list if global logging is active (checkbox)
-                if (!IsActive) return;
-
-                LogsToInsert.Add(e.Log);
             }
         }
 
@@ -220,24 +227,10 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void ScheduleNextCallback() =>
-            Timer.Change(TIME_INTERVAL_IN_MILLISECONDS, Timeout.InfiniteTimeSpan);
-
-        private void Callback(object? state) {
-            if (LogsToInsert.Count > 0) {
-                DispatcherHelper.CheckBeginInvokeOnUI(ProcessLogsToInsert);
-            }
-            else {
-                ScheduleNextCallback();
-            }
-        }
-
-        private void ProcessLogsToInsert() {
+        private void ProcessLogs(IEnumerable<Log> logs) {
             lock (ViewModelConstants.SYNC_OBJECT) {
                 try {
-                    Logger.LogInformation("Processing {0} new log items", LogsToInsert.Count);
-
-                    var logsToInsert = LogsToInsert.OrderBy(m => m.Timestamp);
+                    var logsToInsert = logs.OrderBy(m => m.Timestamp);
 
                     // 1. Add missing applications using incoming logs
                     Stopwatch.Start();
@@ -253,13 +246,12 @@ namespace Loginator.ViewModels {
                     AddLogs(logsToInsert);
                     Stopwatch.TraceElapsedTime("[UpdateLogs]");
 
-                    LogsToInsert.Clear();
+                    Logger.LogInformation("Processed {0} log items", logs.Count());
                 }
                 catch (Exception ex) {
-                    Logger.LogError(ex, "Error processing {0} new log items", LogsToInsert.Count);
+                    Logger.LogError(ex, "Error processing {0} new log items", logs.Count());
                 }
                 finally {
-                    ScheduleNextCallback();
                     NotifyApplicationDependentCommands();
                 }
             }

@@ -1,13 +1,13 @@
-﻿using Backend.Events;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
 using Backend.Model;
-using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace Backend {
 
     public interface IReceiver {
 
-        event EventHandler<LogReceivedEventArgs> LogReceived;
-
-        void Initialize(Configuration configuration);
+        IAsyncEnumerable<Log> ReadAsync(int port, CancellationToken cancelToken);
     }
 }

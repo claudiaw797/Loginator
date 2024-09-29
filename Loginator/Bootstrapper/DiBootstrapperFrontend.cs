@@ -43,6 +43,7 @@ namespace Loginator.Bootstrapper {
             services.AddSingleton<LoginatorViewModel>();
             services.AddTransient<ConfigurationViewModel>();
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<IDispatcher>(new DispatcherImpl());
 
             if (config.GetAppSettings().IsTimingTraceEnabled) {
                 services.AddTransient<IStopwatch, StopwatchEnabled>();
