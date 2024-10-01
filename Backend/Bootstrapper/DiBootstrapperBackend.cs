@@ -21,15 +21,18 @@ namespace Backend.Bootstrapper {
             services.AddKeyedTransient<ILogConverter, ChainsawToLogConverter>(LogType.Chainsaw);
             services.AddKeyedTransient<ILogConverter, LogcatToLogConverter>(LogType.Logcat);
 
-            services.AddKeyedSingleton(LogType.Chainsaw, (sp, key) => sp.GetReceiver(key));
-            services.AddKeyedSingleton(LogType.Logcat, (sp, key) => sp.GetReceiver(key));
+            services.AddKeyedTransient<ISocket, UdpSocket>(ConnectionType.Udp);
+
+            services.AddKeyedSingleton(LogType.Chainsaw, (sp, key) => sp.GetReceiver(ConnectionType.Udp, key));
+            services.AddKeyedSingleton(LogType.Logcat, (sp, key) => sp.GetReceiver(ConnectionType.Udp, key));
         }
 
-        private static IReceiver GetReceiver(this IServiceProvider serviceProvider, object? serviceKey) {
-            var converter = serviceProvider.GetRequiredKeyedService<ILogConverter>(serviceKey);
+        private static IReceiver GetReceiver(this IServiceProvider serviceProvider, object? connectionType, object? logType) {
+            var socket = serviceProvider.GetRequiredKeyedService<ISocket>(connectionType);
+            var converter = serviceProvider.GetRequiredKeyedService<ILogConverter>(logType);
             var configuration = serviceProvider.GetRequiredService<IOptionsMonitor<ApplicationConfiguration>>();
             var logger = serviceProvider.GetRequiredService<ILogger<Receiver>>();
-            return new Receiver(converter, configuration, logger);
+            return new Receiver(socket, converter, configuration, logger);
         }
     }
 }

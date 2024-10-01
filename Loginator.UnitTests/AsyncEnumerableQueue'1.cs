@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace Loginator.UnitTests {
 
-    internal class AsyncEnumerable<T> : ConcurrentQueue<T>, IAsyncEnumerable<T> {
+    internal class AsyncEnumerableQueue<T> : ConcurrentQueue<T>, IAsyncEnumerable<T> {
 
         public bool IsCompleted { get; set; }
 
         public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
             new AsyncEnumerator(this);
 
-        private class AsyncEnumerator(AsyncEnumerable<T> inner) : IAsyncEnumerator<T> {
+        private class AsyncEnumerator(AsyncEnumerableQueue<T> inner) : IAsyncEnumerator<T> {
 
-            private readonly AsyncEnumerable<T> inner = inner;
+            private readonly AsyncEnumerableQueue<T> inner = inner;
 
             public ValueTask<bool> MoveNextAsync() {
                 var tcs = new TaskCompletionSource<bool>();

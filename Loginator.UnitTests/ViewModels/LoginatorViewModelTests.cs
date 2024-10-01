@@ -52,7 +52,7 @@ namespace Loginator.UnitTests.ViewModels {
         private readonly IReceiver receiver = A.Fake<IReceiver>();
         private readonly FakeTimeProvider timeProvider;
         private readonly LogListener logListener = new();
-        private readonly AsyncEnumerable<Log> receivedLogs;
+        private readonly AsyncEnumerableQueue<Log> receivedLogs;
 
         private readonly IEnumerable<Log> testItems;
 
@@ -553,7 +553,6 @@ namespace Loginator.UnitTests.ViewModels {
         private LoginatorViewModel Sut() {
             var config = new Configuration {
                 LogType = LogType.Chainsaw,
-                PortChainsaw = 7071,
                 PortLogcat = 7081,
                 LogTimeFormat = LogTimeFormat.DoNotChange,
             };

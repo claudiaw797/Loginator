@@ -21,23 +21,24 @@ namespace Backend {
 
         private const int BUFFER_LENGTH = 0x10000;
 
+        private readonly ISocket socket;
         private readonly ILogConverter converter;
         private readonly IOptionsMonitor<ApplicationConfiguration> applicationConfiguration;
         private readonly ILogger<Receiver> logger;
 
-        public Receiver(ILogConverter converter, IOptionsMonitor<ApplicationConfiguration> applicationConfiguration, ILogger<Receiver> logger) {
+        public Receiver(ISocket socket, ILogConverter converter, IOptionsMonitor<ApplicationConfiguration> applicationConfiguration, ILogger<Receiver> logger) {
+            this.socket = socket;
             this.converter = converter;
             this.applicationConfiguration = applicationConfiguration;
             this.logger = logger;
         }
 
         public async IAsyncEnumerable<Log> ReadAsync(int port, [EnumeratorCancellation] CancellationToken ct) {
-            using var udpSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
-            using var cancelReg = ct.Register(() => udpSocket?.Close());
+            using var cancelReg = ct.Register(() => socket.Close());
 
-            udpSocket.Bind(new IPEndPoint(IPAddress.Any, port));
+            socket.Bind(new IPEndPoint(IPAddress.Any, port));
 
-            await foreach (var pooledBytes in ReceiveAsync(udpSocket, ct)) {
+            await foreach (var pooledBytes in ReceiveAsync(ct)) {
                 LogReceivedText(pooledBytes);
 
                 foreach (var log in converter.Convert(pooledBytes).Where(l => l != Log.DEFAULT)) {
@@ -56,16 +57,16 @@ namespace Backend {
             }
         }
 
-        private async IAsyncEnumerable<PooledBytes> ReceiveAsync(Socket udpSocket, [EnumeratorCancellation] CancellationToken ct) {
+        private async IAsyncEnumerable<PooledBytes> ReceiveAsync([EnumeratorCancellation] CancellationToken ct) {
             // taking advantage of pre-pinned memory, using the .NET5 POH (pinned object heap)
             var buffer = GC.AllocateArray<byte>(length: BUFFER_LENGTH, pinned: true);
             var bufferMem = buffer.AsMemory();
-            var receivedAddress = new SocketAddress(udpSocket.AddressFamily);
+            var receivedAddress = new SocketAddress(socket.AddressFamily);
             int received;
 
             while (!ct.IsCancellationRequested) {
                 try {
-                    received = await udpSocket
+                    received = await socket
                         .ReceiveFromAsync(bufferMem, SocketFlags.None, receivedAddress, ct)
                         .ConfigureAwait(false);
                 }
