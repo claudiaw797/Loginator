@@ -2,6 +2,7 @@
 
 using Backend.Converter;
 using Backend.Model;
+using Backend.Server;
 using Common;
 using Common.Configuration;
 using FakeItEasy;
@@ -14,9 +15,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using static Backend.UnitTests.ReceiverTestData;
+using static Backend.UnitTests.Server.ReceiverTestData;
 
-namespace Backend.UnitTests {
+namespace Backend.UnitTests.Server {
 
     /// <summary>
     /// Represents unit tests for <see cref="Receiver"/>.
@@ -28,12 +29,12 @@ namespace Backend.UnitTests {
         private const string NO_LOG = "no log";
         private static readonly TimeSpan CancelTimespan = TimeSpan.FromMilliseconds(100);
 
-        private readonly ISocket socket;
+        private readonly AbstractSocket socket;
         private readonly SocketServer socketServer;
         private readonly Receiver sut;
 
         public ReceiverTests() {
-            socket = A.Fake<ISocket>();
+            socket = A.Fake<AbstractSocket>();
             socketServer = new();
             sut = Sut();
         }
@@ -69,7 +70,7 @@ namespace Backend.UnitTests {
 
         [Test]
         public async Task Can_cancel_operation_after_waiting_without_reception() {
-            A.CallTo(() => socket.ReceiveFromAsync(A<Memory<byte>>._, A<SocketFlags>._, A<SocketAddress>._, A<CancellationToken>._))
+            A.CallTo(() => socket.ReceiveAsync(A<Memory<byte>>._, A<SocketFlags>._, A<CancellationToken>._))
                 .ReturnsLazily(socketServer.WaitUntilCanceled);
 
             var expectedCallCount = 0;
@@ -111,7 +112,11 @@ namespace Backend.UnitTests {
         }
 
         private Receiver Sut() {
-            A.CallTo(() => socket.ReceiveFromAsync(A<Memory<byte>>._, A<SocketFlags>._, A<SocketAddress>._, A<CancellationToken>._))
+            A.CallTo(() => socket.Accept())
+                .Returns(socket);
+            A.CallTo(() => socket.IsConnected(A<Socket>._, A<CancellationToken>._))
+                .Returns(true);
+            A.CallTo(() => socket.ReceiveAsync(A<Memory<byte>>._, A<SocketFlags>._, A<CancellationToken>._))
                 .ReturnsLazily(socketServer.FillMemoryAndReturnLength).NumberOfTimes(1000);
 
             var config = new Configuration {

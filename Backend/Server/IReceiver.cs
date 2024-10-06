@@ -4,7 +4,7 @@ using Backend.Model;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Backend {
+namespace Backend.Server {
 
     public interface IReceiver {
 

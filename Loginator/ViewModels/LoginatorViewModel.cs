@@ -1,7 +1,7 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend;
 using Backend.Model;
+using Backend.Server;
 using Common;
 using Common.Configuration;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -59,6 +59,7 @@ namespace Loginator.ViewModels {
             Search = new SearchViewModel();
             Search.UpdateSearch += Search_OnUpdateSearch;
             TimeProvider = timeProvider;
+            cancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
 
         [ObservableProperty]
@@ -182,23 +183,21 @@ namespace Loginator.ViewModels {
             if (Receiver is not null) return;
 
             Task.Run(async () => {
-                Receiver = IoC.Get<IReceiver>(ConfigurationDao.CurrentValue.LogType);
-
-                try {
-                    var logQuery = Receiver
-                        .ReadAsync(ConfigurationDao.CurrentValue.PortChainsaw, cancellationTokenSource.Token)
-                        .Batch(BATCH_TIME_INTERVAL, TimeProvider, cancellationTokenSource.Token);
-                    await foreach (var logs in logQuery) {
-                        if (!IsActive) {
-                            Logger.LogInformation("Discarded {0} log items", logs.Count);
-                            continue;
-                        }
-
-                        dispatcher.CheckBeginInvokeOnUI(() => ProcessLogs(logs));
+                while (!cancellationTokenSource.IsCancellationRequested) {
+                    try {
+                        await RunReceiver();
                     }
-                }
-                catch (Exception ex) {
-                    Logger.LogError(ex, "Cannot read from receiver on port {0}", ConfigurationDao.CurrentValue.PortChainsaw);
+                    catch (ObjectDisposedException ex) {
+                        Logger.LogError("Socket closed, restarting receiver: {message}", ex.Message);
+                    }
+                    catch (OperationCanceledException ex) {
+                        Logger.LogError("Receiver listening on port {port} closed: {message}", ConfigurationDao.CurrentValue.PortChainsaw, ex.Message);
+                        break;
+                    }
+                    catch (Exception ex) {
+                        Logger.LogError("Receiver listening on port {port} closed unexpectedly:{newLine}{exception}", ConfigurationDao.CurrentValue.PortChainsaw, Environment.NewLine, ex);
+                        break;
+                    }
                 }
             });
         }
@@ -227,6 +226,22 @@ namespace Loginator.ViewModels {
             }
         }
 
+        private async Task RunReceiver() {
+            Receiver = IoC.Get<IReceiver>(ConfigurationDao.CurrentValue.LogType);
+
+            var logQuery = Receiver
+                .ReadAsync(ConfigurationDao.CurrentValue.PortChainsaw, cancellationTokenSource.Token)
+                .Batch(BATCH_TIME_INTERVAL, TimeProvider, cancellationTokenSource.Token);
+            await foreach (var logs in logQuery) {
+                if (!IsActive) {
+                    Logger.LogInformation("Discarded {count} log items", logs.Count);
+                    continue;
+                }
+
+                dispatcher.CheckBeginInvokeOnUI(() => ProcessLogs(logs));
+            }
+        }
+
         private void ProcessLogs(IEnumerable<Log> logs) {
             lock (ViewModelConstants.SYNC_OBJECT) {
                 try {
@@ -246,10 +261,10 @@ namespace Loginator.ViewModels {
                     AddLogs(logsToInsert);
                     Stopwatch.TraceElapsedTime("[UpdateLogs]");
 
-                    Logger.LogInformation("Processed {0} log items", logs.Count());
+                    Logger.LogInformation("Processed {count} log items", logs.Count());
                 }
                 catch (Exception ex) {
-                    Logger.LogError(ex, "Error processing {0} new log items", logs.Count());
+                    Logger.LogError(ex, "Error processing {count} new log items", logs.Count());
                 }
                 finally {
                     NotifyApplicationDependentCommands();
@@ -269,7 +284,7 @@ namespace Loginator.ViewModels {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("Could not update logs: " + e);
+                Logger.LogError(e, "Could not update logs");
             }
         }
 
@@ -292,7 +307,7 @@ namespace Loginator.ViewModels {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("Could not update namespaces: " + e);
+                Logger.LogError(e, "Could not update namespaces");
             }
         }
 
@@ -335,7 +350,7 @@ namespace Loginator.ViewModels {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("Could not update applications: " + e);
+                Logger.LogError(e, "Could not update applications");
             }
         }
 

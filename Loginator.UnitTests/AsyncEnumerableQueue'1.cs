@@ -11,7 +11,7 @@ namespace Loginator.UnitTests {
 
         public bool IsCompleted { get; set; }
 
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancelToken = default) =>
             new AsyncEnumerator(this);
 
         private class AsyncEnumerator(AsyncEnumerableQueue<T> inner) : IAsyncEnumerator<T> {

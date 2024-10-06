@@ -4,7 +4,7 @@ using System;
 using System.Buffers;
 using System.IO;
 
-namespace Backend {
+namespace Backend.Server {
 
     internal sealed class PooledBytes : IDisposable {
 
@@ -13,7 +13,7 @@ namespace Backend {
 
         private PooledBytes(int length) {
             this.length = length;
-            this.bytes = ArrayPool<byte>.Shared.Rent(length);
+            bytes = ArrayPool<byte>.Shared.Rent(length);
         }
 
         public Stream AsStream() => new MemoryStream(bytes, 0, length);

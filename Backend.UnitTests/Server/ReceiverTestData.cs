@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using static Backend.UnitTests.Converter.ChainsawToLogConverterTestData;
 
-namespace Backend.UnitTests {
+namespace Backend.UnitTests.Server {
 
     /// <summary>
     /// Represents test data for <see cref="ReceiverTests"/>.

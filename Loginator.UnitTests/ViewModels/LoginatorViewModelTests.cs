@@ -1,7 +1,7 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using Backend;
 using Backend.Model;
+using Backend.Server;
 using Common;
 using Common.Configuration;
 using FakeItEasy;
@@ -45,8 +45,6 @@ namespace Loginator.UnitTests.ViewModels {
             { LoggingLevel.ERROR, "Test exception happened" },
             { LoggingLevel.FATAL, "Test fatality happened" }
         };
-
-        private static readonly TimeSpan TIME_INTERVAL_IN_MILLISECONDS = TimeSpan.FromSeconds(1.5);
 
         private readonly LoginatorViewModel sut;
         private readonly IReceiver receiver = A.Fake<IReceiver>();
