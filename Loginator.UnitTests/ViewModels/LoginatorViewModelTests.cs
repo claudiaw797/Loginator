@@ -551,7 +551,7 @@ namespace Loginator.UnitTests.ViewModels {
             var config = new Configuration {
                 ConnectionType = ConnectionType.Udp,
                 LogType = LogType.Chainsaw,
-                PortLogcat = 7081,
+                Port = 7081,
                 LogTimeFormat = LogTimeFormat.DoNotChange,
             };
             var configDao = A.Fake<IOptionsMonitor<Configuration>>();

@@ -6,28 +6,29 @@
         DataContext="{Binding ConfigurationViewModel, Source={StaticResource Locator}}"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        Title="Configuration" Height="325" Width="260">
+        Title="Configuration" Height="355" Width="290">
     <Grid Margin="2" VerticalAlignment="Stretch">
         <StackPanel>
+            <Label Content="Connection type" FontWeight="Bold"/>
+            <RadioButton Content="UDP" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:ConnectionType.Udp}}" Margin="38,4,0,0"/>
+            <RadioButton Content="TCP" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:ConnectionType.Tcp}}" Margin="38,4,0,0"/>
+
             <Label Content="Source" FontWeight="Bold"/>
-            <RadioButton Content="Chainsaw (NLog, log4net, log4j, etc.)" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogType.Chainsaw}}" Margin="4,4,0,0"/>
-            <StackPanel Orientation="Horizontal" Margin="32,4,0,0">
-                <RadioButton Content="UDP" IsChecked="True" IsEnabled="False"/>
-                <Label Content="Port"/>
-                <TextBox Text="{Binding PortChainsaw}" ToolTip="Enter the port to listen to" Width="100"/>
+            <RadioButton Content="Chainsaw (NLog, log4net, log4j, etc.)" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogType.Chainsaw}}" Margin="38,4,0,0"/>
+            <RadioButton Content="Logcat (Android)" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogType.Logcat}}" Margin="38,4,0,0"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Label Content="Port" FontWeight="Bold"/>
+                <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enter the port to listen to" Width="100" Margin="4,0,0,0"/>
             </StackPanel>
-            <RadioButton Content="Logcat (Android)" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogType.Logcat}}" Margin="4,4,0,0"/>
-            <StackPanel Orientation="Horizontal" Margin="32,4,0,0">
-                <RadioButton Content="UDP" IsChecked="True" IsEnabled="False"/>
-                <Label Content="Port"/>
-                <TextBox Text="{Binding PortLogcat}" ToolTip="Enter the port to listen to" Width="100"/>
-            </StackPanel>
+
             <Label Content="Time format" FontWeight="Bold"/>
-            <RadioButton Content="Convert to local time" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogTimeFormat.ConvertToLocalTime}}" Margin="32,4,0,0"/>
-            <RadioButton Content="Do not change" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogTimeFormat.DoNotChange}}" Margin="32,4,0,0"/>
+            <RadioButton Content="Convert to local time" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogTimeFormat.ConvertToLocalTime}}" Margin="38,4,0,0"/>
+            <RadioButton Content="Do not change" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:LogTimeFormat.DoNotChange}}" Margin="38,4,0,0"/>
+
             <Label Content="Application format" FontWeight="Bold"/>
-            <RadioButton Content="Consolidate processes" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:ApplicationFormat.Consolidate}}" Margin="32,4,0,0"/>
-            <RadioButton Content="Do not change" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:ApplicationFormat.DoNotChange}}" Margin="32,4,0,0"/>
+            <RadioButton Content="Consolidate processes" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:ApplicationFormat.Consolidate}}" Margin="38,4,0,0"/>
+            <RadioButton Content="Do not change" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource RadioButtonCheckedConverter}, ConverterParameter={x:Static common:ApplicationFormat.DoNotChange}}" Margin="38,4,0,0"/>
         </StackPanel>
         <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Cancel" Command="{Binding CancelChangesCommand}" Margin="0,0,4,0" Width="80"/>

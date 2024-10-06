@@ -16,9 +16,7 @@ namespace Backend.Model {
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogType LogType { get; set; }
 
-        public int PortChainsaw { get; set; }
-
-        public int PortLogcat { get; set; }
+        public int Port { get; set; }
 
         public bool AllowAnonymousLogs { get; set; }
 
