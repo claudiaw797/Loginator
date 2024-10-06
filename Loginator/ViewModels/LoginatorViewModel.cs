@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -188,14 +189,23 @@ namespace Loginator.ViewModels {
                         await RunReceiver();
                     }
                     catch (ObjectDisposedException ex) {
-                        Logger.LogError("Socket closed, restarting receiver: {message}", ex.Message);
+                        Logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly, restarting receiver.", ConfigurationDao.CurrentValue.PortChainsaw);
                     }
                     catch (OperationCanceledException ex) {
-                        Logger.LogError("Receiver listening on port {port} closed: {message}", ConfigurationDao.CurrentValue.PortChainsaw, ex.Message);
+                        Logger.LogInformation("Receiver listening on port {port} closed: {message}", ConfigurationDao.CurrentValue.PortChainsaw, ex.Message);
                         break;
                     }
+                    catch (SocketException ex) {
+                        if (cancellationTokenSource.IsCancellationRequested) {
+                            Logger.LogInformation("Receiver listening on port {port} closed: {message}", ConfigurationDao.CurrentValue.PortChainsaw, ex.Message);
+                            break;
+                        }
+                        else {
+                            Logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly, restarting receiver.", ConfigurationDao.CurrentValue.PortChainsaw);
+                        }
+                    }
                     catch (Exception ex) {
-                        Logger.LogError("Receiver listening on port {port} closed unexpectedly:{newLine}{exception}", ConfigurationDao.CurrentValue.PortChainsaw, Environment.NewLine, ex);
+                        Logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly.", ConfigurationDao.CurrentValue.PortChainsaw);
                         break;
                     }
                 }
@@ -227,10 +237,11 @@ namespace Loginator.ViewModels {
         }
 
         private async Task RunReceiver() {
-            Receiver = IoC.Get<IReceiver>(ConfigurationDao.CurrentValue.LogType);
+            var config = ConfigurationDao.CurrentValue;
+            Receiver = IoC.Get<IReceiver>((config.ConnectionType, config.LogType));
 
             var logQuery = Receiver
-                .ReadAsync(ConfigurationDao.CurrentValue.PortChainsaw, cancellationTokenSource.Token)
+                .ReadAsync(config.PortChainsaw, cancellationTokenSource.Token)
                 .Batch(BATCH_TIME_INTERVAL, TimeProvider, cancellationTokenSource.Token);
             await foreach (var logs in logQuery) {
                 if (!IsActive) {

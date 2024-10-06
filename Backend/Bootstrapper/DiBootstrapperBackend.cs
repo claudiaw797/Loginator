@@ -23,14 +23,27 @@ namespace Backend.Bootstrapper {
             services.AddKeyedTransient<ILogConverter, LogcatToLogConverter>(LogType.Logcat);
 
             services.AddKeyedTransient<AbstractSocket, UdpSocket>(ConnectionType.Udp);
+            services.AddKeyedTransient<AbstractSocket, TcpSocket>(ConnectionType.Tcp);
 
-            services.AddKeyedSingleton(LogType.Chainsaw, (sp, key) => sp.GetReceiver(ConnectionType.Udp, key));
-            services.AddKeyedSingleton(LogType.Logcat, (sp, key) => sp.GetReceiver(ConnectionType.Udp, key));
+            services.AddReceivers();
         }
 
-        private static IReceiver GetReceiver(this IServiceProvider serviceProvider, object? connectionType, object? logType) {
-            var socket = serviceProvider.GetRequiredKeyedService<AbstractSocket>(connectionType);
-            var converter = serviceProvider.GetRequiredKeyedService<ILogConverter>(logType);
+        private static void AddReceivers(this IServiceCollection services) {
+            ConnectionType[] connectionTypes = [ConnectionType.Udp, ConnectionType.Tcp];
+            LogType[] logTypes = [LogType.Chainsaw, LogType.Logcat];
+
+            foreach (var connectionType in connectionTypes) {
+                foreach (var logType in logTypes) {
+                    services.AddKeyedSingleton<IReceiver>((connectionType, logType), (sp, key) => sp.GetReceiver(((ConnectionType, LogType)?)key));
+                }
+            }
+        }
+
+        private static Receiver GetReceiver(this IServiceProvider serviceProvider, (ConnectionType connectionType, LogType logType)? key) {
+            ArgumentNullException.ThrowIfNull(key);
+
+            var socket = serviceProvider.GetRequiredKeyedService<AbstractSocket>(key.Value.connectionType);
+            var converter = serviceProvider.GetRequiredKeyedService<ILogConverter>(key.Value.logType);
             var configuration = serviceProvider.GetRequiredService<IOptionsMonitor<ApplicationConfiguration>>();
             var logger = serviceProvider.GetRequiredService<ILogger<Receiver>>();
             return new Receiver(socket, converter, configuration, logger);

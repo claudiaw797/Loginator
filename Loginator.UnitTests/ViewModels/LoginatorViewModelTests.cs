@@ -47,7 +47,6 @@ namespace Loginator.UnitTests.ViewModels {
         };
 
         private readonly LoginatorViewModel sut;
-        private readonly IReceiver receiver = A.Fake<IReceiver>();
         private readonly FakeTimeProvider timeProvider;
         private readonly LogListener logListener = new();
         private readonly AsyncEnumerableQueue<Log> receivedLogs;
@@ -550,6 +549,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         private LoginatorViewModel Sut() {
             var config = new Configuration {
+                ConnectionType = ConnectionType.Udp,
                 LogType = LogType.Chainsaw,
                 PortLogcat = 7081,
                 LogTimeFormat = LogTimeFormat.DoNotChange,
@@ -557,9 +557,10 @@ namespace Loginator.UnitTests.ViewModels {
             var configDao = A.Fake<IOptionsMonitor<Configuration>>();
             A.CallTo(() => configDao.CurrentValue).Returns(config);
 
+            var receiver = A.Fake<IReceiver>();
             var serviceProvider = A.Fake<IKeyedServiceProvider>();
             IoC.ServiceProvider = serviceProvider;
-            A.CallTo(() => serviceProvider.GetRequiredKeyedService(typeof(IReceiver), config.LogType)).Returns(receiver);
+            A.CallTo(() => serviceProvider.GetRequiredKeyedService(typeof(IReceiver), A<object?>._)).Returns(receiver);
             A.CallTo(() => receiver.ReadAsync(A<int>._, A<CancellationToken>._)).Returns(receivedLogs);
 
             var stopwatch = A.Fake<IStopwatch>();
