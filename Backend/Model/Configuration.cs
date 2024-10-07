@@ -11,11 +11,12 @@ namespace Backend.Model {
         public const string SectionName = "UserSettings";
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ConnectionType ConnectionType { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public LogType LogType { get; set; }
 
-        public int PortChainsaw { get; set; }
-
-        public int PortLogcat { get; set; }
+        public int Port { get; set; }
 
         public bool AllowAnonymousLogs { get; set; }
 

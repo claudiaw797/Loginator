@@ -1,6 +1,5 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend;
 using Backend.Model;
 using Common;
 using Common.Configuration;
@@ -16,13 +15,13 @@ namespace Loginator.ViewModels {
         private readonly IWritableOptions<Configuration> configurationDao;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private ConnectionType connectionType;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private LogType logType;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private string portChainsaw;
-
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private string portLogcat;
+        private string port;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private LogTimeFormat logTimeFormat;
@@ -36,9 +35,9 @@ namespace Loginator.ViewModels {
             this.configurationDao = configurationDao;
 
             var configuration = configurationDao.Value;
+            connectionType = configuration.ConnectionType;
             logType = configuration.LogType;
-            portChainsaw = configuration.PortChainsaw.ToString();
-            portLogcat = configuration.PortLogcat.ToString();
+            port = configuration.Port.ToString();
             logTimeFormat = configuration.LogTimeFormat;
             applicationFormat = configuration.ApplicationFormat;
         }
@@ -57,13 +56,12 @@ namespace Loginator.ViewModels {
         private void AcceptChanges() {
             try {
                 configurationDao.Update(c => {
+                    c.ConnectionType = ConnectionType;
                     c.LogType = LogType;
-                    c.PortChainsaw = Convert.ToInt32(PortChainsaw);
-                    c.PortLogcat = Convert.ToInt32(PortLogcat);
+                    c.Port = Convert.ToInt32(Port);
                     c.LogTimeFormat = LogTimeFormat;
                     c.ApplicationFormat = ApplicationFormat;
                 });
-                IoC.Get<IReceiver>().Initialize(configurationDao.Value);
 
                 CloseAction?.Invoke();
             }
@@ -74,9 +72,10 @@ namespace Loginator.ViewModels {
 
         private bool CanAcceptChanges() {
             var configuration = configurationDao.Value;
-            var result = LogType != configuration.LogType ||
-                PortChainsaw != configuration.PortChainsaw.ToString() ||
-                PortLogcat != configuration.PortLogcat.ToString() ||
+            var result =
+                ConnectionType != configuration.ConnectionType ||
+                LogType != configuration.LogType ||
+                Port != configuration.Port.ToString() ||
                 LogTimeFormat != configuration.LogTimeFormat ||
                 ApplicationFormat != configuration.ApplicationFormat;
             return result;

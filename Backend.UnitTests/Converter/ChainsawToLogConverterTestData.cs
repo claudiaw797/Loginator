@@ -39,6 +39,13 @@ namespace Backend.UnitTests.Converter {
             }
         };
 
+        internal static readonly IEnumerable<SaveOptions> FormatOptions = [
+            SaveOptions.None,
+            SaveOptions.DisableFormatting,
+            SaveOptions.OmitDuplicateNamespaces,
+            SaveOptions.DisableFormatting | SaveOptions.OmitDuplicateNamespaces
+        ];
+
         static ChainsawToLogConverterTestData() {
             LogFromValidLog4jXml.AddProperties([
                 new(Name.FromMdc, Value.FromMdc),
@@ -47,19 +54,13 @@ namespace Backend.UnitTests.Converter {
             ]);
         }
 
-        public static IEnumerable<TestCaseData> ValidLog4jDataOptions() {
-            SaveOptions[] options = [
-                SaveOptions.None,
-                SaveOptions.DisableFormatting,
-                SaveOptions.OmitDuplicateNamespaces,
-                SaveOptions.DisableFormatting | SaveOptions.OmitDuplicateNamespaces
-            ];
+        internal static IEnumerable<TestCaseData> ValidLog4jDataOptions() {
             bool[] booleans = [true, false];
 
             foreach (var hasPrefix in booleans) {
                 foreach (var hasNamespace in booleans) {
                     foreach (var isMixed in booleans) {
-                        foreach (var option in options) {
+                        foreach (var option in FormatOptions) {
                             yield return new TestCaseData(hasPrefix, hasNamespace, isMixed, option)
                                 .SetName("{m}{p}")
                                 .Returns(LogFromValidLog4jXml);
@@ -69,7 +70,12 @@ namespace Backend.UnitTests.Converter {
             }
         }
 
-        internal static XElement Log4JDefault(bool withNs, bool withPrefix, bool mixed) {
+        internal static string Log4JDefault(bool hasPrefix, bool hasNamespace, bool isMixed, SaveOptions formatOptions) {
+            var elem = Log4JDefault(hasNamespace, hasPrefix, isMixed);
+            return elem.ToString(formatOptions, !hasNamespace);
+        }
+
+        private static XElement Log4JDefault(bool withNs, bool withPrefix, bool mixed) {
             var @event = XElement(Tag.Event, withNs, withPrefix, mixed, XAtt.Logger, XAtt.Level, XAtt.Timestamp, XAtt.Thread);
             var mdc = Properties(withNs, withPrefix, mixed, Tag.Mdc, [XElems[Key(Name.FromMdc, withNs, withPrefix, mixed)]]);
             var locationInfo = XElement(Tag.Locationinfo, withNs, withPrefix, mixed, XAtt.Class, XAtt.Method, XAtt.File, XAtt.Line);

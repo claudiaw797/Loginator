@@ -1,8 +1,7 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend;
-using Backend.Events;
 using Backend.Model;
+using Backend.Server;
 using Common;
 using Common.Configuration;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -17,29 +16,33 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace Loginator.ViewModels {
 
     public sealed partial class LoginatorViewModel : ObservableObject, IDisposable {
 
-        private static readonly TimeSpan TIME_INTERVAL_IN_MILLISECONDS = TimeSpan.FromMilliseconds(1000);
+        private static readonly TimeSpan BATCH_TIME_INTERVAL = TimeSpan.FromMilliseconds(300);
 
         private IOptionsMonitor<Configuration> ConfigurationDao { get; set; }
         private IDisposable? ConfigurationChangeListener { get; set; }
         private IReceiver? Receiver { get; set; }
-        private ITimer Timer { get; set; }
+        private TimeProvider TimeProvider { get; set; }
         private IStopwatch Stopwatch { get; set; }
         private ILogger<LoginatorViewModel> Logger { get; set; }
+        private readonly IDispatcher dispatcher;
 
         private LogTimeFormat LogTimeFormat { get; set; }
-        private List<Log> LogsToInsert { get; set; }
+        private readonly CancellationTokenSource cancellationTokenSource = new();
 
         public LoginatorViewModel(
             IOptionsMonitor<Configuration> configurationDao,
             IStopwatch stopwatch,
             TimeProvider timeProvider,
+            IDispatcher dispatcher,
             ILogger<LoginatorViewModel> logger) {
             ConfigurationDao = configurationDao;
             ConfigurationChangeListener = configurationDao.OnChange(ConfigurationDao_OnConfigurationChanged);
@@ -48,15 +51,16 @@ namespace Loginator.ViewModels {
             isActive = true;
             selectedInitialLogLevel = LoggingLevel.TRACE;
             numberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
+            this.dispatcher = dispatcher;
             Logger = logger;
             Logs = [];
-            LogsToInsert = [];
             Namespaces = [];
             Applications = [];
             Stopwatch = stopwatch;
             Search = new SearchViewModel();
             Search.UpdateSearch += Search_OnUpdateSearch;
-            Timer = timeProvider.CreateTimer(Callback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            TimeProvider = timeProvider;
+            cancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
 
         [ObservableProperty]
@@ -170,20 +174,42 @@ namespace Loginator.ViewModels {
         }
 
         public void Dispose() {
+            cancellationTokenSource.Cancel();
             ConfigurationChangeListener?.Dispose();
             Search.UpdateSearch -= Search_OnUpdateSearch;
-            if (Receiver is not null) Receiver.LogReceived -= Receiver_OnLogReceived;
-            Timer.Dispose();
             ClearAllCommand.Execute(null);
         }
 
         public void StartListener() {
             if (Receiver is not null) return;
 
-            Receiver = IoC.Get<IReceiver>();
-            Receiver.LogReceived += Receiver_OnLogReceived;
-            ScheduleNextCallback();
-            Receiver.Initialize(ConfigurationDao.CurrentValue);
+            Task.Run(async () => {
+                while (!cancellationTokenSource.IsCancellationRequested) {
+                    try {
+                        await RunReceiver();
+                    }
+                    catch (ObjectDisposedException ex) {
+                        Logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly, restarting receiver.", ConfigurationDao.CurrentValue.Port);
+                    }
+                    catch (OperationCanceledException ex) {
+                        Logger.LogInformation("Receiver listening on port {port} closed: {message}", ConfigurationDao.CurrentValue.Port, ex.Message);
+                        break;
+                    }
+                    catch (SocketException ex) {
+                        if (cancellationTokenSource.IsCancellationRequested) {
+                            Logger.LogInformation("Receiver listening on port {port} closed: {message}", ConfigurationDao.CurrentValue.Port, ex.Message);
+                            break;
+                        }
+                        else {
+                            Logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly, restarting receiver.", ConfigurationDao.CurrentValue.Port);
+                        }
+                    }
+                    catch (Exception ex) {
+                        Logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly.", ConfigurationDao.CurrentValue.Port);
+                        break;
+                    }
+                }
+            });
         }
 
         internal IEnumerable<NamespaceViewModel> AllNamespaces() =>
@@ -194,16 +220,6 @@ namespace Loginator.ViewModels {
                 Logs.RaiseReset();
                 Logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", LogTimeFormat, logConfig.LogTimeFormat);
                 LogTimeFormat = logConfig.LogTimeFormat;
-            }
-        }
-
-        private void Receiver_OnLogReceived(object? sender, LogReceivedEventArgs e) {
-            // unnecessary to invoke this on the UI thread, because it does not set any databound fields
-            lock (ViewModelConstants.SYNC_OBJECT) {
-                // Add a log entry only to the list if global logging is active (checkbox)
-                if (!IsActive) return;
-
-                LogsToInsert.Add(e.Log);
             }
         }
 
@@ -220,24 +236,27 @@ namespace Loginator.ViewModels {
             }
         }
 
-        private void ScheduleNextCallback() =>
-            Timer.Change(TIME_INTERVAL_IN_MILLISECONDS, Timeout.InfiniteTimeSpan);
+        private async Task RunReceiver() {
+            var config = ConfigurationDao.CurrentValue;
+            Receiver = IoC.Get<IReceiver>((config.ConnectionType, config.LogType));
 
-        private void Callback(object? state) {
-            if (LogsToInsert.Count > 0) {
-                DispatcherHelper.CheckBeginInvokeOnUI(ProcessLogsToInsert);
-            }
-            else {
-                ScheduleNextCallback();
+            var logQuery = Receiver
+                .ReadAsync(config.Port, cancellationTokenSource.Token)
+                .Batch(BATCH_TIME_INTERVAL, TimeProvider, cancellationTokenSource.Token);
+            await foreach (var logs in logQuery) {
+                if (!IsActive) {
+                    Logger.LogInformation("Discarded {count} log items", logs.Count);
+                    continue;
+                }
+
+                dispatcher.CheckBeginInvokeOnUI(() => ProcessLogs(logs));
             }
         }
 
-        private void ProcessLogsToInsert() {
+        private void ProcessLogs(IEnumerable<Log> logs) {
             lock (ViewModelConstants.SYNC_OBJECT) {
                 try {
-                    Logger.LogInformation("Processing {0} new log items", LogsToInsert.Count);
-
-                    var logsToInsert = LogsToInsert.OrderBy(m => m.Timestamp);
+                    var logsToInsert = logs.OrderBy(m => m.Timestamp);
 
                     // 1. Add missing applications using incoming logs
                     Stopwatch.Start();
@@ -253,13 +272,12 @@ namespace Loginator.ViewModels {
                     AddLogs(logsToInsert);
                     Stopwatch.TraceElapsedTime("[UpdateLogs]");
 
-                    LogsToInsert.Clear();
+                    Logger.LogInformation("Processed {count} log items", logs.Count());
                 }
                 catch (Exception ex) {
-                    Logger.LogError(ex, "Error processing {0} new log items", LogsToInsert.Count);
+                    Logger.LogError(ex, "Error processing {count} new log items", logs.Count());
                 }
                 finally {
-                    ScheduleNextCallback();
                     NotifyApplicationDependentCommands();
                 }
             }
@@ -277,7 +295,7 @@ namespace Loginator.ViewModels {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("Could not update logs: " + e);
+                Logger.LogError(e, "Could not update logs");
             }
         }
 
@@ -300,7 +318,7 @@ namespace Loginator.ViewModels {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("Could not update namespaces: " + e);
+                Logger.LogError(e, "Could not update namespaces");
             }
         }
 
@@ -343,7 +361,7 @@ namespace Loginator.ViewModels {
                 }
             }
             catch (Exception e) {
-                Console.WriteLine("Could not update applications: " + e);
+                Logger.LogError(e, "Could not update applications");
             }
         }
 

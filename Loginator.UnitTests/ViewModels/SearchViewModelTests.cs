@@ -1,6 +1,7 @@
+// Copyright (C) 2024 Claudia Wagner
+
 using FakeItEasy;
 using FluentAssertions;
-using Loginator.Controls;
 using Loginator.Model;
 using Loginator.ViewModels;
 using System;
@@ -115,8 +116,6 @@ namespace Loginator.UnitTests.ViewModels {
             A.CallTo(() => updateHandler.Invoke(sut, A<EventArgs>._)).MustHaveHappened();
 
         private static SearchViewModel Sut(EventHandler<EventArgs> updateHandler) {
-            DispatcherHelper.Initialize();
-
             var sut = new SearchViewModel();
             sut.UpdateSearch += updateHandler;
 
