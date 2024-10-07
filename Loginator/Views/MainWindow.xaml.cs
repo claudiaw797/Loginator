@@ -9,10 +9,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 
 namespace Loginator.Views {
 
@@ -30,9 +28,6 @@ namespace Loginator.Views {
 
         private static readonly string[] NEWLINE_SEPARATORS = [Environment.NewLine, Constants.STRING_NEWLINE];
         private static readonly string[] EQUALS_SEPARATORS = ["="];
-
-        [GeneratedRegex("^[^0-9]+$")]
-        private static partial Regex RxNumbersOnly();
 
         private readonly ILogger<MainWindow> logger;
 
@@ -109,10 +104,6 @@ namespace Loginator.Views {
             catch (Exception e) {
                 logger.LogError(e, "Could not check for new version");
             }
-        }
-
-        private void OnPreviewTextInput_NumberOfLogsPerLevel(object sender, TextCompositionEventArgs e) {
-            e.Handled = RxNumbersOnly().IsMatch(e.Text);
         }
     }
 }

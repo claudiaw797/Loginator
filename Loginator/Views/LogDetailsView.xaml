@@ -1,0 +1,92 @@
+﻿<!-- Copyright (C) 2024 Claudia Wagner, Daniel Kuster -->
+<UserControl x:Class="Loginator.Views.LogDetailsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="clr-namespace:Loginator.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <ScrollViewer Height="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  Visibility="{Binding SelectedLog, Converter={StaticResource ExistsToVisibilityConverter}}"
+                  controls:ScrollViewerBehavior.RowResize="{Binding Path=GridRowBehavior, RelativeSource={RelativeSource AncestorType=Window}}">
+        <ScrollViewer.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Copy" Command="{Binding CopySelectedLogCommand}" />
+                <MenuItem Header="Copy message" Command="{Binding CopySelectedLogMessageCommand}" />
+                <MenuItem Header="Copy exception" Command="{Binding CopySelectedLogExceptionCommand}" />
+            </ContextMenu>
+        </ScrollViewer.ContextMenu>
+        <Grid Background="Transparent" VerticalAlignment="Top" Margin="0,2,0,0"
+              DataContext="{Binding SelectedLog}">
+            <Grid.Resources>
+                <Style TargetType="Label">
+                    <Setter Property="Margin" Value="0,-5,3,-3"/>
+                    <Setter Property="VerticalAlignment" Value="Top"/>
+                </Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="TextWrapping" Value="Wrap"/>
+                </Style>
+            </Grid.Resources>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Content="Application" />
+            <TextBlock Grid.Row="0" Grid.Column="1"
+                       Text="{Binding ApplicationProcess}" />
+
+            <Label Grid.Row="1" Grid.Column="0" Content="Namespace" />
+            <TextBlock Grid.Row="1" Grid.Column="1"
+                       Text="{Binding Namespace}" />
+
+            <Label Grid.Row="2" Grid.Column="0" Content="Thread" />
+            <TextBlock Grid.Row="2" Grid.Column="1"
+                       Text="{Binding Thread}" />
+
+            <Label Grid.Row="3" Grid.Column="0" Content="Message" />
+            <TextBlock Grid.Row="3" Grid.Column="1"
+                       Text="{Binding Message}" />
+
+            <Label Grid.Row="4" Grid.Column="0" Content="Exception"
+                       Visibility="{Binding Visibility, ElementName=SelectedLogException}" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Name="SelectedLogException"
+                       Text="{Binding Exception}"
+                       Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
+
+            <Label Grid.Row="5" Grid.Column="0" Content="Context"
+                       Visibility="{Binding Visibility, ElementName=SelectedLogContext}" />
+            <TextBlock Grid.Row="5" Grid.Column="1" Name="SelectedLogContext"
+                       Text="{Binding Context}"
+                       Visibility="{Binding Context, Converter={StaticResource ExistsToVisibilityConverter}}" />
+
+            <Label Grid.Row="6" Grid.Column="0" Content="Properties"
+                       Visibility="{Binding Visibility, ElementName=SelectedLogProperties}" />
+            <TextBlock Grid.Row="6" Grid.Column="1" Name="SelectedLogProperties"
+                       Text="{Binding Properties}"
+                       Visibility="{Binding Properties, Converter={StaticResource ExistsToVisibilityConverter}}" />
+
+            <Label Grid.Row="7" Grid.Column="0" Content="Location"
+                       Visibility="{Binding Visibility, ElementName=SelectedLogLocation}" />
+            <TextBlock Grid.Row="7" Grid.Column="1" Name="SelectedLogLocation"
+                       Text="{Binding Location}"
+                       Visibility="{Binding Location, Converter={StaticResource ExistsToVisibilityConverter}}" />
+
+            <Label Grid.Row="8" Grid.Column="0" Content="Host" />
+            <TextBlock Grid.Row="8" Grid.Column="1"
+                       Text="{Binding MachineName}" />
+        </Grid>
+    </ScrollViewer>
+</UserControl>
