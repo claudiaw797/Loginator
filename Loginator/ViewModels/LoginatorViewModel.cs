@@ -123,11 +123,11 @@ namespace Loginator.ViewModels {
             }
         }
 
-        [RelayCommand(CanExecute = nameof(CanDeactivateAllApplications))]
-        private void DeactivateAllApplications() {
+        [RelayCommand(CanExecute = nameof(CanActivateAnyApplication))]
+        private void ActivateAllApplications(bool active) {
             lock (ViewModelConstants.SYNC_OBJECT) {
                 foreach (var application in this.Applications) {
-                    application.IsActive = false;
+                    application.IsActive = active;
                 }
             }
         }
@@ -408,8 +408,8 @@ namespace Loginator.ViewModels {
             return Applications.Any(app => app.HasLogs);
         }
 
-        private bool CanDeactivateAllApplications() {
-            return Applications.Any(app => app.IsActive);
+        private bool CanActivateAnyApplication(bool active) {
+            return Applications.Any(app => app.IsActive != active);
         }
 
         private bool CanUpdateNumberOfLogsPerLevel(int value) {
@@ -425,7 +425,7 @@ namespace Loginator.ViewModels {
         }
 
         private void NotifyApplicationDependentCommands() {
-            deactivateAllApplicationsCommand?.NotifyCanExecuteChanged();
+            activateAllApplicationsCommand?.NotifyCanExecuteChanged();
             clearLogsCommand?.NotifyCanExecuteChanged();
             clearAllCommand?.NotifyCanExecuteChanged();
         }

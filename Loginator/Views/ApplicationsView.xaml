@@ -4,13 +4,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:s="clr-namespace:System;assembly=mscorlib"
              xmlns:controls="clr-namespace:Loginator.Controls"
+             xmlns:converter="clr-namespace:Loginator.Converter"
+             xmlns:viewmodels="clr-namespace:Loginator.ViewModels"
              mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=viewmodels:SearchViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
 
     <ListView ItemsSource="{Binding Applications}"
               SelectionMode="Single"
               controls:GridViewColumnResize.Enabled="True">
+        <ListView.Resources>
+            <s:Boolean x:Key="True">True</s:Boolean>
+            <s:Boolean x:Key="False">False</s:Boolean>
+            <converter:ObjectToFormattedStringConverter x:Key="ObjectToStringFormatConverter" />
+        </ListView.Resources>
+
+        <ListView.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Select all" Command="{Binding ActivateAllApplicationsCommand}" CommandParameter="{StaticResource True}" />
+                <MenuItem Header="Unselect all" Command="{Binding ActivateAllApplicationsCommand}" CommandParameter="{StaticResource False}" />
+                <Separator />
+                <controls:MenuItemGroup
+                          Header="{Binding SelectedInitialLogLevel, Converter={StaticResource ObjectToStringFormatConverter}, ConverterParameter='Initial level ({0})'}"
+                          ToolTip="Level applied to messages from newly inserted applications"
+                          ItemsSource="{Binding LogLevels}"
+                          DisplayMemberPath="Name"
+                          SelectedValue="{Binding SelectedInitialLogLevel}" />
+            </ContextMenu>
+        </ListView.ContextMenu>
+
         <ListView.View>
             <GridView AllowsColumnReorder="False">
                 <GridViewColumn Header="Level" controls:GridViewColumnResize.Width="90">
