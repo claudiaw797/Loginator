@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (C) 2024 Claudia Wagner
+
+using System;
 
 namespace Loginator.Controls {
 

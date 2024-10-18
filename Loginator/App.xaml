@@ -1,4 +1,5 @@
-﻿<Application x:Class="Loginator.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<!-- Copyright (C) 2024 Claudia Wagner, Daniel Kuster -->
+<Application x:Class="Loginator.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              d1p1:Ignorable="d"
@@ -35,14 +36,12 @@
         </Style>
 
         <converter:LevelToForegroundConverter x:Key="LevelToForegroundConverter"></converter:LevelToForegroundConverter>
-        <converter:IsEqualsConverter x:Key="IsEqualsConverter"></converter:IsEqualsConverter>
         <converter:SingleLineTextConverter x:Key="SingleLineTextConverter"></converter:SingleLineTextConverter>
-        <converter:RadioButtonCheckedConverter x:Key="RadioButtonCheckedConverter"></converter:RadioButtonCheckedConverter>
+        <converter:ObjectToBoolConverter x:Key="ObjectToBoolConverter"></converter:ObjectToBoolConverter>
         <converter:ExistsToVisibilityConverter x:Key="ExistsToVisibilityConverter"></converter:ExistsToVisibilityConverter>
         <converter:TimestampConverter x:Key="TimestampConverter"></converter:TimestampConverter>
         <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter"></converter:ViewModelToLogConverter>
 
         <viewModels:ViewModelLocator x:Key="Locator" d:IsDataSource="True"/>
-        
     </Application.Resources>
 </Application>

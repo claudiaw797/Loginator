@@ -18,7 +18,8 @@ namespace Backend.Server {
         protected AbstractSocket(Socket socket) =>
             this.socket = socket;
 
-        public static implicit operator Socket(AbstractSocket s) => s.socket;
+        public static implicit operator Socket(AbstractSocket s) =>
+            s.socket;
 
         public virtual AbstractSocket Accept() =>
             this;
