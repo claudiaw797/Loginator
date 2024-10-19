@@ -1,14 +1,13 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Common;
 using Loginator.Controls;
+using Loginator.Model;
 using Loginator.ViewModels;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Http;
-using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -19,26 +18,20 @@ namespace Loginator.Views {
     /// </summary>
     public partial class MainWindow : Window {
 
-        private const string TEMPLATE_APP_NAME = "Loginator v{0}";
-        private const string VERSION_CODE = "versionCode";
-        private const string VERSION_NAME = "versionName";
-        private const string FILE_VERSION = "Loginator.Resources.Version.txt";
-        private const string VERSION_URL = "https://raw.githubusercontent.com/claudiaw797/Loginator/master/Loginator/Version.txt";
-        private const string DOWNLOAD_URL = "https://github.com/claudiaw797/Loginator/releases";
+        private const string templateAppName = "{0} v{1}";
 
-        private static readonly string[] NEWLINE_SEPARATORS = [Environment.NewLine, Constants.STRING_NEWLINE];
-        private static readonly string[] EQUALS_SEPARATORS = ["="];
-
+        private readonly AssemblyInfo assemblyInfo;
         private readonly ILogger<MainWindow> logger;
 
-        private int version;
-
-        public MainWindow(ILogger<MainWindow> logger) {
+        public MainWindow(AssemblyInfo assemblyInfo, ILogger<MainWindow> logger) {
+            this.assemblyInfo = assemblyInfo;
             this.logger = logger;
 
             InitializeComponent();
-            SetTitleVersionFromFile();
-            Task.Run(async () => await CheckForNewVersion());
+            this.Title = string.Format(templateAppName, assemblyInfo.Product, assemblyInfo.VersionName);
+
+            Task.Run(async () => await this.CheckForNewVersion());
+
             if (DataContext is LoginatorViewModel vm) {
                 try {
                     vm.StartListener();
@@ -51,54 +44,23 @@ namespace Loginator.Views {
 
         public ScrollViewerBehavior.RowResize GridRowBehavior => new(SplitterRow, SelectedLogRow, 250);
 
-        private void SetTitleVersionFromFile() {
-            var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly?.GetManifestResourceStream(FILE_VERSION);
-            if (stream is not null) {
-                using var reader = new StreamReader(stream);
-                string text = reader.ReadToEnd();
-                Title = GetVersionName(text);
-                version = GetVersionCode(text);
-            }
-        }
-
-        private static int GetVersionCode(string text) =>
-            GetVersion(text, VERSION_CODE, out var actual)
-                ? Convert.ToInt32(actual)
-                : 1;
-
-        private static string GetVersionName(string text) =>
-            GetVersion(text, VERSION_NAME, out var actual)
-                ? string.Format(TEMPLATE_APP_NAME, actual)
-                : string.Empty;
-
-        private static bool GetVersion(string current, string expected, out string? actual) {
-            var splitted = current.Split(NEWLINE_SEPARATORS, StringSplitOptions.None);
-            foreach (var line in splitted) {
-                var splittedLine = line.Split(EQUALS_SEPARATORS, StringSplitOptions.None);
-                if (splittedLine.Length > 0 && expected.Equals(splittedLine[0].Trim(), StringComparison.OrdinalIgnoreCase)) {
-                    actual = splittedLine[1].Trim();
-                    return true;
-                }
-            }
-            actual = null;
-            return false;
-        }
-
         private async Task CheckForNewVersion() {
             try {
+                var path = $"{assemblyInfo.RawUrl}/AssemblyInfo.json";
                 using var webClient = new HttpClient();
-                string text = await webClient.GetStringAsync(VERSION_URL);
-                int latestVersion = GetVersionCode(text);
-                if (version < latestVersion) {
-                    logger.LogInformation("New version available. Current: '{0}'. Latest: '{1}'", version, latestVersion);
+                using var stream = await webClient.GetStreamAsync(path);
+
+                var latestAssembly = JsonSerializer.Deserialize<AssemblyInfo>(stream);
+                if (latestAssembly is not null && latestAssembly.VersionCode > assemblyInfo.VersionCode) {
+                    logger.LogInformation($"New version available. Current: '{assemblyInfo.VersionCode}'. Latest: '{latestAssembly.VersionCode}'");
+
                     MessageBoxResult messageBoxResult = MessageBox.Show(L10n.Language.NewVersionAvailable, L10n.Language.UpdateAvailable, MessageBoxButton.YesNo);
                     if (messageBoxResult == MessageBoxResult.Yes) {
-                        Process.Start(DOWNLOAD_URL);
+                        Process.Start(assemblyInfo.DownloadUrl);
                     }
                 }
                 else {
-                    logger.LogInformation("No new version available. Current: '{0}'", version);
+                    logger.LogInformation($"No new version available. Current: '{assemblyInfo.VersionCode}'");
                 }
             }
             catch (Exception e) {

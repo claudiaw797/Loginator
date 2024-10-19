@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Version.txt" />
+    <EmbeddedResource Include="Resources\AssemblyInfo.json" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icon.ico" />
