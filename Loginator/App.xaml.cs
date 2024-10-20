@@ -11,6 +11,7 @@ using NLog;
 using NLog.Config;
 using NLog.Extensions.Hosting;
 using System;
+using System.Threading;
 using System.Windows;
 
 namespace Loginator {
@@ -37,30 +38,6 @@ namespace Loginator {
                 .Build();
         }
 
-        private static Exception GetInnerException(Exception exception) {
-            return exception.InnerException is null
-                ? exception
-                : GetInnerException(exception.InnerException);
-        }
-
-        private static void HandleException(Exception? exception) {
-            var message = exception is LoginatorException ? exception.Message : exception?.ToString();
-            MessageBox.Show(message,
-                "Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Stop,
-                MessageBoxResult.OK);
-        }
-
-        private static Logger SetupLogging() {
-            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            var file = env == Environments.Development ? nlogDevConfig : nlogConfig;
-            return LogManager
-                .Setup()
-                .LoadConfiguration(new XmlLoggingConfiguration(file))
-                .GetCurrentClassLogger();
-        }
-
         protected override async void OnStartup(StartupEventArgs e) {
             try {
                 // Exception handlers
@@ -82,6 +59,8 @@ namespace Loginator {
                     }
                     HandleException(exception);
                 };
+
+                SetStringResourcesFromCurrentCulture();
 
                 await host.StartAsync();
 
@@ -110,6 +89,50 @@ namespace Loginator {
             }
 
             base.OnExit(e);
+        }
+
+        internal static string? GetStringResource(string key) =>
+            Current.FindResource(key)?.ToString();
+
+        internal static ResourceDictionary GetStringResources(string culture) {
+            var infix = culture switch {
+                var c when c.StartsWith("de") => ".de",
+                _ => string.Empty,
+            };
+            var dictionary = new ResourceDictionary {
+                Source = new Uri($@"..\Resources\StringResources{infix}.xaml", UriKind.Relative)
+            };
+            return dictionary;
+        }
+
+        private static Exception GetInnerException(Exception exception) {
+            return exception.InnerException is null
+                ? exception
+                : GetInnerException(exception.InnerException);
+        }
+
+        private static void HandleException(Exception? exception) {
+            var message = exception is LoginatorException ? exception.Message : exception?.ToString();
+            MessageBox.Show(message,
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Stop,
+                MessageBoxResult.OK);
+        }
+
+        private static Logger SetupLogging() {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            var file = env == Environments.Development ? nlogDevConfig : nlogConfig;
+            return LogManager
+                .Setup()
+                .LoadConfiguration(new XmlLoggingConfiguration(file))
+                .GetCurrentClassLogger();
+        }
+
+        private static void SetStringResourcesFromCurrentCulture() {
+            var culture = Thread.CurrentThread.CurrentCulture.ToString();
+            var dictionary = GetStringResources(culture);
+            Current.Resources.MergedDictionaries.Add(dictionary);
         }
     }
 }
