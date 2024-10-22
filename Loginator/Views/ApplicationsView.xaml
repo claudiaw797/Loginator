@@ -9,7 +9,7 @@
              xmlns:converter="clr-namespace:Loginator.Converter"
              xmlns:viewmodels="clr-namespace:Loginator.ViewModels"
              mc:Ignorable="d" 
-             d:DataContext="{d:DesignInstance Type=viewmodels:SearchViewModel}"
+             d:DataContext="{d:DesignInstance Type=viewmodels:LoginatorViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
 
     <ListView ItemsSource="{Binding Applications}"
