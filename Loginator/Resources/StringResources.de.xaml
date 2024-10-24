@@ -1,6 +1,63 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<!-- Copyright (C) 2024 Claudia Wagner -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
-    <s:String x:Key="NewVersionAvailable">Eine neue Loginator-Version ist verfügbar. Möchten Sie sie jetzt herunterladen?</s:String>
-    <s:String x:Key="UpdateAvailable">Aktualisierung verfügbar</s:String>
+
+    <!-- toolbar -->
+    <s:String x:Key="cmd.Active">Aktiv</s:String>
+    <s:String x:Key="cmd.Limit">Limit/Level</s:String>
+    <s:String x:Key="cmd.ClearLogs">Logs löschen</s:String>
+    <s:String x:Key="cmd.ClearAll">Alles löschen</s:String>
+    <s:String x:Key="msg.Search">Suchtext eingeben</s:String>
+    <s:String x:Key="cmd.Search">Suchen</s:String>
+    <s:String x:Key="cmd.Clear">Suche löschen</s:String>
+    <s:String x:Key="cmd.Invert">Umkehren</s:String>
+    <s:String x:Key="cmd.Settings">Konfigurieren...</s:String>
+    <s:String x:Key="cmd.English">Englisch</s:String>
+    <s:String x:Key="cmd.German">Deutsch</s:String>
+    
+    <!-- settings dialog -->
+    <s:String x:Key="grp.Settings">Konfiguration</s:String>
+
+    <s:String x:Key="grp.ConnectionType">Verbindungstyp</s:String>
+
+    <s:String x:Key="grp.SourceType">Quelle</s:String>
+
+    <s:String x:Key="grp.TimeFormat">Zeitformat</s:String>
+    <s:String x:Key="lab.TimeConvertLocal">In lokale Zeit konvertieren</s:String>
+    <s:String x:Key="lab.TimeNoChange">Nicht ändern</s:String>
+
+    <s:String x:Key="grp.ApplicationFormat">Applikationsformat</s:String>
+    <s:String x:Key="lab.AppConsolidate">Prozesse zusammenfassen</s:String>
+    <s:String x:Key="lab.AppNoChange">Nicht ändern</s:String>
+
+    <s:String x:Key="cmd.Save">Speichern</s:String>
+    <s:String x:Key="cmd.Cancel">Abbrechen</s:String>
+    
+    <!-- update dialog -->
+    <s:String x:Key="msg.NewVersionAvailable">Eine neue Loginator-Version ist verfügbar. Möchten Sie sie jetzt herunterladen?</s:String>
+    <s:String x:Key="msg.UpdateAvailable">Aktualisierung verfügbar</s:String>
+
+    <!-- application view -->
+    <s:String x:Key="grp.InitialLogLevel">Initiallevel ({0})</s:String>
+    <s:String x:Key="msg.InitialLogLevel">Level für Messages von neu eingefügten Applikationen</s:String>
+    <s:String x:Key="cmd.SelectAll">Alle auswählen</s:String>
+    <s:String x:Key="cmd.UnselectAll">Alle abwählen</s:String>
+
+    <!-- log list view -->
+    <s:String x:Key="lab.Timestamp">Zeitstempel</s:String>
+    <s:String x:Key="lab.Message">Nachricht</s:String>
+    <s:String x:Key="lab.Context">Kontext</s:String>
+    <s:String x:Key="lab.Process">Prozess</s:String>
+
+    <!-- log detail view -->
+    <s:String x:Key="lab.Application">Applikation</s:String>
+    <s:String x:Key="lab.Namespace">Namensraum</s:String>
+    <s:String x:Key="lab.Exception">Ausnahme</s:String>
+    <s:String x:Key="lab.Properties">Eigenschaften</s:String>
+    <s:String x:Key="lab.Location">Ursprung</s:String>
+
+    <s:String x:Key="cmd.Copy">Kopieren</s:String>
+    <s:String x:Key="cmd.CopyMessage">Message kopieren</s:String>
+    <s:String x:Key="cmd.CopyException">Exception kopieren</s:String>
 </ResourceDictionary>

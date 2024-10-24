@@ -1,6 +1,71 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<!-- Copyright (C) 2024 Claudia Wagner -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:s="clr-namespace:System;assembly=mscorlib">
-    <s:String x:Key="NewVersionAvailable">A new version of Loginator is available. Would you like to download it?</s:String>
-    <s:String x:Key="UpdateAvailable">Update available</s:String>
+
+    <!-- toolbar -->
+    <s:String x:Key="cmd.Active">Active</s:String>
+    <s:String x:Key="cmd.Limit">Limit/level</s:String>
+    <s:String x:Key="cmd.ClearLogs">Clear logs</s:String>
+    <s:String x:Key="cmd.ClearAll">Clear all</s:String>
+    <s:String x:Key="msg.Search">Enter search query</s:String>
+    <s:String x:Key="cmd.Search">Search</s:String>
+    <s:String x:Key="cmd.Clear">Clear search</s:String>
+    <s:String x:Key="cmd.Invert">Invert</s:String>
+    <s:String x:Key="cmd.Settings">Configure...</s:String>
+    <s:String x:Key="cmd.English">English</s:String>
+    <s:String x:Key="cmd.German">German</s:String>
+
+    <!-- settings dialog -->
+    <s:String x:Key="grp.Settings">Configuration</s:String>
+
+    <s:String x:Key="grp.ConnectionType">Connection type</s:String>
+    <s:String x:Key="lab.Udp">UDP</s:String>
+    <s:String x:Key="lab.Tcp">TCP</s:String>
+
+    <s:String x:Key="grp.SourceType">Source</s:String>
+    <s:String x:Key="lab.Log4j">Log4j (Chainsaw, NLog, log4net, etc.)</s:String>
+    <s:String x:Key="lab.Logcat">Logcat (Android)</s:String>
+    <s:String x:Key="lab.Port">Port</s:String>
+
+    <s:String x:Key="grp.TimeFormat">Time format</s:String>
+    <s:String x:Key="lab.TimeConvertLocal">Convert to local time</s:String>
+    <s:String x:Key="lab.TimeNoChange">Do not change</s:String>
+
+    <s:String x:Key="grp.ApplicationFormat">Application format</s:String>
+    <s:String x:Key="lab.AppConsolidate">Consolidate processes</s:String>
+    <s:String x:Key="lab.AppNoChange">Do not change</s:String>
+
+    <s:String x:Key="cmd.Save">Save</s:String>
+    <s:String x:Key="cmd.Cancel">Cancel</s:String>
+
+    <!-- update dialog -->
+    <s:String x:Key="msg.NewVersionAvailable">A new version of Loginator is available. Would you like to download it?</s:String>
+    <s:String x:Key="msg.UpdateAvailable">Update available</s:String>
+
+    <!-- application view -->
+    <s:String x:Key="lab.Level">Level</s:String>
+    <s:String x:Key="grp.InitialLogLevel">Initial level ({0})</s:String>
+    <s:String x:Key="msg.InitialLogLevel">Level applied to messages from newly inserted applications</s:String>
+    <s:String x:Key="cmd.SelectAll">Select all</s:String>
+    <s:String x:Key="cmd.UnselectAll">Unselect all</s:String>
+
+    <!-- log list view -->
+    <s:String x:Key="lab.Timestamp">Timestamp</s:String>
+    <s:String x:Key="lab.Message">Message</s:String>
+    <s:String x:Key="lab.Context">Context</s:String>
+    <s:String x:Key="lab.Process">Process</s:String>
+
+    <!-- log detail view -->
+    <s:String x:Key="lab.Application">Application</s:String>
+    <s:String x:Key="lab.Namespace">Namespace</s:String>
+    <s:String x:Key="lab.Thread">Thread</s:String>
+    <s:String x:Key="lab.Exception">Exception</s:String>
+    <s:String x:Key="lab.Properties">Properties</s:String>
+    <s:String x:Key="lab.Location">Location</s:String>
+    <s:String x:Key="lab.Host">Host</s:String>
+
+    <s:String x:Key="cmd.Copy">Copy</s:String>
+    <s:String x:Key="cmd.CopyMessage">Copy message</s:String>
+    <s:String x:Key="cmd.CopyException">Copy exception</s:String>
 </ResourceDictionary>

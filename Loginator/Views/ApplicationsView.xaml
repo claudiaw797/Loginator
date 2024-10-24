@@ -18,17 +18,16 @@
         <ListView.Resources>
             <s:Boolean x:Key="True">True</s:Boolean>
             <s:Boolean x:Key="False">False</s:Boolean>
-            <converter:ObjectToFormattedStringConverter x:Key="ObjectToStringFormatConverter" />
         </ListView.Resources>
 
         <ListView.ContextMenu>
             <ContextMenu>
-                <MenuItem Header="Select all" Command="{Binding ActivateAllApplicationsCommand}" CommandParameter="{StaticResource True}" />
-                <MenuItem Header="Unselect all" Command="{Binding ActivateAllApplicationsCommand}" CommandParameter="{StaticResource False}" />
+                <MenuItem Header="{DynamicResource cmd.SelectAll}" Command="{Binding ActivateAllApplicationsCommand}" CommandParameter="{StaticResource True}" />
+                <MenuItem Header="{DynamicResource cmd.UnselectAll}" Command="{Binding ActivateAllApplicationsCommand}" CommandParameter="{StaticResource False}" />
                 <Separator />
                 <controls:MenuItemGroup
-                          Header="{Binding SelectedInitialLogLevel, Converter={StaticResource ObjectToStringFormatConverter}, ConverterParameter='Initial level ({0})'}"
-                          ToolTip="Level applied to messages from newly inserted applications"
+                          Header="{Binding SelectedInitialLogLevel, Converter={StaticResource ObjectToFormattedResourceStringConverter}, ConverterParameter=grp.InitialLogLevel}"
+                          ToolTip="{DynamicResource msg.InitialLogLevel}"
                           ItemsSource="{Binding LogLevels}"
                           DisplayMemberPath="Name"
                           SelectedValue="{Binding SelectedInitialLogLevel}" />
@@ -37,14 +36,14 @@
 
         <ListView.View>
             <GridView AllowsColumnReorder="False">
-                <GridViewColumn Header="Level" controls:GridViewColumnResize.Width="90">
+                <GridViewColumn Header="{DynamicResource lab.Level}" controls:GridViewColumnResize.Width="90">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
-                            <ComboBox ItemsSource="{Binding Path=LogLevels}" DisplayMemberPath="Name" SelectedValue="{Binding Path=SelectedMinLogLevel}" Width="70"/>
+                            <ComboBox ItemsSource="{Binding LogLevels}" DisplayMemberPath="Name" SelectedValue="{Binding SelectedMinLogLevel}" Width="70"/>
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>
                 </GridViewColumn>
-                <GridViewColumn Header="Application" controls:GridViewColumnResize.Width="*">
+                <GridViewColumn Header="{DynamicResource lab.Application}" controls:GridViewColumnResize.Width="*">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
                             <CheckBox Content="{Binding Name}" IsChecked="{Binding IsActive}"/>

@@ -4,6 +4,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Loginator"
+             xmlns:controls="clr-namespace:Loginator.Controls"
              xmlns:converters="clr-namespace:Loginator.Converter"
              xmlns:viewmodels="clr-namespace:Loginator.ViewModels"
              mc:Ignorable="d"
@@ -34,7 +36,7 @@
         </ToolBarTray.Resources>
 
         <ToolBar KeyboardNavigation.TabNavigation="Continue">
-            <CheckBox Content="Active"
+            <CheckBox Content="{DynamicResource cmd.Active}"
                       IsChecked="{Binding IsActive}"/>
 
             <StackPanel Style="{StaticResource ToolbarStackPanel}">
@@ -49,42 +51,51 @@
                     </TextBox.InputBindings>
                 </TextBox>
                 <Button Style="{StaticResource ToolbarButtonStyleKey}"
-                        Content="Limit"
+                        Content="{DynamicResource cmd.Limit}"
                         Command="{Binding UpdateNumberOfLogsPerLevelCommand}"
                         CommandParameter="{Binding Text, ElementName=numberOfLogsPerLevel, Converter={StaticResource StringToIntConverter}}"/>
             </StackPanel>
 
-            <Button Content="Clear Logs"
+            <Button Content="{DynamicResource cmd.ClearLogs}"
                     Command="{Binding ClearLogsCommand}" />
-            <Button Content="Clear All"
+            <Button Content="{DynamicResource cmd.ClearAll}"
                     Command="{Binding ClearAllCommand}" />
         </ToolBar>
 
         <ToolBar KeyboardNavigation.TabNavigation="Continue">
-
             <StackPanel Style="{StaticResource ToolbarStackPanel}">
                 <TextBox MinWidth="65"
                          Text="{Binding Search.Criteria, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Enter search query">
+                         ToolTip="{DynamicResource msg.Search}">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Enter"
                                     Command="{Binding Search.UpdateCommand}"/>
                     </TextBox.InputBindings>
                 </TextBox>
                 <Button Style="{StaticResource ToolbarButtonStyleKey}"
-                        Content="{Binding Search.UpdateCommandName}"
+                        Content="{Binding Search.UpdateCommandName, Converter={StaticResource KeyToResourceStringConverter}, ConverterParameter='cmd.{0}'}"
                         Command="{Binding Search.UpdateCommand}"
                         CommandParameter="{Binding Search.UpdateCommandName}"/>
             </StackPanel>
-            <CheckBox Content="Invert"
+            <CheckBox Content="{DynamicResource cmd.Invert}"
                       IsChecked="{Binding Search.IsInverted}"
                       Command="{Binding Search.UpdateCommand}"
                       CommandParameter="Invert"/>
         </ToolBar>
 
         <ToolBar KeyboardNavigation.TabNavigation="Continue">
-            <Button Content="Configure..."
+            <Button Content="{DynamicResource cmd.Settings}"
                     Command="{Binding OpenConfigurationCommand}"/>
+
+            <ComboBox SelectionChanged="OnSelectionChanged_Language">
+                <ComboBoxItem Content="{DynamicResource cmd.English}"
+                              IsSelected="{Binding Path=(local:App.CurrentCulture), Mode=OneWay, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static controls:KnownCulture.English}}"
+                              Tag="{x:Static controls:KnownCulture.English}"/>
+                <ComboBoxItem Content="{DynamicResource cmd.German}"
+                              IsSelected="{Binding Path=(local:App.CurrentCulture), Mode=OneWay, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static controls:KnownCulture.German}}"
+                              Tag="{x:Static controls:KnownCulture.German}"/>
+                
+            </ComboBox>
         </ToolBar>
     </ToolBarTray>
 </UserControl>

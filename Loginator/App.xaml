@@ -31,13 +31,15 @@
             <Setter Property="Height" Value="22" />
         </Style>
 
-        <converter:LevelToForegroundConverter x:Key="LevelToForegroundConverter"></converter:LevelToForegroundConverter>
-        <converter:SingleLineTextConverter x:Key="SingleLineTextConverter"></converter:SingleLineTextConverter>
-        <converter:StringToIntConverter x:Key="StringToIntConverter"></converter:StringToIntConverter>
-        <converter:ObjectToBoolConverter x:Key="ObjectToBoolConverter"></converter:ObjectToBoolConverter>
-        <converter:ExistsToVisibilityConverter x:Key="ExistsToVisibilityConverter"></converter:ExistsToVisibilityConverter>
-        <converter:TimestampConverter x:Key="TimestampConverter"></converter:TimestampConverter>
-        <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter"></converter:ViewModelToLogConverter>
+        <converter:LevelToForegroundConverter x:Key="LevelToForegroundConverter" />
+        <converter:SingleLineTextConverter x:Key="SingleLineTextConverter" />
+        <converter:StringToIntConverter x:Key="StringToIntConverter" />
+        <converter:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />
+        <converter:ObjectToFormattedResourceStringConverter x:Key="ObjectToFormattedResourceStringConverter" />
+        <converter:ExistsToVisibilityConverter x:Key="ExistsToVisibilityConverter" />
+        <converter:TimestampConverter x:Key="TimestampConverter" />
+        <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter" />
+        <converter:KeyToResourceStringConverter x:Key="KeyToResourceStringConverter" />
 
         <viewModels:ViewModelLocator x:Key="Locator" d:IsDataSource="True"/>
     </Application.Resources>

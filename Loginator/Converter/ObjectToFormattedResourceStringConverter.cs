@@ -5,12 +5,12 @@ using System.Windows.Data;
 
 namespace Loginator.Converter {
 
-    public class ObjectToFormattedStringConverter : IValueConverter {
+    public class ObjectToFormattedResourceStringConverter : IValueConverter {
 
         public object? Convert(object? value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
-            if (value is null) return null;
+            if (value is null) value = string.Empty;
 
-            string? format = parameter?.ToString();
+            string? format = App.GetStringResource(parameter.ToString()!);
 
             if (string.IsNullOrEmpty(format)) return value.ToString();
 

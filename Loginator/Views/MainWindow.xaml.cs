@@ -54,7 +54,7 @@ namespace Loginator.Views {
                 if (latestAssembly is not null && latestAssembly.VersionCode > assemblyInfo.VersionCode) {
                     logger.LogInformation($"New version available. Current: '{assemblyInfo.VersionCode}'. Latest: '{latestAssembly.VersionCode}'");
 
-                    MessageBoxResult messageBoxResult = MessageBox.Show(App.GetStringResource("NewVersionAvailable"), App.GetStringResource("UpdateAvailable"), MessageBoxButton.YesNo);
+                    MessageBoxResult messageBoxResult = MessageBox.Show(App.GetStringResource("msg.NewVersionAvailable"), App.GetStringResource("msg.UpdateAvailable"), MessageBoxButton.YesNo);
                     if (messageBoxResult == MessageBoxResult.Yes) {
                         Process.Start(assemblyInfo.DownloadUrl);
                     }

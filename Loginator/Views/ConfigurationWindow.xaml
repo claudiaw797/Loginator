@@ -6,33 +6,33 @@
         DataContext="{Binding ConfigurationViewModel, Source={StaticResource Locator}}"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        Title="Configuration" Height="355" Width="290">
+        Title="{DynamicResource grp.Settings}" Height="355" Width="290">
     <Grid Margin="2" VerticalAlignment="Stretch">
         <StackPanel>
-            <Label Content="Connection type" FontWeight="Bold"/>
-            <RadioButton Content="UDP" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Udp}}" Margin="38,4,0,0"/>
-            <RadioButton Content="TCP" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Tcp}}" Margin="38,4,0,0"/>
+            <Label Content="{DynamicResource grp.ConnectionType}" FontWeight="Bold"/>
+            <RadioButton Content="{DynamicResource lab.Udp}" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Udp}}" Margin="38,4,0,0"/>
+            <RadioButton Content="{DynamicResource lab.Tcp}" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Tcp}}" Margin="38,4,0,0"/>
 
-            <Label Content="Source" FontWeight="Bold"/>
-            <RadioButton Content="Chainsaw (NLog, log4net, log4j, etc.)" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Chainsaw}}" Margin="38,4,0,0"/>
-            <RadioButton Content="Logcat (Android)" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Logcat}}" Margin="38,4,0,0"/>
+            <Label Content="{DynamicResource grp.SourceType}" FontWeight="Bold"/>
+            <RadioButton Content="{DynamicResource lab.Log4j}" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Chainsaw}}" Margin="38,4,0,0"/>
+            <RadioButton Content="{DynamicResource lab.Logcat}" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Logcat}}" Margin="38,4,0,0"/>
 
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <Label Content="Port" FontWeight="Bold"/>
+                <Label Content="{DynamicResource lab.Port}" FontWeight="Bold"/>
                 <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enter the port to listen to" Width="100" Margin="4,0,0,0"/>
             </StackPanel>
 
-            <Label Content="Time format" FontWeight="Bold"/>
-            <RadioButton Content="Convert to local time" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.ConvertToLocalTime}}" Margin="38,4,0,0"/>
-            <RadioButton Content="Do not change" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.DoNotChange}}" Margin="38,4,0,0"/>
+            <Label Content="{DynamicResource grp.TimeFormat}" FontWeight="Bold"/>
+            <RadioButton Content="{DynamicResource lab.TimeConvertLocal}" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.ConvertToLocalTime}}" Margin="38,4,0,0"/>
+            <RadioButton Content="{DynamicResource lab.TimeNoChange}" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.DoNotChange}}" Margin="38,4,0,0"/>
 
-            <Label Content="Application format" FontWeight="Bold"/>
-            <RadioButton Content="Consolidate processes" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.Consolidate}}" Margin="38,4,0,0"/>
-            <RadioButton Content="Do not change" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.DoNotChange}}" Margin="38,4,0,0"/>
+            <Label Content="{DynamicResource grp.ApplicationFormat}" FontWeight="Bold"/>
+            <RadioButton Content="{DynamicResource lab.AppConsolidate}" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.Consolidate}}" Margin="38,4,0,0"/>
+            <RadioButton Content="{DynamicResource lab.AppNoChange}" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.DoNotChange}}" Margin="38,4,0,0"/>
         </StackPanel>
         <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Cancel" Command="{Binding CancelChangesCommand}" Margin="0,0,4,0" Width="80"/>
-            <Button Content="Accept" Command="{Binding AcceptChangesCommand}" Width="80"/>
+            <Button Content="{DynamicResource cmd.Cancel}" Command="{Binding CancelChangesCommand}" Margin="0,0,4,0" Width="80"/>
+            <Button Content="{DynamicResource cmd.Save}" Command="{Binding AcceptChangesCommand}" Width="80"/>
         </StackPanel>
     </Grid>
 </Window>

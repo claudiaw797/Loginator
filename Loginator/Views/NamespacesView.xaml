@@ -12,7 +12,7 @@
     <TreeView ItemsSource="{Binding Namespaces}">
         <TreeView.Resources>
             <Style TargetType="TreeViewItem">
-                <Setter Property="IsExpanded" Value="{Binding Path=IsExpanded}"/>
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded}"/>
             </Style>
         </TreeView.Resources>
         
@@ -23,7 +23,7 @@
                         <Style TargetType="StackPanel">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsHighlighted}" Value="true">
-                                    <Setter Property="Background" Value="LightGoldenrodYellow"></Setter>
+                                    <Setter Property="Background" Value="LightGoldenrodYellow" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
@@ -32,23 +32,28 @@
                     <Label>
                         <Label.Content>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Path=Name}" />
+                                <TextBlock Text="{Binding Name}" />
                                 <StackPanel Orientation="Horizontal" Margin="12,2,0,0">
-                                    <TextBlock Text="[" FontSize="8"/>
-                                    <TextBlock Text="{Binding Path=Count}" FontSize="8"/>
-                                    <TextBlock Text=":" FontSize="8"/>
-                                    <TextBlock Text="{Binding Path=CountTrace}" Foreground="DarkGray" FontSize="8"/>
-                                    <TextBlock Text="," FontSize="8"/>
-                                    <TextBlock Text="{Binding Path=CountDebug}" Foreground="Gray" FontSize="8"/>
-                                    <TextBlock Text="," FontSize="8"/>
-                                    <TextBlock Text="{Binding Path=CountInfo}" Foreground="Green" FontSize="8"/>
-                                    <TextBlock Text="," FontSize="8"/>
-                                    <TextBlock Text="{Binding Path=CountWarn}" Foreground="DarkOrange" FontSize="8"/>
-                                    <TextBlock Text="," FontSize="8"/>
-                                    <TextBlock Text="{Binding Path=CountError}" Foreground="Red" FontSize="8"/>
-                                    <TextBlock Text="," FontSize="8"/>
-                                    <TextBlock Text="{Binding Path=CountFatal}" Foreground="DarkViolet" FontSize="8"/>
-                                    <TextBlock Text="]" FontSize="8"/>
+                                    <StackPanel.Resources>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontSize" Value="8" />
+                                        </Style>
+                                    </StackPanel.Resources>
+                                    <TextBlock Text="[" />
+                                    <TextBlock Text="{Binding Count}" />
+                                    <TextBlock Text=":" />
+                                    <TextBlock Text="{Binding CountTrace}" Foreground="DarkGray" />
+                                    <TextBlock Text="," />
+                                    <TextBlock Text="{Binding CountDebug}" Foreground="Gray" />
+                                    <TextBlock Text="," />
+                                    <TextBlock Text="{Binding CountInfo}" Foreground="Green" />
+                                    <TextBlock Text="," />
+                                    <TextBlock Text="{Binding CountWarn}" Foreground="DarkOrange" />
+                                    <TextBlock Text="," />
+                                    <TextBlock Text="{Binding CountError}" Foreground="Red" />
+                                    <TextBlock Text="," />
+                                    <TextBlock Text="{Binding CountFatal}" Foreground="DarkViolet" />
+                                    <TextBlock Text="]" />
                                 </StackPanel>
                             </StackPanel>
                         </Label.Content>

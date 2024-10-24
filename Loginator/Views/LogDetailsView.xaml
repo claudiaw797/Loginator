@@ -12,12 +12,12 @@
 
     <ScrollViewer Height="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                   Visibility="{Binding SelectedLog, Converter={StaticResource ExistsToVisibilityConverter}}"
-                  controls:ScrollViewerBehavior.RowResize="{Binding Path=GridRowBehavior, RelativeSource={RelativeSource AncestorType=Window}}">
+                  controls:ScrollViewerBehavior.RowResize="{Binding GridRowBehavior, RelativeSource={RelativeSource AncestorType=Window}}">
         <ScrollViewer.ContextMenu>
             <ContextMenu>
-                <MenuItem Header="Copy" Command="{Binding CopySelectedLogCommand}" />
-                <MenuItem Header="Copy message" Command="{Binding CopySelectedLogMessageCommand}" />
-                <MenuItem Header="Copy exception" Command="{Binding CopySelectedLogExceptionCommand}" />
+                <MenuItem Header="{DynamicResource cmd.Copy}" Command="{Binding CopySelectedLogCommand}" />
+                <MenuItem Header="{DynamicResource cmd.CopyMessage}" Command="{Binding CopySelectedLogMessageCommand}" />
+                <MenuItem Header="{DynamicResource cmd.CopyException}" Command="{Binding CopySelectedLogExceptionCommand}" />
             </ContextMenu>
         </ScrollViewer.ContextMenu>
         <Grid Background="Transparent" VerticalAlignment="Top" Margin="0,2,0,0"
@@ -46,47 +46,47 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Label Grid.Row="0" Grid.Column="0" Content="Application" />
+            <Label Grid.Row="0" Grid.Column="0" Content="{DynamicResource lab.Application}" />
             <TextBlock Grid.Row="0" Grid.Column="1"
                        Text="{Binding ApplicationProcess}" />
 
-            <Label Grid.Row="1" Grid.Column="0" Content="Namespace" />
+            <Label Grid.Row="1" Grid.Column="0" Content="{DynamicResource lab.Namespace}" />
             <TextBlock Grid.Row="1" Grid.Column="1"
                        Text="{Binding Namespace}" />
 
-            <Label Grid.Row="2" Grid.Column="0" Content="Thread" />
+            <Label Grid.Row="2" Grid.Column="0" Content="{DynamicResource lab.Thread}" />
             <TextBlock Grid.Row="2" Grid.Column="1"
                        Text="{Binding Thread}" />
 
-            <Label Grid.Row="3" Grid.Column="0" Content="Message" />
+            <Label Grid.Row="3" Grid.Column="0" Content="{DynamicResource lab.Message}" />
             <TextBlock Grid.Row="3" Grid.Column="1"
                        Text="{Binding Message}" />
 
-            <Label Grid.Row="4" Grid.Column="0" Content="Exception"
+            <Label Grid.Row="4" Grid.Column="0" Content="{DynamicResource lab.Exception}"
                        Visibility="{Binding Visibility, ElementName=SelectedLogException}" />
             <TextBlock Grid.Row="4" Grid.Column="1" Name="SelectedLogException"
                        Text="{Binding Exception}"
                        Visibility="{Binding Exception, Converter={StaticResource ExistsToVisibilityConverter}}" />
 
-            <Label Grid.Row="5" Grid.Column="0" Content="Context"
+            <Label Grid.Row="5" Grid.Column="0" Content="{DynamicResource lab.Context}"
                        Visibility="{Binding Visibility, ElementName=SelectedLogContext}" />
             <TextBlock Grid.Row="5" Grid.Column="1" Name="SelectedLogContext"
                        Text="{Binding Context}"
                        Visibility="{Binding Context, Converter={StaticResource ExistsToVisibilityConverter}}" />
 
-            <Label Grid.Row="6" Grid.Column="0" Content="Properties"
+            <Label Grid.Row="6" Grid.Column="0" Content="{DynamicResource lab.Properties}"
                        Visibility="{Binding Visibility, ElementName=SelectedLogProperties}" />
             <TextBlock Grid.Row="6" Grid.Column="1" Name="SelectedLogProperties"
                        Text="{Binding Properties}"
                        Visibility="{Binding Properties, Converter={StaticResource ExistsToVisibilityConverter}}" />
 
-            <Label Grid.Row="7" Grid.Column="0" Content="Location"
+            <Label Grid.Row="7" Grid.Column="0" Content="{DynamicResource lab.Location}"
                        Visibility="{Binding Visibility, ElementName=SelectedLogLocation}" />
             <TextBlock Grid.Row="7" Grid.Column="1" Name="SelectedLogLocation"
                        Text="{Binding Location}"
                        Visibility="{Binding Location, Converter={StaticResource ExistsToVisibilityConverter}}" />
 
-            <Label Grid.Row="8" Grid.Column="0" Content="Host" />
+            <Label Grid.Row="8" Grid.Column="0" Content="{DynamicResource lab.Host}" />
             <TextBlock Grid.Row="8" Grid.Column="1"
                        Text="{Binding MachineName}" />
         </Grid>
