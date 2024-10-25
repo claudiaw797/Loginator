@@ -215,6 +215,9 @@ namespace Loginator.ViewModels {
         internal IEnumerable<NamespaceViewModel> AllNamespaces() =>
             Namespaces.Flatten(x => x.Children);
 
+        internal void RaisePropertyChanged(string name) =>
+            this.OnPropertyChanged(name);
+
         private void ConfigurationDao_OnConfigurationChanged(Configuration logConfig, string? name = null) {
             if (LogTimeFormat != logConfig.LogTimeFormat) {
                 Logs.RaiseReset();

@@ -58,6 +58,6 @@
     <s:String x:Key="lab.Location">Ursprung</s:String>
 
     <s:String x:Key="cmd.Copy">Kopieren</s:String>
-    <s:String x:Key="cmd.CopyMessage">Message kopieren</s:String>
-    <s:String x:Key="cmd.CopyException">Exception kopieren</s:String>
+    <s:String x:Key="cmd.CopyMessage">Nachricht kopieren</s:String>
+    <s:String x:Key="cmd.CopyException">Ausnahme kopieren</s:String>
 </ResourceDictionary>

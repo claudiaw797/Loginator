@@ -5,17 +5,35 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:Loginator.Controls"
+             xmlns:converter="clr-namespace:Loginator.Converter"
              xmlns:viewmodels="clr-namespace:Loginator.ViewModels"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodels:LoginatorViewModel}"
              d:DesignHeight="450" d:DesignWidth="800"
              DataContext="{Binding LoginatorViewModel, Source={StaticResource Locator}}">
+    <UserControl.Resources>
+        <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter" />
+    </UserControl.Resources>
 
     <ListView SelectedItem="{Binding SelectedLog, Converter={StaticResource ViewModelToLogConverter}}"
               ItemsSource="{Binding Logs}"
               Name="lvLogs"
               SelectionMode="Single"
               controls:GridViewColumnResize.Enabled="True">
+        <ListView.Resources>
+            <converter:LevelToForegroundConverter x:Key="LevelToForegroundConverter" />
+            <converter:SingleLineTextConverter x:Key="SingleLineTextConverter" />
+            <!--
+            <Style TargetType="ListViewItem">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsVisible}" Value="False">
+                        <Setter Property="ListBoxItem.Visibility" Value="Collapsed" />
+                        <Setter Property="Height" Value="0" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            -->
+        </ListView.Resources>
         <ListView.View>
             <GridView AllowsColumnReorder="False">
                 <GridViewColumn Header="{DynamicResource lab.Timestamp}" controls:GridViewColumnResize.Width="140">
@@ -60,15 +78,5 @@
                 </GridViewColumn>
             </GridView>
         </ListView.View>
-        <!--<ListView.Resources>
-            <Style TargetType="ListViewItem">
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsVisible}" Value="False">
-                        <Setter Property="ListBoxItem.Visibility" Value="Collapsed" />
-                        <Setter Property="Height" Value="0" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </ListView.Resources>-->
     </ListView>
 </UserControl>

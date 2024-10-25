@@ -11,8 +11,6 @@ using NLog;
 using NLog.Config;
 using NLog.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Windows;
 
 namespace Loginator {
@@ -25,7 +23,7 @@ namespace Loginator {
         private const string nlogConfig = "Config/nlog.config";
         private const string nlogDevConfig = "Config/nlog.Development.config";
 
-        private static readonly Dictionary<KnownCulture, ResourceDictionary> stringResources = [];
+        private static readonly StringResources stringResources = new();
 
         private readonly IHost host;
         private readonly Logger logger;
@@ -63,7 +61,7 @@ namespace Loginator {
                     HandleException(exception);
                 };
 
-                InitializeStringResources();
+                stringResources.InitializeCulture();
 
                 await host.StartAsync();
 
@@ -94,58 +92,13 @@ namespace Loginator {
             base.OnExit(e);
         }
 
-        public static KnownCulture CurrentCulture { get; private set; }
+        public static KnownCulture CurrentCulture => stringResources.CurrentCulture;
 
         internal static string? GetStringResource(string key) =>
             Current.FindResource(key)?.ToString();
 
-        internal static void LoadStringResources(KnownCulture nextCulture) {
-            if (CurrentCulture == nextCulture)
-                return;
-
-            if (!stringResources.TryGetValue(nextCulture, out var nextStringResources)) {
-                nextStringResources = GetStringResources(nextCulture);
-                stringResources.Add(nextCulture, nextStringResources);
-            }
-
-            if (CurrentCulture != KnownCulture.English) {
-                var currentStringResources = stringResources[CurrentCulture];
-                Current.Resources.MergedDictionaries.Remove(currentStringResources);
-            }
-
-            if (nextCulture != KnownCulture.English) {
-                Current.Resources.MergedDictionaries.Add(nextStringResources);
-            }
-
-            CurrentCulture = nextCulture;
-        }
-
-        private static KnownCulture GetKnownCulture(string culture) =>
-            culture switch {
-                var c when c.StartsWith("de") => KnownCulture.German,
-                _ => KnownCulture.English,
-            };
-
-        private static ResourceDictionary GetStringResources(KnownCulture culture) {
-            var infix = culture switch {
-                KnownCulture.German => ".de",
-                _ => string.Empty,
-            };
-            var dictionary = new ResourceDictionary {
-                Source = new Uri($@"..\Resources\StringResources{infix}.xaml", UriKind.Relative)
-            };
-            return dictionary;
-        }
-
-        private static void InitializeStringResources() {
-            CurrentCulture = KnownCulture.English;
-            var defaultStringResources = GetStringResources(CurrentCulture);
-            stringResources.Add(CurrentCulture, defaultStringResources);
-            Current.Resources.MergedDictionaries.Add(defaultStringResources);
-
-            var culture = Thread.CurrentThread.CurrentCulture.ToString();
-            LoadStringResources(GetKnownCulture(culture));
-        }
+        internal static void LoadStringResources(KnownCulture nextCulture) =>
+            stringResources.SetCulture(nextCulture);
 
         private static Exception GetInnerException(Exception exception) {
             return exception.InnerException is null

@@ -7,40 +7,11 @@
              xmlns:converter="clr-namespace:Loginator.Converter"
              mc:Ignorable="d">
     <Application.Resources>
-        <Style TargetType="{x:Type Control}" x:Key="BaseStyle">
-        </Style>
-        <Style TargetType="{x:Type Label}" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="Height" Value="26" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="Height" Value="22" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style TargetType="{x:Type RadioButton}" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
-            <Setter Property="Height" Value="22" />
-        </Style>
-
-        <converter:LevelToForegroundConverter x:Key="LevelToForegroundConverter" />
-        <converter:SingleLineTextConverter x:Key="SingleLineTextConverter" />
-        <converter:StringToIntConverter x:Key="StringToIntConverter" />
-        <converter:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />
-        <converter:ObjectToFormattedResourceStringConverter x:Key="ObjectToFormattedResourceStringConverter" />
-        <converter:ExistsToVisibilityConverter x:Key="ExistsToVisibilityConverter" />
-        <converter:TimestampConverter x:Key="TimestampConverter" />
-        <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter" />
-        <converter:KeyToResourceStringConverter x:Key="KeyToResourceStringConverter" />
-
-        <viewModels:ViewModelLocator x:Key="Locator" d:IsDataSource="True"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources\Strings.xaml"/>
+                <ResourceDictionary Source="Resources\Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Loginator.Controls;
+using Loginator.Bootstrapper;
+using Loginator.ViewModels;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -27,6 +28,10 @@ namespace Loginator.Views {
                 combo.SelectedItem is ComboBoxItem selected &&
                 selected!.Tag is KnownCulture culture) {
                 App.LoadStringResources(culture);
+
+                if (this.DataContext is LoginatorViewModel vm) {
+                    vm.RaisePropertyChanged(nameof(LoginatorViewModel.SelectedInitialLogLevel));
+                }
             }
         }
     }
