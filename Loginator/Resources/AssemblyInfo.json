@@ -1,7 +1,7 @@
 ﻿{
     "Product": "Loginator",
     "Copyright": "© 2024 Claudia Wagner",
-    "Description": "Open source & free log viewer for Log4j and Logcat",
+    "Description": "Open source log viewer for Log4j and Logcat",
     "VersionName": "1.7.5",
     "VersionCode": 14,
     "License": "GNU General Public License, Version 3",

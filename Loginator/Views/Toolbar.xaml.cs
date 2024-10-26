@@ -2,7 +2,9 @@
 
 using Loginator.Bootstrapper;
 using Loginator.ViewModels;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -12,6 +14,7 @@ namespace Loginator.Views {
     /// Interaction logic for Toolbar.xaml
     /// </summary>
     public partial class Toolbar : UserControl {
+
         public Toolbar() {
             InitializeComponent();
         }
@@ -21,6 +24,16 @@ namespace Loginator.Views {
 
         private void OnPreviewTextInput_NumberOfLogsPerLevel(object sender, TextCompositionEventArgs e) {
             e.Handled = RxNumbersOnly().IsMatch(e.Text);
+        }
+
+        private void OnClick_Settings(object sender, RoutedEventArgs e) {
+            new ConfigurationWindow().ShowDialog();
+        }
+
+        private void OnClick_About(object sender, RoutedEventArgs e) {
+            var aboutWindow = Application.Current.Windows.OfType<AboutWindow>().FirstOrDefault();
+            if (aboutWindow is null) new AboutWindow().Show();
+            else aboutWindow.Focus();
         }
 
         private void OnSelectionChanged_Language(object sender, SelectionChangedEventArgs e) {

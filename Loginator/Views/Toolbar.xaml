@@ -85,7 +85,7 @@
 
         <ToolBar KeyboardNavigation.TabNavigation="Continue">
             <Button Content="{DynamicResource cmd.Settings}"
-                    Command="{Binding OpenConfigurationCommand}"/>
+                    Click="OnClick_Settings" />
 
             <ComboBox SelectionChanged="OnSelectionChanged_Language">
                 <ComboBoxItem Content="{DynamicResource cmd.English}"
@@ -96,6 +96,9 @@
                               Tag="{x:Static boots:KnownCulture.German}"/>
                 
             </ComboBox>
+            
+            <Button Content="{DynamicResource cmd.About}"
+                    Click="OnClick_About" />
         </ToolBar>
     </ToolBarTray>
 </UserControl>

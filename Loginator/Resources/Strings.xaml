@@ -13,6 +13,7 @@
     <s:String x:Key="cmd.Clear">Clear search</s:String>
     <s:String x:Key="cmd.Invert">Invert</s:String>
     <s:String x:Key="cmd.Settings">Configure...</s:String>
+    <s:String x:Key="cmd.About">About</s:String>
     <s:String x:Key="cmd.English">English</s:String>
     <s:String x:Key="cmd.German">German</s:String>
 
@@ -42,6 +43,14 @@
     <!-- update dialog -->
     <s:String x:Key="msg.NewVersionAvailable">A new version of Loginator is available. Would you like to download it?</s:String>
     <s:String x:Key="msg.UpdateAvailable">Update available</s:String>
+
+    <!-- about dialog -->
+    <s:String x:Key="grp.About">About</s:String>
+    <s:String x:Key="msg.ProductDescription">Open source log viewer for Log4j and Logcat</s:String>
+    <s:String x:Key="msg.BasedOn">Based on</s:String>
+    <s:String x:Key="msg.BaseBy">by Daniel Kuster</s:String>
+    <s:String x:Key="msg.ProductDownload">Download latest version from</s:String>
+    <s:String x:Key="msg.ProductSource">Source code can be found on</s:String>
 
     <!-- application view -->
     <s:String x:Key="lab.Level">Level</s:String>

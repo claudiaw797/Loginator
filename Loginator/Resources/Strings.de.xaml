@@ -13,6 +13,7 @@
     <s:String x:Key="cmd.Clear">Suche löschen</s:String>
     <s:String x:Key="cmd.Invert">Umkehren</s:String>
     <s:String x:Key="cmd.Settings">Konfigurieren...</s:String>
+    <s:String x:Key="cmd.About">Info</s:String>
     <s:String x:Key="cmd.English">Englisch</s:String>
     <s:String x:Key="cmd.German">Deutsch</s:String>
     
@@ -35,8 +36,16 @@
     <s:String x:Key="cmd.Cancel">Abbrechen</s:String>
     
     <!-- update dialog -->
-    <s:String x:Key="msg.NewVersionAvailable">Eine neue Loginator-Version ist verfügbar. Möchten Sie sie jetzt herunterladen?</s:String>
+    <s:String x:Key="msg.NewVersionAvailable">Eine neue Loginator-Version ist verfügbar. Möchtest du sie jetzt herunterladen?</s:String>
     <s:String x:Key="msg.UpdateAvailable">Aktualisierung verfügbar</s:String>
+
+    <!-- about dialog -->
+    <s:String x:Key="grp.About">Info</s:String>
+    <s:String x:Key="msg.ProductDescription">Open Source Log Viewer für Log4j und Logcat</s:String>
+    <s:String x:Key="msg.BasedOn">Basierend auf</s:String>
+    <s:String x:Key="msg.BaseBy">von Daniel Kuster</s:String>
+    <s:String x:Key="msg.ProductDownload">Letzte Version herunterladen von</s:String>
+    <s:String x:Key="msg.ProductSource">Quelltext findest du auf</s:String>
 
     <!-- application view -->
     <s:String x:Key="grp.InitialLogLevel">Initiallevel ({0})</s:String>

@@ -163,11 +163,6 @@ namespace Loginator.ViewModels {
             }
         }
 
-        [RelayCommand]
-        private static void OpenConfiguration() {
-            new ConfigurationWindow().Show();
-        }
-
         [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
         private void UnselectLog() {
             SelectedLog = null;
