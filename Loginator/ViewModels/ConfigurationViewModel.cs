@@ -29,6 +29,12 @@ namespace Loginator.ViewModels {
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private ApplicationFormat applicationFormat;
 
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private KnownCulture language;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private bool checkForUpdateOnStartup;
+
         public Action? CloseAction { get; set; }
 
         public ConfigurationViewModel(IWritableOptions<Configuration> configurationDao) {
@@ -40,6 +46,8 @@ namespace Loginator.ViewModels {
             port = configuration.Port.ToString();
             logTimeFormat = configuration.LogTimeFormat;
             applicationFormat = configuration.ApplicationFormat;
+            language = configuration.Language;
+            checkForUpdateOnStartup = configuration.CheckForUpdateOnStartup;
         }
 
         [RelayCommand]
@@ -61,6 +69,8 @@ namespace Loginator.ViewModels {
                     c.Port = Convert.ToInt32(Port);
                     c.LogTimeFormat = LogTimeFormat;
                     c.ApplicationFormat = ApplicationFormat;
+                    c.Language = Language;
+                    c.CheckForUpdateOnStartup = CheckForUpdateOnStartup;
                 });
 
                 CloseAction?.Invoke();
@@ -77,7 +87,9 @@ namespace Loginator.ViewModels {
                 LogType != configuration.LogType ||
                 Port != configuration.Port.ToString() ||
                 LogTimeFormat != configuration.LogTimeFormat ||
-                ApplicationFormat != configuration.ApplicationFormat;
+                ApplicationFormat != configuration.ApplicationFormat ||
+                Language != configuration.Language ||
+                CheckForUpdateOnStartup != configuration.CheckForUpdateOnStartup;
             return result;
         }
     }

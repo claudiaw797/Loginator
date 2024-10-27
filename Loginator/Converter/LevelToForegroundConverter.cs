@@ -20,7 +20,7 @@ namespace Loginator.Converter {
                 } else if (level == LoggingLevel.INFO) {
                     return new SolidColorBrush(Colors.Green);
                 } else if (level == LoggingLevel.WARN) {
-                    return new SolidColorBrush(Colors.Orange);
+                    return new SolidColorBrush(Colors.DarkOrange);
                 } else if (level == LoggingLevel.ERROR) {
                     return new SolidColorBrush(Colors.Red);
                 } else if (level == LoggingLevel.FATAL) {

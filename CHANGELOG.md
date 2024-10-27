@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Configuration options: connection type, language, check for update on startup
+- 'Check for updates' toolbar button
+- 'Select all' context menu button in application view
+- About window
+
+### Changed
+
+- 'Unselect all' button and 'Initial level' choice moved to context menu in application view
+- Toolbar buttons moved to separate toolbars
+- Configuration window
+
 ## [1.7.5] - 2024-09-19
 
 ### Added

@@ -1,4 +1,5 @@
-﻿
+﻿// Copyright (C) 2024 Claudia Wagner
+
 namespace Loginator.Model {
 
     public record SearchOptions {

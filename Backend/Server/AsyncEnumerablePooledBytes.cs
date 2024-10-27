@@ -72,7 +72,7 @@ namespace Backend.Server {
                         connection = null;
                     }
                     catch (OperationCanceledException ex) {
-                        outer.logger.LogInformation("Application is closing: {message}", ex.Message);
+                        outer.logger.LogInformation("Connection is closing: {message}", ex.Message);
                         break;
                     }
                     catch (Exception ex) {

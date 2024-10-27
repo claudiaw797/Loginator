@@ -1,5 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
+using Common;
 using Common.Configuration;
 using Common.Exceptions;
 using Loginator.Bootstrapper;
@@ -23,6 +24,8 @@ namespace Loginator {
         private const string nlogConfig = "Config/nlog.config";
         private const string nlogDevConfig = "Config/nlog.Development.config";
 
+        private static StringResources? stringResources;
+
         private readonly IHost host;
         private readonly Logger logger;
 
@@ -35,30 +38,6 @@ namespace Loginator {
                 .ConfigureServices(DiBootstrapperFrontend.Initialize)
                 .UseNLog()
                 .Build();
-        }
-
-        private static Exception GetInnerException(Exception exception) {
-            return exception.InnerException is null
-                ? exception
-                : GetInnerException(exception.InnerException);
-        }
-
-        private static void HandleException(Exception? exception) {
-            var message = exception is LoginatorException ? exception.Message : exception?.ToString();
-            MessageBox.Show(message,
-                "Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Stop,
-                MessageBoxResult.OK);
-        }
-
-        private static Logger SetupLogging() {
-            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
-            var file = env == Environments.Development ? nlogDevConfig : nlogConfig;
-            return LogManager
-                .Setup()
-                .LoadConfiguration(new XmlLoggingConfiguration(file))
-                .GetCurrentClassLogger();
         }
 
         protected override async void OnStartup(StartupEventArgs e) {
@@ -85,6 +64,8 @@ namespace Loginator {
 
                 await host.StartAsync();
 
+                stringResources = host.Services.GetRequiredService<StringResources>();
+
                 // Initialize dispatcher helper so we can access UI thread in view model
                 IoC.ServiceProvider = host.Services;
 
@@ -110,6 +91,36 @@ namespace Loginator {
             }
 
             base.OnExit(e);
+        }
+
+        internal static KnownCulture? CurrentCulture =>
+            stringResources?.CurrentCulture;
+
+        internal static string? GetStringResource(string key) =>
+            Current.FindResource(key)?.ToString();
+
+        private static Exception GetInnerException(Exception exception) {
+            return exception.InnerException is null
+                ? exception
+                : GetInnerException(exception.InnerException);
+        }
+
+        private static void HandleException(Exception? exception) {
+            var message = exception is LoginatorException ? exception.Message : exception?.ToString();
+            MessageBox.Show(message,
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Stop,
+                MessageBoxResult.OK);
+        }
+
+        private static Logger SetupLogging() {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            var file = env == Environments.Development ? nlogDevConfig : nlogConfig;
+            return LogManager
+                .Setup()
+                .LoadConfiguration(new XmlLoggingConfiguration(file))
+                .GetCurrentClassLogger();
         }
     }
 }

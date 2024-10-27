@@ -269,7 +269,7 @@ namespace Loginator.UnitTests.ViewModels {
             actual.Should().BeTrue();
             AssertLogs(expectedItems2, expectedItems1);
 
-            sut.DeactivateAllApplicationsCommand.Execute(null);
+            sut.ActivateAllApplicationsCommand.Execute(false);
 
             actual = sut.Applications.All(app => !app.IsActive);
             actual.Should().BeTrue();

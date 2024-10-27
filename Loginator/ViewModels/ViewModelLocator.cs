@@ -1,4 +1,7 @@
-﻿using Common.Configuration;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Common.Configuration;
+using Loginator.Model;
 
 namespace Loginator.ViewModels {
 
@@ -9,5 +12,8 @@ namespace Loginator.ViewModels {
 
         public ConfigurationViewModel ConfigurationViewModel =>
             IoC.Get<ConfigurationViewModel>();
+
+        public AssemblyInfo AssemblyInfo =>
+            IoC.Get<AssemblyInfo>();
     }
 }

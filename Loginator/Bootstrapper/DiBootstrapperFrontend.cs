@@ -5,6 +5,7 @@ using Backend.Model;
 using Common.Bootstrapper;
 using Common.Configuration;
 using Loginator.Controls;
+using Loginator.Model;
 using Loginator.ViewModels;
 using Loginator.Views;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +15,8 @@ using NLog;
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 
 namespace Loginator.Bootstrapper {
 
@@ -21,6 +24,7 @@ namespace Loginator.Bootstrapper {
 
         private const string appSettingsDefault = "Config/appsettings.json";
         private const string appSettingsTemplate = "Config/appsettings.{0}.json";
+        private const string assemblyInfoFile = "Loginator.Resources.AssemblyInfo.json";
 
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -39,6 +43,12 @@ namespace Loginator.Bootstrapper {
             services.ConfigureWritable<Configuration>(config.GetSection(Configuration.SectionName), active);
             services.ConfigureWritable<ApplicationConfiguration>(config.GetSection(ApplicationConfiguration.SectionName), active);
 
+            var assemblyInfo = LoadAssemblyInfo();
+            if (assemblyInfo is not null) {
+                services.AddSingleton(assemblyInfo);
+            }
+
+            services.AddSingleton<StringResources>();
             services.AddSingleton(TimeProvider.System);
             services.AddSingleton<LoginatorViewModel>();
             services.AddTransient<ConfigurationViewModel>();
@@ -64,6 +74,15 @@ namespace Loginator.Bootstrapper {
                 .Select(o => GetAppSettings(o))
                 .FirstOrDefault(f => File.Exists(f), appSettingsDefault);
             return active!;
+        }
+
+        private static AssemblyInfo? LoadAssemblyInfo() {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly?.GetManifestResourceStream(assemblyInfoFile);
+
+            return stream is null
+                ? throw new InvalidOperationException("Assembly info resource is missing.")
+                : JsonSerializer.Deserialize<AssemblyInfo>(stream);
         }
     }
 }

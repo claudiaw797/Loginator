@@ -25,6 +25,11 @@ namespace Backend.Model {
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ApplicationFormat ApplicationFormat { get; set; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public KnownCulture Language { get; set; }
+
+        public bool CheckForUpdateOnStartup { get; set; }
     }
 
     public static class ConfigurationExtensions {

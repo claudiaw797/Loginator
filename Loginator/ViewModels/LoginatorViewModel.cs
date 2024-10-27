@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Loginator.Collections;
 using Loginator.Controls;
-using Loginator.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -123,11 +122,11 @@ namespace Loginator.ViewModels {
             }
         }
 
-        [RelayCommand(CanExecute = nameof(CanDeactivateAllApplications))]
-        private void DeactivateAllApplications() {
+        [RelayCommand(CanExecute = nameof(CanActivateAnyApplication))]
+        private void ActivateAllApplications(bool active) {
             lock (ViewModelConstants.SYNC_OBJECT) {
                 foreach (var application in this.Applications) {
-                    application.IsActive = false;
+                    application.IsActive = active;
                 }
             }
         }
@@ -161,11 +160,6 @@ namespace Loginator.ViewModels {
             if (SelectedLog is not null) {
                 Clipboard.SetText(SelectedLog.Exception);
             }
-        }
-
-        [RelayCommand]
-        private static void OpenConfiguration() {
-            new ConfigurationWindow().Show();
         }
 
         [RelayCommand(CanExecute = nameof(CanCopySelectedLog))]
@@ -221,6 +215,9 @@ namespace Loginator.ViewModels {
                 Logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", LogTimeFormat, logConfig.LogTimeFormat);
                 LogTimeFormat = logConfig.LogTimeFormat;
             }
+
+            // refresh language dependent bindings
+            this.OnPropertyChanged(nameof(SelectedInitialLogLevel));
         }
 
         private void Search_OnUpdateSearch(object? sender, EventArgs e) {
@@ -408,8 +405,8 @@ namespace Loginator.ViewModels {
             return Applications.Any(app => app.HasLogs);
         }
 
-        private bool CanDeactivateAllApplications() {
-            return Applications.Any(app => app.IsActive);
+        private bool CanActivateAnyApplication(bool active) {
+            return Applications.Any(app => app.IsActive != active);
         }
 
         private bool CanUpdateNumberOfLogsPerLevel(int value) {
@@ -425,7 +422,7 @@ namespace Loginator.ViewModels {
         }
 
         private void NotifyApplicationDependentCommands() {
-            deactivateAllApplicationsCommand?.NotifyCanExecuteChanged();
+            activateAllApplicationsCommand?.NotifyCanExecuteChanged();
             clearLogsCommand?.NotifyCanExecuteChanged();
             clearAllCommand?.NotifyCanExecuteChanged();
         }

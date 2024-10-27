@@ -74,6 +74,7 @@ namespace Loginator.ViewModels {
             AppendLine(sb, "Thread", Thread);
             AppendLine(sb, "Message", Message);
             AppendLine(sb, "Exception", Exception);
+            sb.AppendLine(Properties);
             AppendLine(sb, "Host", MachineName);
             AppendLine(sb, "Class", ClassName);
             AppendLine(sb, "Method", MethodName);
