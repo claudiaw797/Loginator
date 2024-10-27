@@ -1,6 +1,8 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Loginator.Controls;
+using Backend.Model;
+using Common;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +14,16 @@ namespace Loginator.Bootstrapper {
     internal class StringResources {
 
         private readonly Dictionary<KnownCulture, ResourceDictionary> stringResources = [];
+        private readonly IDisposable? configurationChangeListener;
+
+        public StringResources(IOptionsMonitor<Configuration> configurationDao) {
+            InitializeDefaultCulture();
+            SetCulture(configurationDao.CurrentValue.Language);
+
+            configurationChangeListener = configurationDao.OnChange(o => this.SetCulture(o.Language));
+        }
 
         public KnownCulture CurrentCulture { get; private set; }
-
-        internal void InitializeCulture() {
-            InitializeDefaultCulture();
-            SetSystemCulture();
-        }
 
         internal void SetSystemCulture() {
             var culture = Thread.CurrentThread.CurrentCulture.ToString();
@@ -39,7 +44,8 @@ namespace Loginator.Bootstrapper {
                 Application.Current.Resources.MergedDictionaries.Remove(currentStringResources);
             }
 
-            if (nextCulture != KnownCulture.English) Application.Current.Resources.MergedDictionaries.Add(nextStringResources);
+            if (nextCulture != KnownCulture.English)
+                Application.Current.Resources.MergedDictionaries.Add(nextStringResources);
 
             CurrentCulture = nextCulture;
         }

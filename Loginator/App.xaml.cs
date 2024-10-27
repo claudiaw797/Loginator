@@ -1,5 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
+using Common;
 using Common.Configuration;
 using Common.Exceptions;
 using Loginator.Bootstrapper;
@@ -23,7 +24,7 @@ namespace Loginator {
         private const string nlogConfig = "Config/nlog.config";
         private const string nlogDevConfig = "Config/nlog.Development.config";
 
-        private static readonly StringResources stringResources = new();
+        private static StringResources? stringResources;
 
         private readonly IHost host;
         private readonly Logger logger;
@@ -37,11 +38,6 @@ namespace Loginator {
                 .ConfigureServices(DiBootstrapperFrontend.Initialize)
                 .UseNLog()
                 .Build();
-        }
-
-        public static KnownCulture CurrentCulture {
-            get => stringResources.CurrentCulture;
-            set => stringResources.SetCulture(value);
         }
 
         protected override async void OnStartup(StartupEventArgs e) {
@@ -66,9 +62,9 @@ namespace Loginator {
                     HandleException(exception);
                 };
 
-                stringResources.InitializeCulture();
-
                 await host.StartAsync();
+
+                stringResources = host.Services.GetRequiredService<StringResources>();
 
                 // Initialize dispatcher helper so we can access UI thread in view model
                 IoC.ServiceProvider = host.Services;
@@ -96,6 +92,9 @@ namespace Loginator {
 
             base.OnExit(e);
         }
+
+        internal static KnownCulture? CurrentCulture =>
+            stringResources?.CurrentCulture;
 
         internal static string? GetStringResource(string key) =>
             Current.FindResource(key)?.ToString();

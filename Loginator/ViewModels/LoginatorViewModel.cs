@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Loginator.Collections;
 using Loginator.Controls;
-using Loginator.Views;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -210,15 +209,15 @@ namespace Loginator.ViewModels {
         internal IEnumerable<NamespaceViewModel> AllNamespaces() =>
             Namespaces.Flatten(x => x.Children);
 
-        internal void RaisePropertyChanged(string name) =>
-            this.OnPropertyChanged(name);
-
         private void ConfigurationDao_OnConfigurationChanged(Configuration logConfig, string? name = null) {
             if (LogTimeFormat != logConfig.LogTimeFormat) {
                 Logs.RaiseReset();
                 Logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", LogTimeFormat, logConfig.LogTimeFormat);
                 LogTimeFormat = logConfig.LogTimeFormat;
             }
+
+            // refresh language dependent bindings
+            this.OnPropertyChanged(nameof(SelectedInitialLogLevel));
         }
 
         private void Search_OnUpdateSearch(object? sender, EventArgs e) {

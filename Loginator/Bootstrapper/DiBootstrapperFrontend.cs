@@ -48,6 +48,7 @@ namespace Loginator.Bootstrapper {
                 services.AddSingleton(assemblyInfo);
             }
 
+            services.AddSingleton<StringResources>();
             services.AddSingleton(TimeProvider.System);
             services.AddSingleton<LoginatorViewModel>();
             services.AddTransient<ConfigurationViewModel>();
