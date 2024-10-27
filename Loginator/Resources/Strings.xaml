@@ -42,7 +42,7 @@
     <s:String x:Key="lab.AppNoChange">Do not change</s:String>
 
     <s:String x:Key="grp.General">General</s:String>
-    <s:String x:Key="lab.CheckUpdate">Check for new updates on startup</s:String>
+    <s:String x:Key="lab.CheckUpdate">Check for updates on startup</s:String>
 
     <s:String x:Key="cmd.Save">Save</s:String>
     <s:String x:Key="cmd.Cancel">Cancel</s:String>

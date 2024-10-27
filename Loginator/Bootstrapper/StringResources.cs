@@ -14,13 +14,12 @@ namespace Loginator.Bootstrapper {
     internal class StringResources {
 
         private readonly Dictionary<KnownCulture, ResourceDictionary> stringResources = [];
-        private readonly IDisposable? configurationChangeListener;
 
         public StringResources(IOptionsMonitor<Configuration> configurationDao) {
             InitializeDefaultCulture();
             SetCulture(configurationDao.CurrentValue.Language);
 
-            configurationChangeListener = configurationDao.OnChange(o => this.SetCulture(o.Language));
+            configurationDao.OnChange(o => this.SetCulture(o.Language));
         }
 
         public KnownCulture CurrentCulture { get; private set; }

@@ -1,9 +1,11 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
+using Backend.Model;
 using Loginator.Controls;
 using Loginator.Model;
 using Loginator.ViewModels;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
@@ -23,14 +25,16 @@ namespace Loginator.Views {
         private readonly AssemblyInfo assemblyInfo;
         private readonly ILogger<MainWindow> logger;
 
-        public MainWindow(AssemblyInfo assemblyInfo, ILogger<MainWindow> logger) {
+        public MainWindow(AssemblyInfo assemblyInfo, IOptions<Configuration> configuration, ILogger<MainWindow> logger) {
             this.assemblyInfo = assemblyInfo;
             this.logger = logger;
 
             InitializeComponent();
             this.Title = string.Format(templateAppName, assemblyInfo.Product, assemblyInfo.VersionName);
 
-            Task.Run(async () => await this.CheckForNewVersion());
+            if (configuration.Value.CheckForUpdateOnStartup) {
+                Task.Run(() => this.CheckForNewVersion());
+            }
 
             if (DataContext is LoginatorViewModel vm) {
                 try {
