@@ -86,17 +86,6 @@
         <ToolBar KeyboardNavigation.TabNavigation="Continue">
             <Button Content="{DynamicResource cmd.Settings}"
                     Click="OnClick_Settings" />
-
-            <ComboBox SelectionChanged="OnSelectionChanged_Language">
-                <ComboBoxItem Content="{DynamicResource cmd.English}"
-                              IsSelected="{Binding Path=(local:App.CurrentCulture), Mode=OneWay, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static boots:KnownCulture.English}}"
-                              Tag="{x:Static boots:KnownCulture.English}"/>
-                <ComboBoxItem Content="{DynamicResource cmd.German}"
-                              IsSelected="{Binding Path=(local:App.CurrentCulture), Mode=OneWay, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static boots:KnownCulture.German}}"
-                              Tag="{x:Static boots:KnownCulture.German}"/>
-                
-            </ComboBox>
-            
             <Button Content="{DynamicResource cmd.About}"
                     Click="OnClick_About" />
         </ToolBar>

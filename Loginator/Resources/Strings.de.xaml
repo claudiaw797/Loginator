@@ -16,14 +16,18 @@
     <s:String x:Key="cmd.About">Info</s:String>
     <s:String x:Key="cmd.English">Englisch</s:String>
     <s:String x:Key="cmd.German">Deutsch</s:String>
-    
+
     <!-- settings dialog -->
     <s:String x:Key="grp.Settings">Konfiguration</s:String>
+    <s:String x:Key="grp.Connection">Verbindung</s:String>
 
-    <s:String x:Key="grp.ConnectionType">Verbindungstyp</s:String>
+    <s:String x:Key="grp.NetworkProtocol">Netzwerkprotokoll</s:String>
 
-    <s:String x:Key="grp.SourceType">Quelle</s:String>
+    <s:String x:Key="grp.SourceType">Quellformat</s:String>
+    <s:String x:Key="msg.Port">Port, an den Lognachrichten gesendet werden</s:String>
 
+    <s:String x:Key="grp.Display">Darstellung</s:String>
+    <s:String x:Key="lab.Language">Sprache</s:String>
     <s:String x:Key="grp.TimeFormat">Zeitformat</s:String>
     <s:String x:Key="lab.TimeConvertLocal">In lokale Zeit konvertieren</s:String>
     <s:String x:Key="lab.TimeNoChange">Nicht ändern</s:String>
@@ -32,9 +36,12 @@
     <s:String x:Key="lab.AppConsolidate">Prozesse zusammenfassen</s:String>
     <s:String x:Key="lab.AppNoChange">Nicht ändern</s:String>
 
+    <s:String x:Key="grp.General">Allgemein</s:String>
+    <s:String x:Key="lab.CheckUpdate">Beim Starten nach Aktualisierungen suchen</s:String>
+
     <s:String x:Key="cmd.Save">Speichern</s:String>
     <s:String x:Key="cmd.Cancel">Abbrechen</s:String>
-    
+
     <!-- update dialog -->
     <s:String x:Key="msg.NewVersionAvailable">Eine neue Loginator-Version ist verfügbar. Möchtest du sie jetzt herunterladen?</s:String>
     <s:String x:Key="msg.UpdateAvailable">Aktualisierung verfügbar</s:String>

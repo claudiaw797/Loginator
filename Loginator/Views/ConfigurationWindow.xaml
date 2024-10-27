@@ -2,37 +2,148 @@
 <Window x:Class="Loginator.Views.ConfigurationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:Loginator"
+        xmlns:boots="clr-namespace:Loginator.Bootstrapper"
         xmlns:common="clr-namespace:Common;assembly=Common"
+        xmlns:controls="clr-namespace:Loginator.Controls"
+        xmlns:viewmodels="clr-namespace:Loginator.ViewModels"
+        mc:Ignorable="d" 
+        d:DataContext="{d:DesignInstance Type=viewmodels:ConfigurationViewModel}"
         DataContext="{Binding ConfigurationViewModel, Source={StaticResource Locator}}"
-        ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen"
-        Title="{DynamicResource grp.Settings}" Height="355" Width="290">
-    <Grid Margin="2" VerticalAlignment="Stretch">
-        <StackPanel>
-            <Label Content="{DynamicResource grp.ConnectionType}" FontWeight="Bold"/>
-            <RadioButton Content="{DynamicResource lab.Udp}" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Udp}}" Margin="38,4,0,0"/>
-            <RadioButton Content="{DynamicResource lab.Tcp}" GroupName="ConnectionType" IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Tcp}}" Margin="38,4,0,0"/>
+        Icon="../Resources/icon.ico" Title="{DynamicResource grp.Settings}"
+        ResizeMode="NoResize" SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen" MinWidth="293" MinHeight="270">
 
-            <Label Content="{DynamicResource grp.SourceType}" FontWeight="Bold"/>
-            <RadioButton Content="{DynamicResource lab.Log4j}" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Chainsaw}}" Margin="38,4,0,0"/>
-            <RadioButton Content="{DynamicResource lab.Logcat}" GroupName="Source" IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Logcat}}" Margin="38,4,0,0"/>
+    <Window.Resources>
+        <Style TargetType="CheckBox">
+            <Setter Property="Padding" Value="0,0,0,5" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="22" />
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style TargetType="RadioButton">
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+    </Window.Resources>
 
-            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <Label Content="{DynamicResource lab.Port}" FontWeight="Bold"/>
-                <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enter the port to listen to" Width="100" Margin="4,0,0,0"/>
-            </StackPanel>
+    <DockPanel Margin="6">
+        <TabControl DockPanel.Dock="Top" Padding="2,5,8,8">
+            <TabItem Header="{DynamicResource grp.Display}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="1" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="1" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-            <Label Content="{DynamicResource grp.TimeFormat}" FontWeight="Bold"/>
-            <RadioButton Content="{DynamicResource lab.TimeConvertLocal}" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.ConvertToLocalTime}}" Margin="38,4,0,0"/>
-            <RadioButton Content="{DynamicResource lab.TimeNoChange}" GroupName="TimeFormat" IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.DoNotChange}}" Margin="38,4,0,0"/>
+                    <Label Grid.ColumnSpan="3" Grid.Row="0"
+                           Content="{DynamicResource grp.ApplicationFormat}" />
+                    <RadioButton Grid.Column="2" Grid.Row="1"
+                                 Content="{DynamicResource lab.AppConsolidate}" GroupName="ApplicationFormat"
+                                 IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.Consolidate}}" />
+                    <RadioButton Grid.Column="2" Grid.Row="2"
+                                 Content="{DynamicResource lab.AppNoChange}" GroupName="ApplicationFormat"
+                                 IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.DoNotChange}}" />
 
-            <Label Content="{DynamicResource grp.ApplicationFormat}" FontWeight="Bold"/>
-            <RadioButton Content="{DynamicResource lab.AppConsolidate}" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.Consolidate}}" Margin="38,4,0,0"/>
-            <RadioButton Content="{DynamicResource lab.AppNoChange}" GroupName="ApplicationFormat" IsChecked="{Binding ApplicationFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ApplicationFormat.DoNotChange}}" Margin="38,4,0,0"/>
+                    <Label Grid.ColumnSpan="3" Grid.Row="4"
+                           Content="{DynamicResource grp.TimeFormat}" />
+                    <RadioButton Grid.Column="2" Grid.Row="5"
+                                 Content="{DynamicResource lab.TimeConvertLocal}" GroupName="TimeFormat"
+                                 IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.ConvertToLocalTime}}" />
+                    <RadioButton Grid.Column="2" Grid.Row="6"
+                                 Content="{DynamicResource lab.TimeNoChange}" GroupName="TimeFormat"
+                                 IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogTimeFormat.DoNotChange}}" />
+
+                    <Label Grid.Column="0" Grid.Row="8"
+                           Content="{DynamicResource lab.Language}" />
+                    <ComboBox Grid.Column="2" Grid.Row="8"
+                              ItemsSource="{Binding Source={controls:EnumBindingSource {x:Type boots:KnownCulture}}}"
+                              SelectedValue="{Binding Path=(local:App.CurrentCulture)}" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="{DynamicResource grp.Connection}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="1" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="1" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.ColumnSpan="3" Grid.Row="0"
+                           Content="{DynamicResource grp.NetworkProtocol}" />
+                    <RadioButton Grid.Column="2" Grid.Row="1"
+                                 Content="{DynamicResource lab.Udp}" GroupName="ConnectionType"
+                                 IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Udp}}" />
+                    <RadioButton Grid.Column="2" Grid.Row="2"
+                                 Content="{DynamicResource lab.Tcp}" GroupName="ConnectionType"
+                                 IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:ConnectionType.Tcp}}" />
+
+                    <Label Grid.Column="0" Grid.Row="4"
+                           Content="{DynamicResource lab.Port}" />
+                    <TextBox Grid.Column="2" Grid.Row="4"
+                             Width="100" HorizontalAlignment="Left"
+                             Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{DynamicResource msg.Port}" />
+
+                    <Label Grid.ColumnSpan="3" Grid.Row="6"
+                           Content="{DynamicResource grp.SourceType}" />
+                    <RadioButton Grid.Column="2" Grid.Row="7"
+                                 Content="{DynamicResource lab.Log4j}" GroupName="Source"
+                                 IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Chainsaw}}" />
+                    <RadioButton Grid.Column="2" Grid.Row="8"
+                                 Content="{DynamicResource lab.Logcat}" GroupName="Source"
+                                 IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static common:LogType.Logcat}}" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="{DynamicResource grp.General}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <CheckBox Margin="7,6,0,5" Content="{DynamicResource lab.CheckUpdate}" />
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button Content="{DynamicResource cmd.Save}" Command="{Binding AcceptChangesCommand}" Width="80" />
+            <Button Content="{DynamicResource cmd.Cancel}" Command="{Binding CancelChangesCommand}" Width="80" Margin="5,0,2,0" />
         </StackPanel>
-        <StackPanel VerticalAlignment="Bottom" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="{DynamicResource cmd.Cancel}" Command="{Binding CancelChangesCommand}" Margin="0,0,4,0" Width="80"/>
-            <Button Content="{DynamicResource cmd.Save}" Command="{Binding AcceptChangesCommand}" Width="80"/>
-        </StackPanel>
-    </Grid>
+    </DockPanel>
 </Window>

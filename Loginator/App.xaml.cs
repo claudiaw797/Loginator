@@ -39,6 +39,11 @@ namespace Loginator {
                 .Build();
         }
 
+        public static KnownCulture CurrentCulture {
+            get => stringResources.CurrentCulture;
+            set => stringResources.SetCulture(value);
+        }
+
         protected override async void OnStartup(StartupEventArgs e) {
             try {
                 // Exception handlers
@@ -92,13 +97,8 @@ namespace Loginator {
             base.OnExit(e);
         }
 
-        public static KnownCulture CurrentCulture => stringResources.CurrentCulture;
-
         internal static string? GetStringResource(string key) =>
             Current.FindResource(key)?.ToString();
-
-        internal static void LoadStringResources(KnownCulture nextCulture) =>
-            stringResources.SetCulture(nextCulture);
 
         private static Exception GetInnerException(Exception exception) {
             return exception.InnerException is null

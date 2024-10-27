@@ -19,16 +19,20 @@
 
     <!-- settings dialog -->
     <s:String x:Key="grp.Settings">Configuration</s:String>
+    <s:String x:Key="grp.Connection">Connection</s:String>
 
-    <s:String x:Key="grp.ConnectionType">Connection type</s:String>
+    <s:String x:Key="grp.NetworkProtocol">Network protocol</s:String>
     <s:String x:Key="lab.Udp">UDP</s:String>
     <s:String x:Key="lab.Tcp">TCP</s:String>
 
-    <s:String x:Key="grp.SourceType">Source</s:String>
+    <s:String x:Key="grp.SourceType">Source format</s:String>
     <s:String x:Key="lab.Log4j">Log4j (Chainsaw, NLog, log4net, etc.)</s:String>
     <s:String x:Key="lab.Logcat">Logcat (Android)</s:String>
     <s:String x:Key="lab.Port">Port</s:String>
+    <s:String x:Key="msg.Port">Port log messages are sent to</s:String>
 
+    <s:String x:Key="grp.Display">Display</s:String>
+    <s:String x:Key="lab.Language">Language</s:String>
     <s:String x:Key="grp.TimeFormat">Time format</s:String>
     <s:String x:Key="lab.TimeConvertLocal">Convert to local time</s:String>
     <s:String x:Key="lab.TimeNoChange">Do not change</s:String>
@@ -36,6 +40,9 @@
     <s:String x:Key="grp.ApplicationFormat">Application format</s:String>
     <s:String x:Key="lab.AppConsolidate">Consolidate processes</s:String>
     <s:String x:Key="lab.AppNoChange">Do not change</s:String>
+
+    <s:String x:Key="grp.General">General</s:String>
+    <s:String x:Key="lab.CheckUpdate">Check for new updates on startup</s:String>
 
     <s:String x:Key="cmd.Save">Save</s:String>
     <s:String x:Key="cmd.Cancel">Cancel</s:String>

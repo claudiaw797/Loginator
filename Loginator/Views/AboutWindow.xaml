@@ -8,9 +8,8 @@
         mc:Ignorable="d" 
         d:DataContext="{d:DesignInstance Type=model:AssemblyInfo}"
         DataContext="{Binding AssemblyInfo, Source={StaticResource Locator}}"
-        Icon="../Resources/icon.ico"
-        Title="{DynamicResource grp.About}" ResizeMode="NoResize"
-        SizeToContent="WidthAndHeight"
+        Icon="../Resources/icon.ico" Title="{DynamicResource grp.About}"
+        ResizeMode="NoResize" SizeToContent="WidthAndHeight"
         KeyUp="OnKeyUp_Window">
 
     <Border Margin="5" Padding="15,15,16,13" Background="Gainsboro">
@@ -82,7 +81,7 @@
             <StackPanel Grid.Column="1" Grid.Row="5"
                         Orientation="Horizontal" >
                 <TextBlock Margin="0,0,4,0"
-                            Text="{DynamicResource msg.ProductSource}" />
+                           Text="{DynamicResource msg.ProductSource}" />
                 <TextBlock>
                     <Hyperlink NavigateUri="{Binding SourceUrl}">Github</Hyperlink>
                 </TextBlock>
