@@ -8,7 +8,7 @@
         mc:Ignorable="d" 
         d:DataContext="{d:DesignInstance Type=model:AssemblyInfo}"
         DataContext="{Binding AssemblyInfo, Source={StaticResource Locator}}"
-        Icon="../Resources/icon.ico" Title="{DynamicResource grp.About}"
+        Icon="../Resources/statusInformation.png" Title="{DynamicResource grp.About}"
         ResizeMode="NoResize" SizeToContent="WidthAndHeight"
         KeyUp="OnKeyUp_Window">
 

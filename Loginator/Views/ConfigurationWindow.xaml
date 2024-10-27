@@ -11,7 +11,7 @@
         mc:Ignorable="d" 
         d:DataContext="{d:DesignInstance Type=viewmodels:ConfigurationViewModel}"
         DataContext="{Binding ConfigurationViewModel, Source={StaticResource Locator}}"
-        Icon="../Resources/icon.ico" Title="{DynamicResource grp.Settings}"
+        Icon="../Resources/settings.png" Title="{DynamicResource grp.Settings}"
         ResizeMode="NoResize" SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterScreen" MinWidth="293" MinHeight="275">
 

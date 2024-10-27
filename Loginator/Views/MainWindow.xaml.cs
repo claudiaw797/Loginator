@@ -48,7 +48,7 @@ namespace Loginator.Views {
 
         public ScrollViewerBehavior.RowResize GridRowBehavior => new(SplitterRow, SelectedLogRow, 250);
 
-        private async Task CheckForNewVersion() {
+        internal async Task CheckForNewVersion() {
             try {
                 var path = $"{assemblyInfo.RawUrl}/AssemblyInfo.json";
                 using var webClient = new HttpClient();

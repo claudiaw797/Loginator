@@ -33,5 +33,10 @@ namespace Loginator.Views {
         private void OnClick_Settings(object sender, RoutedEventArgs e) {
             new ConfigurationWindow().ShowDialog();
         }
+
+        private async void OnClick_CheckForUpdate(object sender, RoutedEventArgs e) {
+            var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+            if (mainWindow is not null) await mainWindow.CheckForNewVersion();
+        }
     }
 }

@@ -11,9 +11,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icon.ico" />
-    <Resource Include="Resources\icon.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Resources\icon.png" />
+    <Resource Include="Resources\mainMenuControl.png" />
+    <Resource Include="Resources\settings.png" />
+    <Resource Include="Resources\statusInformation.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config\appsettings.json">

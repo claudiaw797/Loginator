@@ -13,7 +13,9 @@
     <s:String x:Key="cmd.Clear">Suche löschen</s:String>
     <s:String x:Key="cmd.Invert">Umkehren</s:String>
     <s:String x:Key="cmd.Settings">Konfigurieren...</s:String>
+    <s:String x:Key="cmd.CheckUpdate">Nach Aktualisierungen suchen</s:String>
     <s:String x:Key="cmd.About">Info</s:String>
+
     <s:String x:Key="cmd.English">Englisch</s:String>
     <s:String x:Key="cmd.German">Deutsch</s:String>
 
