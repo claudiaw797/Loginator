@@ -1,25 +1,26 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Common;
-using Common.Configuration;
-using Common.Exceptions;
-using Loginator.Bootstrapper;
-using Loginator.Controls;
-using Loginator.Views;
+using Loginator.Application.Option;
+using Loginator.Application.Service;
+using Loginator.Gui.WPF.Common;
+using Loginator.Gui.WPF.View;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
 using NLog.Config;
 using NLog.Extensions.Hosting;
 using System;
+using System.Linq;
 using System.Windows;
+using static Loginator.Gui.WPF.HostBuilderContextExtensions;
+using WindowsApplication = System.Windows.Application;
 
-namespace Loginator {
+namespace Loginator.Gui.WPF {
 
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application {
+    public partial class App : WindowsApplication {
 
         private const string nlogConfig = "Config/nlog.config";
         private const string nlogDevConfig = "Config/nlog.Development.config";
@@ -34,8 +35,8 @@ namespace Loginator {
 
             host = Host
                 .CreateDefaultBuilder()
-                .ConfigureAppConfiguration(DiBootstrapperFrontend.ConfigureAppSettings)
-                .ConfigureServices(DiBootstrapperFrontend.Initialize)
+                .ConfigureAppConfiguration(ConfigureAppSettings)
+                .ConfigureServices(ConfigureAppServices)
                 .UseNLog()
                 .Build();
         }
@@ -99,20 +100,20 @@ namespace Loginator {
         internal static string? GetStringResource(string key) =>
             Current.FindResource(key)?.ToString();
 
-        private static Exception GetInnerException(Exception exception) {
-            return exception.InnerException is null
+        internal static TWindow? GetCurrent<TWindow>() where TWindow : Window =>
+            Current.Windows.OfType<TWindow>().FirstOrDefault();
+
+        private static Exception GetInnerException(Exception exception) =>
+            exception.InnerException is null
                 ? exception
                 : GetInnerException(exception.InnerException);
-        }
 
-        private static void HandleException(Exception? exception) {
-            var message = exception is LoginatorException ? exception.Message : exception?.ToString();
-            MessageBox.Show(message,
+        private static void HandleException(Exception? exception) =>
+            MessageBox.Show(exception?.ToString(),
                 "Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Stop,
                 MessageBoxResult.OK);
-        }
 
         private static Logger SetupLogging() {
             var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");

@@ -2,20 +2,18 @@
 
 using System.Text.RegularExpressions;
 
-namespace Common {
+namespace Loginator.Domain.Common {
 
     public static partial class Constants {
 
-        public const int DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL = 1000;
+        public const string NamespaceSplitter = ".";
 
-        public const string STRING_NEWLINE = "\n";
+        public const string NamespaceDefault = "Global (namespace)";
+        public const string ApplicationDefault = "Global (application)";
 
-        public const string NAMESPACE_SPLITTER = ".";
-        public const string NAMESPACE_LOGCAT = "Logcat";
-        public const string NAMESPACE_GLOBAL = "Global (namespace)";
-        public const string APPLICATION_GLOBAL = "Global (application)";
+        public const string NamespaceLogcat = "Logcat";
 
         [GeneratedRegex(@"^(?<app>.+)\((?<pid>[^)]+)\)\s*$", RegexOptions.Compiled)]
-        public static partial Regex RegexLog4jApp();
+        public static partial Regex Log4jAppRegex();
     }
 }

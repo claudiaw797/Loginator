@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Backend.Server {
+namespace Loginator.Infrastructure.Server {
 
     internal sealed class UdpSocket : AbstractSocket {
 

@@ -3,8 +3,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:viewModels="clr-namespace:Loginator.ViewModels"
-                    xmlns:converter="clr-namespace:Loginator.Converter"
+                    xmlns:viewModel="clr-namespace:Loginator.Application.ViewModel"
+                    xmlns:converter="clr-namespace:Loginator.Gui.WPF.Converter"
                     mc:Ignorable="d">
 
     <Style TargetType="{x:Type Control}" x:Key="BaseStyle">
@@ -38,5 +38,5 @@
     <converter:StringToIntConverter x:Key="StringToIntConverter" />
     <converter:TimestampConverter x:Key="TimestampConverter" />
 
-    <viewModels:ViewModelLocator x:Key="Locator" d:IsDataSource="True"/>
+    <viewModel:ViewModelLocator x:Key="Locator" d:IsDataSource="True"/>
 </ResourceDictionary>

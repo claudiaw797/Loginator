@@ -5,14 +5,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
-namespace Loginator.Controls {
+namespace Loginator.Gui.WPF.Control {
 
     public static class ScrollViewerBehavior {
 
         #region RowResize (Attached Property)
         public static readonly DependencyProperty RowResizeProperty =
             DependencyProperty.RegisterAttached(
-                DependencyPropertyConstants.ROW_RESIZE_PROPERTY,
+                "RowResize",
                 typeof(RowResize),
                 typeof(ScrollViewerBehavior),
                 new PropertyMetadata(null, OnBehaviorChanged));

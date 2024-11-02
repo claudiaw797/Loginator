@@ -1,12 +1,12 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
-using Loginator.ViewModels;
+using Loginator.Application.ViewModel;
+using Loginator.Domain.Model;
 using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace Loginator.Converter {
+namespace Loginator.Gui.WPF.Converter {
 
     public class ViewModelToLogConverter : IValueConverter {
 

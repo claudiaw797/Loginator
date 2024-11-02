@@ -7,9 +7,11 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Backend.Server {
+namespace Loginator.Infrastructure.Server {
 
-    internal class AsyncEnumerablePooledBytes<T>(AbstractSocket socket, ILogger<T> logger) : IAsyncEnumerable<PooledBytes> {
+    internal class AsyncEnumerablePooledBytes<T>(
+        AbstractSocket socket,
+        ILogger<T> logger) : IAsyncEnumerable<PooledBytes> {
 
         private readonly AbstractSocket socket = socket;
         private readonly ILogger<T> logger = logger;

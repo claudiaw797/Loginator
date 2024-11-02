@@ -1,35 +1,32 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
-using Common;
-using Common.Configuration;
+using Loginator.Application.Option;
+using Loginator.Application.Service;
 using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace Loginator.Converter {
+namespace Loginator.Gui.WPF.Converter {
 
     public class TimestampConverter : IValueConverter {
 
-        private readonly IOptionsMonitor<Configuration> configuration;
+        private readonly IOptionsMonitor<ApplicationOptions> optionsMonitor;
 
-        public TimestampConverter()
-        {
+        public TimestampConverter() {
             // TODO: get it injected
-            this.configuration = IoC.Get<IOptionsMonitor<Configuration>>(); 
+            this.optionsMonitor = IoC.Get<IOptionsMonitor<ApplicationOptions>>();
         }
 
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
-            var converted = value is DateTimeOffset d && configuration.CurrentValue.LogTimeFormat == LogTimeFormat.ConvertToLocalTime
+            var converted = value is DateTimeOffset d && optionsMonitor.CurrentValue.LogTimeFormat == LogTimeFormat.ConvertToLocalTime
                 ? d.ToLocalTime()
                 : value;
 
             return converted;
         }
 
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) {
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
             throw new NotImplementedException();
-        }
     }
 }

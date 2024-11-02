@@ -1,6 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-namespace Backend.Model {
+namespace Loginator.Domain.Model {
 
     public record LocationInfo {
 

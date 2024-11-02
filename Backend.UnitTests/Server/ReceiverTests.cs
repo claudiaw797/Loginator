@@ -1,12 +1,10 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using Backend.Converter;
-using Backend.Model;
-using Backend.Server;
-using Common;
-using Common.Configuration;
 using FakeItEasy;
 using FluentAssertions;
+using Loginator.Domain.Option;
+using Loginator.Infrastructure.Converter;
+using Loginator.Infrastructure.Server;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -15,15 +13,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using static Backend.UnitTests.Server.ReceiverTestData;
+using static Loginator.Infrastructure.UnitTests.Server.LogRepositoryTestData;
 
-namespace Backend.UnitTests.Server {
+namespace Loginator.Infrastructure.UnitTests.Server {
 
     /// <summary>
-    /// Represents unit tests for <see cref="Receiver"/>.
+    /// Represents unit tests for <see cref="LogRepository"/>.
     /// </summary>
     [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
-    public class ReceiverTests {
+    public class LogRepositoryTests {
 
         private const string EMPTY_LOG = "<event></event>";
         private const string NO_LOG = "no log";
@@ -31,9 +29,9 @@ namespace Backend.UnitTests.Server {
 
         private readonly AbstractSocket socket;
         private readonly SocketServer socketServer;
-        private readonly Receiver sut;
+        private readonly LogRepository sut;
 
-        public ReceiverTests() {
+        public LogRepositoryTests() {
             socket = A.Fake<AbstractSocket>();
             socketServer = new();
             sut = Sut();
@@ -83,7 +81,7 @@ namespace Backend.UnitTests.Server {
         public async Task Can_convert_valid_log4j_strings_to_logs() {
             socketServer.SetReturnValues(ValidLogMessages().ToArray());
 
-            await foreach (var actual in sut.ReadAsync(0, socketServer.CancellationToken)) {
+            await foreach (var actual in sut.GetEnumerableAsync(0, socketServer.CancellationToken)) {
                 actual.Should().Be(ValidLog, new LogComparer());
             }
         }
@@ -94,7 +92,7 @@ namespace Backend.UnitTests.Server {
             var expectedEndpoint = new IPEndPoint(IPAddress.Any, expectedPort);
             socketServer.SetReturnValues(EMPTY_LOG, NO_LOG, EMPTY_LOG);
 
-            await foreach (var _ in sut.ReadAsync(expectedPort, socketServer.CancellationToken)) {
+            await foreach (var _ in sut.GetEnumerableAsync(expectedPort, socketServer.CancellationToken)) {
             }
 
             A.CallTo(() => socket.Bind(An<EndPoint>.That.IsEqualTo(expectedEndpoint)))
@@ -104,14 +102,14 @@ namespace Backend.UnitTests.Server {
         private async Task AssertCancellation(int expectedCallCount) {
             var actualCallCount = 0;
 
-            await foreach (var _ in sut.ReadAsync(0, socketServer.CancellationToken)) {
+            await foreach (var _ in sut.GetEnumerableAsync(0, socketServer.CancellationToken)) {
                 if (++actualCallCount == expectedCallCount) socketServer.Cancel();
             }
 
             actualCallCount.Should().Be(expectedCallCount);
         }
 
-        private Receiver Sut() {
+        private LogRepository Sut() {
             A.CallTo(() => socket.Accept())
                 .Returns(socket);
             A.CallTo(() => socket.IsConnected(A<Socket>._, A<CancellationToken>._))
@@ -119,21 +117,16 @@ namespace Backend.UnitTests.Server {
             A.CallTo(() => socket.ReceiveAsync(A<Memory<byte>>._, A<SocketFlags>._, A<CancellationToken>._))
                 .ReturnsLazily(socketServer.FillMemoryAndReturnLength).NumberOfTimes(1000);
 
-            var config = new Configuration {
-                AllowAnonymousLogs = true,
-                ApplicationFormat = ApplicationFormat.Consolidate
+            var config = new LogProcessingOptions {
+                AllowAnonymousMessages = true,
+                ApplicationFormat = ApplicationFormat.Consolidate,
+                TraceMessages = true
             };
-            var configDao = A.Fake<IOptionsMonitor<Configuration>>();
+            var configDao = A.Fake<IOptionsMonitor<LogProcessingOptions>>();
             A.CallTo(() => configDao.CurrentValue).Returns(config);
 
-            var appConfig = new ApplicationConfiguration {
-                IsMessageTraceEnabled = true
-            };
-            var appConfigDao = A.Fake<IOptionsMonitor<ApplicationConfiguration>>();
-            A.CallTo(() => appConfigDao.CurrentValue).Returns(appConfig);
-
-            var converter = new ChainsawToLogConverter(configDao, A.Fake<ILogger<ChainsawToLogConverter>>());
-            return new Receiver(socket, converter, appConfigDao, A.Fake<ILogger<Receiver>>());
+            var converter = new Log4jConversionFactory(configDao, A.Fake<ILogger<Log4jConversionFactory>>());
+            return new LogRepository(socket, converter, configDao, A.Fake<ILogger<LogRepository>>());
         }
     }
 }

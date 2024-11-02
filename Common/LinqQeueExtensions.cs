@@ -1,15 +1,18 @@
-﻿using System;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Common {
-    public static class LinqExtensions {
+namespace Loginator.Application.Common {
+
+    internal static class EnumerableExtensions {
 
         public static IEnumerable<T> Flatten<T>(
-            this IEnumerable<T> e,
-            Func<T, IEnumerable<T>> f) {
-            IEnumerable<T> enumerable = e as T[] ?? e.ToArray();
-            return enumerable.SelectMany(c => f(c).Flatten(f)).Concat(enumerable);
+            this IEnumerable<T> enumerable,
+            Func<T, IEnumerable<T>> getMany) {
+            IEnumerable<T> array = enumerable as T[] ?? enumerable.ToArray();
+            return array.SelectMany(c => getMany(c).Flatten(getMany)).Concat(array);
         }
     }
 }

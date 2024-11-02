@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace Loginator.Views {
+namespace Loginator.Gui.WPF.View {
 
     /// <summary>
     /// Interaction logic for ApplicationsView.xaml

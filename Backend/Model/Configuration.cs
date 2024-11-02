@@ -1,14 +1,14 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Common;
-using Microsoft.Extensions.Configuration;
+using Loginator.Domain.Option;
+using Loginator.Infrastructure.Option;
 using System.Text.Json.Serialization;
 
-namespace Backend.Model {
+namespace Loginator.Application.Option {
 
-    public sealed class Configuration {
+    public sealed class ApplicationOptions {
 
-        public const string SectionName = "UserSettings";
+        public const string SectionName = "Application";
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ConnectionType ConnectionType { get; set; }
@@ -18,23 +18,16 @@ namespace Backend.Model {
 
         public int Port { get; set; }
 
-        public bool AllowAnonymousLogs { get; set; }
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public LogTimeFormat LogTimeFormat { get; set; }
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ApplicationFormat ApplicationFormat { get; set; }
-
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public KnownCulture Language { get; set; }
 
         public bool CheckForUpdateOnStartup { get; set; }
-    }
 
-    public static class ConfigurationExtensions {
+        public bool TracePerformance { get; set; }
 
-        public static Configuration GetUserSettings(this IConfiguration configuration)
-            => configuration.GetSection(Configuration.SectionName).Get<Configuration>() ?? new Configuration();
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public LogTimeFormat LogTimeFormat { get; set; }
+
+        public LogProcessingOptions LogProcessing { get; set; } = new();
     }
 }

@@ -7,5 +7,5 @@
     "License": "GNU General Public License, Version 3",
     "DownloadUrl": "https://github.com/claudiaw797/Loginator/releases",
     "SourceUrl": "https://github.com/claudiaw797/Loginator",
-    "RawUrl": "https://raw.githubusercontent.com/claudiaw797/Loginator/master/Loginator"
+    "AssemblyInfoPath": "tree/develop/Loginator/Resources/AssemblyInfo.json"
 }

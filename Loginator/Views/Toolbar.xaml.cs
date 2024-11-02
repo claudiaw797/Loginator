@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Loginator.Views {
+namespace Loginator.Gui.WPF.View {
 
     /// <summary>
     /// Interaction logic for Toolbar.xaml
@@ -25,7 +25,7 @@ namespace Loginator.Views {
         }
 
         private void OnClick_About(object sender, RoutedEventArgs e) {
-            var aboutWindow = Application.Current.Windows.OfType<AboutWindow>().FirstOrDefault();
+            var aboutWindow = App.GetCurrent<AboutWindow>();
             if (aboutWindow is null) new AboutWindow().Show();
             else aboutWindow.Focus();
         }
@@ -35,7 +35,7 @@ namespace Loginator.Views {
         }
 
         private async void OnClick_CheckForUpdate(object sender, RoutedEventArgs e) {
-            var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+            var mainWindow = App.GetCurrent<MainWindow>();
             if (mainWindow is not null) await mainWindow.CheckForNewVersion();
         }
     }

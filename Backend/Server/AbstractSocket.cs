@@ -7,16 +7,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Backend.Server {
+namespace Loginator.Infrastructure.Server {
 
-    internal abstract class AbstractSocket {
+    internal abstract class AbstractSocket(Socket socket) {
 
-        private static readonly byte[] PING_BYTES = Encoding.UTF8.GetBytes("ping");
+        private static readonly byte[] PingBytes = Encoding.UTF8.GetBytes("ping");
 
-        protected readonly Socket socket;
-
-        protected AbstractSocket(Socket socket) =>
-            this.socket = socket;
+        protected readonly Socket socket = socket;
 
         public static implicit operator Socket(AbstractSocket s) =>
             s.socket;
@@ -40,8 +37,8 @@ namespace Backend.Server {
             socket.ReceiveAsync(buffer, socketFlags, cancelToken);
 
         public virtual async Task<bool> IsConnected(Socket socket, CancellationToken cancelToken) {
-            int count = await socket.SendAsync(PING_BYTES, cancelToken);
-            return count == PING_BYTES.Length && socket.Connected;
+            int count = await socket.SendAsync(PingBytes, cancelToken);
+            return count == PingBytes.Length && socket.Connected;
         }
     }
 }

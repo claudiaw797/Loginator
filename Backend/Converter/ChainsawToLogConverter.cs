@@ -1,7 +1,8 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Model;
-using Common;
+using Loginator.Domain.Converter;
+using Loginator.Domain.Model;
+using Loginator.Domain.Option;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -10,19 +11,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using static Common.Constants;
+using static Loginator.Domain.Common.Constants;
+using LogLevel = Loginator.Domain.Model.LogLevel;
 
-namespace Backend.Converter {
+namespace Loginator.Infrastructure.Converter {
 
-    public class ChainsawToLogConverter : ILogConverter {
-
-        private readonly ILogger<ChainsawToLogConverter> logger;
-        private readonly IOptionsMonitor<Configuration> configuration;
-
-        public ChainsawToLogConverter(IOptionsMonitor<Configuration> configuration, ILogger<ChainsawToLogConverter> logger) {
-            this.logger = logger;
-            this.configuration = configuration;
-        }
+    public class Log4jConversionFactory(
+        IOptionsMonitor<LogProcessingOptions> optionsMonitor,
+        ILogger<Log4jConversionFactory> logger) : ILogConversionFactory {
 
         /*
             <log4j:event logger="WorldDirect.ChimneySweeper.Server.ChimneyService.BaseApplication" level="INFO" timestamp="1439817232886" thread="1">
@@ -46,7 +42,7 @@ namespace Backend.Converter {
                 var logs = ReadEvents(stream, checkNamespace: true);
 
                 // if no log was found and settings allow it => read without namespace check
-                if (logs.Length == 0 && configuration.CurrentValue.AllowAnonymousLogs) {
+                if (logs.Length == 0 && optionsMonitor.CurrentValue.AllowAnonymousMessages) {
                     logs = ReadEvents(stream, checkNamespace: false);
                 }
 
@@ -60,7 +56,7 @@ namespace Backend.Converter {
 
         private Log[] ReadEvents(Stream stream, bool checkNamespace) {
             stream.Position = 0;
-            using var xmlReader = new ChainSawLogReader(stream, checkNamespace, configuration.CurrentValue.ApplicationFormat);
+            using var xmlReader = new ChainSawLogReader(stream, checkNamespace, optionsMonitor.CurrentValue.ApplicationFormat);
             return xmlReader.ReadLogs().ToArray();
         }
 
@@ -114,17 +110,10 @@ namespace Backend.Converter {
                 }
             }
 
-            private static string? InsertIntoMessage(string? message, string? text, bool append = true, string separator = " ") =>
-                string.IsNullOrWhiteSpace(text)
-                    ? message
-                    : string.IsNullOrWhiteSpace(message)
-                    ? text
-                    : append ? $"{message}{separator}{text}" : $"{text}{separator}{message}";
-
             private static void ParseApplication(Log log, IEnumerable<Property> properties, bool dontChange) {
                 var property = properties.FirstOrDefault(m => m.Name == LOG4J_APP)?.Value;
                 if (property is not null) {
-                    var application = RegexLog4jApp().Match(property);
+                    var application = Log4jAppRegex().Match(property);
                     if (application.Success) {
                         log.Application = application.Groups["app"].Value.Trim();
                         log.Process = application.Groups["pid"].Value.Trim();
@@ -147,7 +136,7 @@ namespace Backend.Converter {
                             log.Namespace = xmlReader.Value;
                             break;
                         case "level":
-                            log.Level = LoggingLevel.FromName(xmlReader.Value);
+                            log.Level = LogLevel.FromName(xmlReader.Value);
                             break;
                         case "timestamp":
                             var timestamp = long.Parse(xmlReader.Value);
@@ -174,7 +163,7 @@ namespace Backend.Converter {
                                 log.Context = ReadElementContent();
                                 break;
                             case "MDC":
-                                log.AddProperties(ReadDataTags(log));
+                                log.AddProperties(ReadDataTags());
                                 break;
                             case "properties":
                                 ReadPropertiesContent(log);
@@ -203,7 +192,7 @@ namespace Backend.Converter {
                 return string.IsNullOrWhiteSpace(content) ? null : content.Trim();
             }
 
-            private IEnumerable<Property> ReadDataTags(Log log) {
+            private List<Property> ReadDataTags() {
                 var properties = new List<Property>();
                 if (HasDescendant(DATA_TAG)) {
                     do {
@@ -217,7 +206,7 @@ namespace Backend.Converter {
             }
 
             private void ReadPropertiesContent(Log log) {
-                var properties = ReadDataTags(log);
+                var properties = ReadDataTags();
 
                 ParseApplication(log, properties, applicationFormat != ApplicationFormat.Consolidate);
                 ParseMachineName(log, properties);

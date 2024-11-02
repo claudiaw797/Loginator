@@ -1,12 +1,12 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Model;
+using Loginator.Domain.Model;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Backend.Converter {
+namespace Loginator.Domain.Converter {
 
-    public interface ILogConverter {
+    public interface ILogConversionFactory {
 
         IReadOnlyCollection<Log> Convert(string text);
 

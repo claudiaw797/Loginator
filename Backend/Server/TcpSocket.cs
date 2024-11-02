@@ -2,7 +2,7 @@
 
 using System.Net.Sockets;
 
-namespace Backend.Server {
+namespace Loginator.Infrastructure.Server {
 
     internal sealed class TcpSocket : AbstractSocket {
 

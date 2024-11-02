@@ -1,21 +1,21 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
 using FakeItEasy.Core;
+using Loginator.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static Backend.UnitTests.Converter.ChainsawToLogConverterTestData;
+using static Loginator.Infrastructure.UnitTests.Converter.Log4jConversionFactoryTestData;
 
-namespace Backend.UnitTests.Server {
+namespace Loginator.Infrastructure.UnitTests.Server {
 
     /// <summary>
-    /// Represents test data for <see cref="ReceiverTests"/>.
+    /// Represents test data for <see cref="LogRepositoryTests"/>.
     /// </summary>
-    internal class ReceiverTestData {
+    internal class LogRepositoryTestData {
 
         public static string ValidLogMessage() {
             var input = Log4JDefault(false, false, false, SaveOptions.None);
@@ -86,7 +86,7 @@ namespace Backend.UnitTests.Server {
                 return new(memory.Length);
             }
 
-            public ValueTask<int> WaitUntilCanceled(IFakeObjectCall call) {
+            public ValueTask<int> WaitUntilCanceled(IFakeObjectCall _) {
                 var tcs = new TaskCompletionSource<int>();
                 Task.Factory.StartNew(async () => {
                     await Task.Delay(Timeout.Infinite, CancellationToken);

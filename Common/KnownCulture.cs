@@ -1,6 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-namespace Common {
+namespace Loginator.Application.Option {
 
     public enum KnownCulture {
         English,

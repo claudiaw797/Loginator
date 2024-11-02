@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Loginator.Controls {
+namespace Loginator.Application.Service {
 
     public class StopwatchDisabled : IStopwatch {
 

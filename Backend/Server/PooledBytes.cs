@@ -4,7 +4,7 @@ using System;
 using System.Buffers;
 using System.IO;
 
-namespace Backend.Server {
+namespace Loginator.Infrastructure.Server {
 
     internal sealed class PooledBytes : IDisposable {
 

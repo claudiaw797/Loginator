@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace Loginator.Controls {
+namespace Loginator.Gui.WPF.Control {
 
     public class MenuItemGroup : MenuItem {
 

@@ -1,7 +1,9 @@
-using Backend.Model;
+// Copyright (C) 2024 Claudia Wagner
+
+using Loginator.Domain.Model;
 using System.Linq;
 
-namespace Loginator.UnitTests.ViewModels {
+namespace Loginator.Application.UnitTests.ViewModel {
 
     /// <summary>
     /// Represents test data for view model tests.
@@ -9,13 +11,13 @@ namespace Loginator.UnitTests.ViewModels {
     internal class TestData {
 
         public static readonly object[] AllLogLevels = [
-            new object[] { LoggingLevel.NOT_SET },
-            new object[] { LoggingLevel.TRACE },
-            new object[] { LoggingLevel.DEBUG },
-            new object[] { LoggingLevel.INFO },
-            new object[] { LoggingLevel.WARN },
-            new object[] { LoggingLevel.ERROR },
-            new object[] { LoggingLevel.FATAL },
+            new object[] { LogLevel.NOT_SET },
+            new object[] { LogLevel.TRACE },
+            new object[] { LogLevel.DEBUG },
+            new object[] { LogLevel.INFO },
+            new object[] { LogLevel.WARN },
+            new object[] { LogLevel.ERROR },
+            new object[] { LogLevel.FATAL },
         ];
 
         public static readonly object[] ValidLogLevels =

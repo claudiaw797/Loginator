@@ -1,8 +1,9 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Backend.Converter;
-using Backend.Model;
-using Common.Configuration;
+using Loginator.Domain.Converter;
+using Loginator.Domain.Model;
+using Loginator.Domain.Option;
+using Loginator.Domain.Server;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
@@ -13,34 +14,34 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Backend.Server {
+namespace Loginator.Infrastructure.Server {
 
-    public sealed class Receiver : IReceiver {
+    internal sealed class LogRepository : ILogRepository {
 
         private readonly AbstractSocket socket;
-        private readonly ILogConverter converter;
-        private readonly IOptionsMonitor<ApplicationConfiguration> applicationConfiguration;
-        private readonly ILogger<Receiver> logger;
+        private readonly ILogConversionFactory conversionFactory;
+        private readonly IOptionsMonitor<LogProcessingOptions> optionsMonitor;
+        private readonly ILogger<LogRepository> logger;
 
-        internal Receiver(AbstractSocket socket, ILogConverter converter, IOptionsMonitor<ApplicationConfiguration> applicationConfiguration, ILogger<Receiver> logger) {
+        internal LogRepository(AbstractSocket socket, ILogConversionFactory conversionFactory, IOptionsMonitor<LogProcessingOptions> optionsMonitor, ILogger<LogRepository> logger) {
             this.socket = socket;
-            this.converter = converter;
-            this.applicationConfiguration = applicationConfiguration;
+            this.conversionFactory = conversionFactory;
+            this.optionsMonitor = optionsMonitor;
             this.logger = logger;
         }
 
-        public async IAsyncEnumerable<Log> ReadAsync(int port, [EnumeratorCancellation] CancellationToken cancelToken) {
+        public async IAsyncEnumerable<Log> GetEnumerableAsync(int port, [EnumeratorCancellation] CancellationToken cancelToken) {
             using var cancelReg = cancelToken.Register(() => socket.Close());
 
             socket.Bind(new IPEndPoint(IPAddress.Any, port));
             socket.Listen();
 
-            await foreach (var pooledBytes in new AsyncEnumerablePooledBytes<Receiver>(socket, logger)
+            await foreach (var pooledBytes in new AsyncEnumerablePooledBytes<LogRepository>(socket, logger)
                 .WithCancellation(cancelToken)) {
                 try {
-                    LogReceivedText(pooledBytes);
+                    TraceMessage(pooledBytes);
 
-                    foreach (var log in converter.Convert(pooledBytes).Where(l => l != Log.DEFAULT)) {
+                    foreach (var log in conversionFactory.Convert(pooledBytes).Where(l => l != Log.DEFAULT)) {
                         yield return log;
                     }
                 }
@@ -50,8 +51,8 @@ namespace Backend.Server {
             };
         }
 
-        private void LogReceivedText(Stream stream) {
-            if (applicationConfiguration.CurrentValue.IsMessageTraceEnabled) {
+        private void TraceMessage(Stream stream) {
+            if (optionsMonitor.CurrentValue.TraceMessages) {
                 Task.Run(() => {
                     var receivedText = new StreamReader(stream).ReadToEnd();
                     logger.LogTrace(receivedText);

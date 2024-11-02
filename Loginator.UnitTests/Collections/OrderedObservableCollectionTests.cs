@@ -1,14 +1,14 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
 using FluentAssertions;
-using Loginator.Collections;
+using Loginator.Application.Common;
+using Loginator.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
-namespace Loginator.UnitTests.Collections {
+namespace Loginator.Application.UnitTests.Common {
 
     /// <summary>
     /// Represents unit tests for <see cref="OrderedObservableCollection"/>.

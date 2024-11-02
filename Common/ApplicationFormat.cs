@@ -1,6 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-namespace Common {
+namespace Loginator.Domain.Option {
 
     public enum ApplicationFormat {
         None,

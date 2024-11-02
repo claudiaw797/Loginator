@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Common.Configuration {
+namespace Loginator.Application.Service {
 
     public class IoC {
 

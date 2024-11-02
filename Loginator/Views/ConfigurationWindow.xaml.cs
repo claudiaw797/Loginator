@@ -1,9 +1,9 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Loginator.ViewModels;
+using Loginator.Application.ViewModel;
 using System.Windows;
 
-namespace Loginator.Views {
+namespace Loginator.Gui.WPF.View {
 
     /// <summary>
     /// Interaction logic for ConfigurationWindow.xaml
@@ -14,7 +14,9 @@ namespace Loginator.Views {
             InitializeComponent();
 
             if (DataContext is ConfigurationViewModel vm) {
-                vm.CloseAction = Close;
+                vm.OnClose = Close;
+                vm.OnError = (k, ex) =>
+                    MessageBox.Show(ex.Message, $"Error {k} configuration changes", MessageBoxButton.OK, MessageBoxImage.Stop, MessageBoxResult.OK);
             }
         }
     }

@@ -1,18 +1,33 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Model;
-using Common;
-using Common.Configuration;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Loginator.Application.Option;
+using Loginator.Domain.Option;
+using Loginator.Infrastructure.Option;
 using System;
-using System.Windows;
 
-namespace Loginator.ViewModels {
+namespace Loginator.Application.ViewModel {
 
     public partial class ConfigurationViewModel : ObservableObject {
 
-        private readonly IWritableOptions<Configuration> configurationDao;
+        private readonly IOptionsRepository<ApplicationOptions> optionsRepository;
+
+        public ConfigurationViewModel(IOptionsRepository<ApplicationOptions> optionsRepository) {
+            this.optionsRepository = optionsRepository;
+
+            var options = optionsRepository.Get();
+            connectionType = options.ConnectionType;
+            logType = options.LogType;
+            port = options.Port.ToString();
+            language = options.Language;
+            checkForUpdateOnStartup = options.CheckForUpdateOnStartup;
+            tracePerformance = options.TracePerformance;
+            logTimeFormat = options.LogTimeFormat;
+            applicationFormat = options.LogProcessing.ApplicationFormat;
+            allowAnonymousMessages = options.LogProcessing.AllowAnonymousMessages;
+            traceMessages = options.LogProcessing.TraceMessages;
+        }
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private ConnectionType connectionType;
@@ -24,73 +39,79 @@ namespace Loginator.ViewModels {
         private string port;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private KnownCulture language;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private bool checkForUpdateOnStartup;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private bool tracePerformance;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private LogTimeFormat logTimeFormat;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private ApplicationFormat applicationFormat;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private KnownCulture language;
+        private bool allowAnonymousMessages;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private bool checkForUpdateOnStartup;
+        private bool traceMessages;
 
-        public Action? CloseAction { get; set; }
+        public Action? OnClose { get; set; }
 
-        public ConfigurationViewModel(IWritableOptions<Configuration> configurationDao) {
-            this.configurationDao = configurationDao;
+        public OnErrorHandler? OnError { get; set; }
 
-            var configuration = configurationDao.Value;
-            connectionType = configuration.ConnectionType;
-            logType = configuration.LogType;
-            port = configuration.Port.ToString();
-            logTimeFormat = configuration.LogTimeFormat;
-            applicationFormat = configuration.ApplicationFormat;
-            language = configuration.Language;
-            checkForUpdateOnStartup = configuration.CheckForUpdateOnStartup;
-        }
 
         [RelayCommand]
         private void CancelChanges() {
             try {
-                CloseAction?.Invoke();
+                this.OnClose?.Invoke();
             }
             catch (Exception ex) {
-                MessageBox.Show(ex.Message, "Error canceling configuration changes", MessageBoxButton.OK, MessageBoxImage.Stop, MessageBoxResult.OK);
+                this.OnError?.Invoke("Canceling", ex);
             }
         }
 
         [RelayCommand(CanExecute = nameof(CanAcceptChanges))]
         private void AcceptChanges() {
             try {
-                configurationDao.Update(c => {
-                    c.ConnectionType = ConnectionType;
-                    c.LogType = LogType;
-                    c.Port = Convert.ToInt32(Port);
-                    c.LogTimeFormat = LogTimeFormat;
-                    c.ApplicationFormat = ApplicationFormat;
-                    c.Language = Language;
-                    c.CheckForUpdateOnStartup = CheckForUpdateOnStartup;
+                optionsRepository.Save(options => {
+                    options.ConnectionType = this.ConnectionType;
+                    options.LogType = this.LogType;
+                    options.Port = Convert.ToInt32(this.Port);
+                    options.Language = this.Language;
+                    options.CheckForUpdateOnStartup = this.CheckForUpdateOnStartup;
+                    options.TracePerformance = this.TracePerformance;
+                    options.LogTimeFormat = this.LogTimeFormat;
+                    options.LogProcessing.ApplicationFormat = this.ApplicationFormat;
+                    options.LogProcessing.AllowAnonymousMessages = this.AllowAnonymousMessages;
+                    options.LogProcessing.TraceMessages = this.TraceMessages;
                 });
 
-                CloseAction?.Invoke();
+                this.OnClose?.Invoke();
             }
             catch (Exception ex) {
-                MessageBox.Show(ex.Message, "Error saving configuration changes", MessageBoxButton.OK, MessageBoxImage.Stop, MessageBoxResult.OK);
+                this.OnError?.Invoke("Saving", ex);
             }
         }
 
         private bool CanAcceptChanges() {
-            var configuration = configurationDao.Value;
+            var options = optionsRepository.Get();
             var result =
-                ConnectionType != configuration.ConnectionType ||
-                LogType != configuration.LogType ||
-                Port != configuration.Port.ToString() ||
-                LogTimeFormat != configuration.LogTimeFormat ||
-                ApplicationFormat != configuration.ApplicationFormat ||
-                Language != configuration.Language ||
-                CheckForUpdateOnStartup != configuration.CheckForUpdateOnStartup;
+                this.ConnectionType != options.ConnectionType ||
+                this.LogType != options.LogType ||
+                this.Port != options.Port.ToString() ||
+                this.Language != options.Language ||
+                this.CheckForUpdateOnStartup != options.CheckForUpdateOnStartup ||
+                this.TracePerformance != options.TracePerformance ||
+                this.LogTimeFormat != options.LogTimeFormat ||
+                this.ApplicationFormat != options.LogProcessing.ApplicationFormat ||
+                this.AllowAnonymousMessages != options.LogProcessing.AllowAnonymousMessages ||
+                this.TraceMessages != options.LogProcessing.TraceMessages;
             return result;
         }
+        public delegate void OnErrorHandler(string actionKey, Exception exception);
     }
 }

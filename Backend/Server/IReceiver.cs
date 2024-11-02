@@ -1,13 +1,13 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Model;
+using Loginator.Domain.Model;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Backend.Server {
+namespace Loginator.Domain.Server {
 
-    public interface IReceiver {
+    public interface ILogRepository {
 
-        IAsyncEnumerable<Log> ReadAsync(int port, CancellationToken cancelToken);
+        IAsyncEnumerable<Log> GetEnumerableAsync(int port, CancellationToken cancelToken);
     }
 }

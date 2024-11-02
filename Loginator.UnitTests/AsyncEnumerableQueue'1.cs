@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Loginator.UnitTests {
+namespace Loginator.Application.UnitTests {
 
     internal class AsyncEnumerableQueue<T> : ConcurrentQueue<T>, IAsyncEnumerable<T> {
 

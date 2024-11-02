@@ -1,6 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-namespace Loginator.Model {
+namespace Loginator.Application.Model {
 
     public record AssemblyInfo {
 
@@ -20,6 +20,6 @@ namespace Loginator.Model {
 
         public required string SourceUrl { get; init; }
 
-        public required string RawUrl { get; init; }
+        public required string AssemblyInfoPath { get; init; }
     }
 }

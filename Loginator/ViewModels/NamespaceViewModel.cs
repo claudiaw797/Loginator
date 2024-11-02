@@ -1,173 +1,107 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using CommunityToolkit.Mvvm.ComponentModel;
+using Loginator.Domain.Model;
+using System;
 using System.Collections.ObjectModel;
-using Common;
-using Loginator.ViewModels;
+using System.Text;
+using static Loginator.Domain.Common.Constants;
 
-namespace Loginator.ViewModels {
+namespace Loginator.Application.ViewModel {
 
-    public class NamespaceViewModel : INotifyPropertyChanged {
+    public partial class NamespaceViewModel : ObservableObject {
 
-        private bool isChecked;
-        public bool IsChecked {
-            get { return isChecked; }
-            set {
-                isChecked = value;
-                lock (ViewModelConstants.SYNC_OBJECT) {
-                    if (ApplicationViewModel != null) {
-                        ApplicationViewModel.UpdateByNamespaceChange(this);
-                    }
-                }
-                
-                if (Children != null) {
-                    foreach (var child in Children) {
-                        child.IsChecked = isChecked;
-                    }
-                }
-                OnPropertyChanged(nameof(IsChecked));
-            }
-        }
-
-        private bool isExpanded;
-        public bool IsExpanded {
-            get {
-                return isExpanded;
-            }
-            set {
-                isExpanded = value;
-                OnPropertyChanged(nameof(IsExpanded));
-            }
-        }
-
-        private int count;
-        public int Count {
-            get {
-                return count;
-            }
-            set {
-                count = value;
-                OnPropertyChanged(nameof(Count));
-            }
-        }
-
-        private int countTrace;
-        public int CountTrace {
-            get {
-                return countTrace;
-            }
-            set {
-                countTrace = value;
-                OnPropertyChanged(nameof(CountTrace));
-            }
-        }
-
-        private int countDebug;
-        public int CountDebug {
-            get {
-                return countDebug;
-            }
-            set {
-                countDebug = value;
-                OnPropertyChanged(nameof(CountDebug));
-            }
-        }
-
-        private int countInfo;
-        public int CountInfo {
-            get {
-                return countInfo;
-            }
-            set {
-                countInfo = value;
-                OnPropertyChanged(nameof(CountInfo));
-            }
-        }
-
-        private int countWarn;
-        public int CountWarn {
-            get {
-                return countWarn;
-            }
-            set {
-                countWarn = value;
-                OnPropertyChanged(nameof(CountWarn));
-            }
-        }
-
-        private int countError;
-        public int CountError {
-            get {
-                return countError;
-            }
-            set {
-                countError = value;
-                OnPropertyChanged(nameof(CountError));
-            }
-        }
-
-        private int countFatal;
-
-        public int CountFatal {
-            get {
-                return countFatal;
-            }
-            set {
-                countFatal = value;
-                OnPropertyChanged(nameof(CountFatal));
-            }
-        }
-
-        private bool isHighlighted;
-        public bool IsHighlighted
-        {
-            get
-            {
-                return isHighlighted;
-            }
-            set
-            {
-                isHighlighted = value;
-                OnPropertyChanged(nameof(IsHighlighted));
-            }
-        }
-
-        public string Name { get; set; }
-        public NamespaceViewModel Parent { get; set; }
-        public ObservableCollection<NamespaceViewModel> Children { get; set; }
-
-        private ApplicationViewModel ApplicationViewModel { get; set; }
+        private readonly ApplicationViewModel applicationViewModel;
+        private readonly Lazy<string> fullName;
 
         public NamespaceViewModel(string name, ApplicationViewModel applicationViewModel) {
-            IsChecked = true;
-            IsExpanded = true;
-            Name = name;
-            Children = new ObservableCollection<NamespaceViewModel>();
-            ApplicationViewModel = applicationViewModel;
+            ArgumentNullException.ThrowIfNull(applicationViewModel);
+
+            this.applicationViewModel = applicationViewModel;
+            this.Name = name;
+
+            isActive = true;
+            isExpanded = true;
+            fullName = new(this.GetFullName);
         }
 
-        public string Fullname {
-            get {
-                string fullname = Name;
-                var parent = Parent;
-                while (parent != null) {
-                    fullname = $"{parent.Name}{Constants.NAMESPACE_SPLITTER}{fullname}";
-                    parent = parent.Parent;
-                }
-                return fullname;
+        [ObservableProperty]
+        private bool isActive;
+        partial void OnIsActiveChanged(bool value) {
+            lock (Constants.SyncObject) {
+                applicationViewModel.OnNamespaceIsActiveChanged(this);
+            }
+
+            foreach (var child in Children) {
+                child.IsActive = value;
             }
         }
-        
-        public event PropertyChangedEventHandler PropertyChanged;
 
-        private void OnPropertyChanged(string property) {
-            if (PropertyChanged != null) {
-                PropertyChanged(this, new PropertyChangedEventArgs(property));
+        [ObservableProperty]
+        private bool isExpanded;
+
+        [ObservableProperty]
+        private bool isHighlighted;
+
+        public int Count { get; private set; }
+        public int CountTrace { get; private set; }
+        public int CountDebug { get; private set; }
+        public int CountInfo { get; private set; }
+        public int CountWarn { get; private set; }
+        public int CountError { get; private set; }
+        public int CountFatal { get; private set; }
+
+        public NamespaceViewModel? Parent { get; init; }
+
+        public ObservableCollection<NamespaceViewModel> Children { get; private set; } = [];
+
+        public string Name { get; private set; }
+
+        public string Fullname => fullName.Value;
+
+        internal void ClearLogData() {
+            this.Count = 0;
+            this.CountTrace = 0;
+            this.CountDebug = 0;
+            this.CountInfo = 0;
+            this.CountWarn = 0;
+            this.CountError = 0;
+            this.CountFatal = 0;
+            this.IsHighlighted = false;
+        }
+
+        internal void UpdateLogCounts(Log log) {
+            this.Count++;
+
+            if (log.Level == LogLevel.TRACE) {
+                this.CountTrace++;
             }
+            else if (log.Level == LogLevel.DEBUG) {
+                this.CountDebug++;
+            }
+            else if (log.Level == LogLevel.INFO) {
+                this.CountInfo++;
+            }
+            else if (log.Level == LogLevel.WARN) {
+                this.CountWarn++;
+            }
+            else if (log.Level == LogLevel.ERROR) {
+                this.CountError++;
+            }
+            else if (log.Level == LogLevel.FATAL) {
+                this.CountFatal++;
+            }
+        }
+
+        private string GetFullName() {
+            var fullname = new StringBuilder(this.Name);
+            var parent = this.Parent;
+            while (parent is not null) {
+                fullname.Insert(0, NamespaceSplitter);
+                fullname.Insert(0, parent.Name);
+                parent = parent.Parent;
+            }
+            return fullname.ToString();
         }
     }
 }

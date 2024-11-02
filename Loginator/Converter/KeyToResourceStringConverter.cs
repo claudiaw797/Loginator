@@ -1,13 +1,14 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
 using System;
+using System.Globalization;
 using System.Windows.Data;
 
-namespace Loginator.Converter {
+namespace Loginator.Gui.WPF.Converter {
 
     public class KeyToResourceStringConverter : IValueConverter {
 
-        public object? Convert(object? value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
             if (value is null) return null;
 
             string? format = parameter?.ToString();
@@ -16,8 +17,7 @@ namespace Loginator.Converter {
             return App.GetStringResource(key!);
         }
 
-        public object? ConvertBack(object? value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
             throw new NotImplementedException();
-        }
     }
 }

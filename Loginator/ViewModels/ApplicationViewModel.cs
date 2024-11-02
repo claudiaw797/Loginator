@@ -1,17 +1,18 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Model;
-using Common;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Loginator.Collections;
-using Loginator.Model;
+using Loginator.Application.Common;
+using Loginator.Application.Model;
+using Loginator.Domain.Model;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using static Loginator.Domain.Common.Constants;
+using LogLevel = Loginator.Domain.Model.LogLevel;
 
-namespace Loginator.ViewModels {
+namespace Loginator.Application.ViewModel {
 
     /// <summary>
     /// If you add a new function / filter assure the following
@@ -22,133 +23,127 @@ namespace Loginator.ViewModels {
     /// </summary>
     public partial class ApplicationViewModel : ObservableObject {
 
-        private OrderedObservableCollection Logs { get; set; }
-        private List<Log> LogsTrace { get; set; }
-        private List<Log> LogsDebug { get; set; }
-        private List<Log> LogsInfo { get; set; }
-        private List<Log> LogsWarn { get; set; }
-        private List<Log> LogsError { get; set; }
-        private List<Log> LogsFatal { get; set; }
-        private ObservableCollection<NamespaceViewModel> Namespaces { get; set; }
-        private ILogger Logger { get; set; }
+        private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        public ApplicationViewModel(
+        private readonly List<Log> logsTrace = [];
+        private readonly List<Log> logsDebug = [];
+        private readonly List<Log> logsInfo = [];
+        private readonly List<Log> logsWarn = [];
+        private readonly List<Log> logsError = [];
+        private readonly List<Log> logsFatal = [];
+        private readonly OrderedObservableCollection logs;
+        private readonly ObservableCollection<NamespaceViewModel> namespaces;
+
+        internal ApplicationViewModel(
             string name,
             OrderedObservableCollection logs,
             ObservableCollection<NamespaceViewModel> namespaces,
-            LoggingLevel initialLogLevel) {
-            Logger = LogManager.GetCurrentClassLogger();
-            Name = name;
-            Namespaces = namespaces;
-            Logs = logs;
+            LogLevel initialLogLevel) {
+            this.Name = name;
+            this.logs = logs;
+            this.namespaces = namespaces;
 
             selectedMinLogLevel = initialLogLevel;
             isActive = true;
-            maxNumberOfLogsPerLevel = Constants.DEFAULT_MAX_NUMBER_OF_LOGS_PER_LEVEL;
+            maxNumberOfLogsPerLevel = Constants.DefaultMaxNumberOfLogsPerLevel;
             searchOptions = new();
-
-            LogsTrace = [];
-            LogsDebug = [];
-            LogsInfo = [];
-            LogsWarn = [];
-            LogsError = [];
-            LogsFatal = [];
         }
 
         [ObservableProperty]
-        private LoggingLevel selectedMinLogLevel;
-        partial void OnSelectedMinLogLevelChanged(LoggingLevel? oldValue, LoggingLevel newValue) {
-            lock (ViewModelConstants.SYNC_OBJECT) UpdateByLogLevelChange(oldValue, newValue);
+        private LogLevel selectedMinLogLevel;
+        partial void OnSelectedMinLogLevelChanged(LogLevel? oldValue, LogLevel newValue) {
+            lock (Constants.SyncObject) UpdateSelectedMinLogLevel(oldValue, newValue);
         }
 
         [ObservableProperty]
         private bool isActive;
         partial void OnIsActiveChanged(bool oldValue, bool newValue) {
-            lock (ViewModelConstants.SYNC_OBJECT) UpdateByActiveChange(oldValue, newValue);
+            lock (Constants.SyncObject) UpdateIsActive(oldValue, newValue);
         }
 
         [ObservableProperty]
         private int maxNumberOfLogsPerLevel;
         partial void OnMaxNumberOfLogsPerLevelChanged(int oldValue, int newValue) {
-            lock (ViewModelConstants.SYNC_OBJECT) UpdateMaxNumberOfLogs(oldValue, newValue);
+            lock (Constants.SyncObject) UpdateMaxNumberOfLogs(oldValue, newValue);
         }
 
         [ObservableProperty]
         private SearchOptions searchOptions;
         partial void OnSearchOptionsChanged(SearchOptions? oldValue, SearchOptions newValue) {
-            lock (ViewModelConstants.SYNC_OBJECT) UpdateSearchCriteria(oldValue, newValue);
+            lock (Constants.SyncObject) UpdateSearchCriteria(oldValue, newValue);
         }
 
-        public string Name { get; private set; }
+        public string Name { get; init; }
 
-        public IReadOnlyList<LoggingLevel> LogLevels { get; } = [.. LoggingLevel.GetAllLogLevels().Order()];
+        public IReadOnlyList<LogLevel> LogLevels { get; } = [.. LogLevel.AllLogLevels.Order()];
 
-        public void ClearLogs() {
-            LogsTrace = [];
-            LogsDebug = [];
-            LogsInfo = [];
-            LogsWarn = [];
-            LogsError = [];
-            LogsFatal = [];
-        }
+        internal bool HasLogs => this.GetLogsFromLevel(LogLevel.TRACE).Any();
 
-        public void UpdateByNamespaceChange(NamespaceViewModel ns) {
-            if (!IsActive) {
-                return;
-            }
+        internal void AddLog(Log log) {
+            var logToRemove = this.AddByLevelPossiblyRemovingFirst(log);
 
-            var nsName = ns.Fullname;
-            var logs = GetLogsFromLevel(SelectedMinLogLevel)
-                .Where(m => $"{Name}{Constants.NAMESPACE_SPLITTER}{m.Namespace}" == nsName);
+            if (this.IsActive &&
+                this.SelectedMinLogLevel != LogLevel.NOT_SET &&
+                log.Level >= this.SelectedMinLogLevel &&
+                this.IsNamespaceActive(log) &&
+                this.IsSearchCriteriaMatch(log)) {
 
-            if (ns.IsChecked)
-                Logs.Add(logs, IsSearchCriteriaMatch);
-            else
-                Logs.Remove(logs);
-        }
-
-        public void AddLog(Log log) {
-            var logToRemove = AddByLevelPossiblyRemovingFirst(log);
-
-            if (IsActive &&
-                SelectedMinLogLevel != LoggingLevel.NOT_SET &&
-                log.Level >= SelectedMinLogLevel &&
-                IsNamespaceActive(log) &&
-                IsSearchCriteriaMatch(log)) {
-
-                Logs.AddLeading(log);
+                logs.AddLeading(log);
 
                 if (logToRemove is not null) {
-                    Logs.Remove(logToRemove);
+                    logs.Remove(logToRemove);
                 }
             }
         }
 
-        internal bool HasLogs => GetLogsFromLevel(LoggingLevel.TRACE).Any();
+        internal void ClearLogs() {
+            logsTrace.Clear();
+            logsDebug.Clear();
+            logsInfo.Clear();
+            logsWarn.Clear();
+            logsError.Clear();
+            logsFatal.Clear();
+        }
 
-        private void UpdateByLogLevelChange(LoggingLevel? oldLogLevel, LoggingLevel? newLogLevel) {
-            if (!IsActive) {
+        internal void OnNamespaceIsActiveChanged(NamespaceViewModel ns) {
+            if (!this.IsActive) {
                 return;
             }
 
-            var logs = LoggingLevel.GetLogLevelsBetween(ref oldLogLevel, ref newLogLevel)
-                .SelectMany(l => GetLogsByLevel(l) ?? []);
+            var nsName = ns.Fullname;
+            var prefix = $"{this.Name}{NamespaceSplitter}";
+            var currentLogs = this.GetLogsFromLevel(this.SelectedMinLogLevel)
+                .Where(log => $"{prefix}{log.Namespace}" == nsName);
 
-            if (oldLogLevel > newLogLevel)
-                Logs.Add(logs, IsNamespaceActiveSearchCriteriaMatch);
+            if (ns.IsActive)
+                this.logs.Add(currentLogs, this.IsSearchCriteriaMatch);
             else
-                Logs.Remove(logs, IsNamespaceActiveSearchCriteriaMatch);
+                this.logs.Remove(currentLogs);
         }
 
-        private void UpdateByActiveChange(bool oldIsActive, bool newIsActive) {
+        private void UpdateIsActive(bool oldIsActive, bool newIsActive) {
             if (oldIsActive == newIsActive) {
                 return;
             }
 
             if (newIsActive)
-                Logs.Add(GetLogsFromLevel(SelectedMinLogLevel), IsNamespaceActiveSearchCriteriaMatch);
+                logs.Add(this.GetLogsFromLevel(this.SelectedMinLogLevel), this.IsNamespaceActiveSearchCriteriaMatch);
             else
-                Logs.Remove(GetLogsFromLevel(LoggingLevel.TRACE));
+                logs.Remove(this.GetLogsFromLevel(LogLevel.TRACE));
+        }
+
+        private void UpdateSelectedMinLogLevel(LogLevel? oldLogLevel, LogLevel? newLogLevel) {
+            if (!this.IsActive) {
+                return;
+            }
+
+            var logs = LogLevel.GetLogLevelsBetween(ref oldLogLevel, ref newLogLevel)
+                .SelectMany(l => this.GetLogsByLevel(l) ?? []);
+
+            if (oldLogLevel > newLogLevel)
+                this.logs.Add(logs, this.IsNamespaceActiveSearchCriteriaMatch);
+            else
+                this.logs.Remove(logs, this.IsNamespaceActiveSearchCriteriaMatch);
         }
 
         private void UpdateMaxNumberOfLogs(int oldMaxNumberOfLogs, int newMaxNumberOfLogs) {
@@ -156,14 +151,14 @@ namespace Loginator.ViewModels {
                 return;
             }
 
-            var logsToRemoveTrace = RemoveSurplus(LogsTrace);
-            var logsToRemoveDebug = RemoveSurplus(LogsDebug);
-            var logsToRemoveInfo = RemoveSurplus(LogsInfo);
-            var logsToRemoveWarn = RemoveSurplus(LogsWarn);
-            var logsToRemoveError = RemoveSurplus(LogsError);
-            var logsToRemoveFatal = RemoveSurplus(LogsFatal);
+            var logsToRemoveTrace = this.RemoveSurplus(logsTrace);
+            var logsToRemoveDebug = this.RemoveSurplus(logsDebug);
+            var logsToRemoveInfo = this.RemoveSurplus(logsInfo);
+            var logsToRemoveWarn = this.RemoveSurplus(logsWarn);
+            var logsToRemoveError = this.RemoveSurplus(logsError);
+            var logsToRemoveFatal = this.RemoveSurplus(logsFatal);
 
-            if (IsActive) {
+            if (this.IsActive) {
                 var logsToRemove = logsToRemoveTrace
                     .Concat(logsToRemoveDebug)
                     .Concat(logsToRemoveInfo)
@@ -171,36 +166,36 @@ namespace Loginator.ViewModels {
                     .Concat(logsToRemoveError)
                     .Concat(logsToRemoveFatal);
 
-                Logs.Remove(logsToRemove, m =>
-                    m.Level >= SelectedMinLogLevel &&
-                    IsNamespaceActive(m) &&
-                    IsSearchCriteriaMatch(m));
+                logs.Remove(logsToRemove, m =>
+                    m.Level >= this.SelectedMinLogLevel &&
+                    this.IsNamespaceActive(m) &&
+                    this.IsSearchCriteriaMatch(m));
             }
         }
 
         private void UpdateSearchCriteria(SearchOptions? oldOptions, SearchOptions newOptions) {
-            if (!IsActive || oldOptions == newOptions) {
+            if (!this.IsActive || oldOptions == newOptions) {
                 return;
             }
 
-            var logs = GetLogsFromLevel(SelectedMinLogLevel);
+            var logs = this.GetLogsFromLevel(this.SelectedMinLogLevel);
             if (string.IsNullOrEmpty(newOptions.Criteria))
-                Logs.Add(logs, IsNamespaceActive);
+                this.logs.Add(logs, this.IsNamespaceActive);
             else {
                 var logsMatching = logs
-                    .GroupBy(m => IsSearchCriteriaMatch(m))
+                    .GroupBy(m => this.IsSearchCriteriaMatch(m))
                     .ToDictionary(g => g.Key);
 
                 if (logsMatching.TryGetValue(true, out var logsToAdd))
-                    Logs.Add(logsToAdd, IsNamespaceActive);
+                    this.logs.Add(logsToAdd, this.IsNamespaceActive);
                 if (logsMatching.TryGetValue(false, out var logsToRemove))
-                    Logs.Remove(logsToRemove);
+                    this.logs.Remove(logsToRemove);
             }
         }
 
         private bool IsSearchCriteriaMatch(Log log) {
             try {
-                var criteria = SearchOptions.Criteria;
+                var criteria = this.SearchOptions.Criteria;
 
                 // Default
                 if (string.IsNullOrEmpty(criteria)) {
@@ -212,19 +207,19 @@ namespace Loginator.ViewModels {
                     (!string.IsNullOrEmpty(log.Namespace) && log.Namespace.Contains(criteria, StringComparison.CurrentCultureIgnoreCase)) ||
                     (!string.IsNullOrEmpty(log.Message) && log.Message.Contains(criteria, StringComparison.CurrentCultureIgnoreCase)) ||
                     (!string.IsNullOrEmpty(log.Exception) && log.Exception.Contains(criteria, StringComparison.CurrentCultureIgnoreCase))) {
-                    return !SearchOptions.IsInverted;
+                    return !this.SearchOptions.IsInverted;
                 }
-                return SearchOptions.IsInverted;
+                return this.SearchOptions.IsInverted;
             }
             catch (Exception e) {
-                Logger.Error(e, "Invalid search criteria");
+                logger.Error(e, "Invalid search criteria");
                 return false;
             }
         }
 
         private bool IsNamespaceActive(Log log) {
             // Try to get existing root namespace with name of application
-            var nsApplication = Namespaces.FirstOrDefault(m => m.Name == log.Application);
+            var nsApplication = namespaces.FirstOrDefault(m => m.Name == log.Application);
             return nsApplication is not null && IsNamespaceActive(nsApplication, log.Namespace);
         }
 
@@ -232,52 +227,52 @@ namespace Loginator.ViewModels {
             // Example: VerbTeX.View (Verbosus was processed before)
             var nsLogFull = suffix;
             // Example: VerbTeX
-            var nsLogPart = nsLogFull?.Split([Constants.NAMESPACE_SPLITTER], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            var nsLogPart = nsLogFull?.Split([NamespaceSplitter], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
             // Try to get existing namespace with name VerbTeX
             var nsChild = parent.Children.FirstOrDefault(m => m.Name == nsLogPart);
             if (nsChild == null) {
                 return false;
             }
 
-            var index = nsLogFull is null ? -1 : nsLogFull.IndexOf(Constants.NAMESPACE_SPLITTER);
+            var index = nsLogFull is null ? -1 : nsLogFull.IndexOf(NamespaceSplitter);
             return index >= 0
                 ? IsNamespaceActive(nsChild, nsLogFull![(index + 1)..])
-                : nsChild.IsChecked;
+                : nsChild.IsActive;
         }
 
         private bool IsNamespaceActiveSearchCriteriaMatch(Log log) =>
-            IsNamespaceActive(log) && IsSearchCriteriaMatch(log);
+            this.IsNamespaceActive(log) && this.IsSearchCriteriaMatch(log);
 
-        private List<Log>? GetLogsByLevel(LoggingLevel level) =>
+        private List<Log>? GetLogsByLevel(LogLevel level) =>
             level switch {
-                var l when l == LoggingLevel.TRACE => LogsTrace,
-                var l when l == LoggingLevel.DEBUG => LogsDebug,
-                var l when l == LoggingLevel.INFO => LogsInfo,
-                var l when l == LoggingLevel.WARN => LogsWarn,
-                var l when l == LoggingLevel.ERROR => LogsError,
-                var l when l == LoggingLevel.FATAL => LogsFatal,
+                var l when l == LogLevel.TRACE => logsTrace,
+                var l when l == LogLevel.DEBUG => logsDebug,
+                var l when l == LogLevel.INFO => logsInfo,
+                var l when l == LogLevel.WARN => logsWarn,
+                var l when l == LogLevel.ERROR => logsError,
+                var l when l == LogLevel.FATAL => logsFatal,
                 _ => null,
             };
 
-        private IEnumerable<Log> GetLogsFromLevel(LoggingLevel level) =>
+        private IEnumerable<Log> GetLogsFromLevel(LogLevel level) =>
             level switch {
-                var l when l == LoggingLevel.TRACE => LogsTrace.Concat(LogsDebug).Concat(LogsInfo).Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
-                var l when l == LoggingLevel.DEBUG => LogsDebug.Concat(LogsInfo).Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
-                var l when l == LoggingLevel.INFO => LogsInfo.Concat(LogsWarn).Concat(LogsError).Concat(LogsFatal),
-                var l when l == LoggingLevel.WARN => LogsWarn.Concat(LogsError).Concat(LogsFatal),
-                var l when l == LoggingLevel.ERROR => LogsError.Concat(LogsFatal),
-                var l when l == LoggingLevel.FATAL => LogsFatal,
+                var l when l == LogLevel.TRACE => logsTrace.Concat(logsDebug).Concat(logsInfo).Concat(logsWarn).Concat(logsError).Concat(logsFatal),
+                var l when l == LogLevel.DEBUG => logsDebug.Concat(logsInfo).Concat(logsWarn).Concat(logsError).Concat(logsFatal),
+                var l when l == LogLevel.INFO => logsInfo.Concat(logsWarn).Concat(logsError).Concat(logsFatal),
+                var l when l == LogLevel.WARN => logsWarn.Concat(logsError).Concat(logsFatal),
+                var l when l == LogLevel.ERROR => logsError.Concat(logsFatal),
+                var l when l == LogLevel.FATAL => logsFatal,
                 _ => [],
             };
 
         private Log? AddByLevelPossiblyRemovingFirst(Log log) {
             Log? logToRemove = null;
 
-            var currentLevelLogs = GetLogsByLevel(log.Level);
+            var currentLevelLogs = this.GetLogsByLevel(log.Level);
             if (currentLevelLogs is not null) {
                 currentLevelLogs.Add(log);
 
-                if (currentLevelLogs.Count > MaxNumberOfLogsPerLevel) {
+                if (currentLevelLogs.Count > this.MaxNumberOfLogsPerLevel) {
                     var last = currentLevelLogs.First();
                     currentLevelLogs.Remove(last);
                     logToRemove = last;
@@ -288,7 +283,7 @@ namespace Loginator.ViewModels {
         }
 
         private List<Log> RemoveSurplus(List<Log> levelLogs) {
-            var count = levelLogs.Count - MaxNumberOfLogsPerLevel;
+            var count = levelLogs.Count - this.MaxNumberOfLogsPerLevel;
             if (count <= 0) {
                 return [];
             }

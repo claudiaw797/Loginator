@@ -1,13 +1,13 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
-using Backend.Server;
-using Common;
-using Common.Configuration;
 using FakeItEasy;
 using FluentAssertions;
-using Loginator.Controls;
-using Loginator.ViewModels;
+using Loginator.Application.Option;
+using Loginator.Application.Service;
+using Loginator.Application.ViewModel;
+using Loginator.Domain.Model;
+using Loginator.Domain.Server;
+using Loginator.Infrastructure.Option;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,8 +20,11 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using static Loginator.Domain.Common.Constants;
+using LogLevel = Loginator.Domain.Model.LogLevel;
+using MsLogLevel = Microsoft.Extensions.Logging.LogLevel;
 
-namespace Loginator.UnitTests.ViewModels {
+namespace Loginator.Application.UnitTests.ViewModel {
 
     /// <summary>
     /// Represents unit tests for <see cref="LoginatorViewModel"/>.
@@ -36,14 +39,14 @@ namespace Loginator.UnitTests.ViewModels {
 
         private const string NAMESPACE_NAME = "TestNs";
 
-        private static readonly Dictionary<LoggingLevel, string?> EXCEPTION_MESSAGES = new() {
-            { LoggingLevel.NOT_SET, null },
-            { LoggingLevel.TRACE, null },
-            { LoggingLevel.DEBUG, null },
-            { LoggingLevel.INFO, null },
-            { LoggingLevel.WARN, "Test warning issued" },
-            { LoggingLevel.ERROR, "Test exception happened" },
-            { LoggingLevel.FATAL, "Test fatality happened" }
+        private static readonly Dictionary<LogLevel, string?> EXCEPTION_MESSAGES = new() {
+            { LogLevel.NOT_SET, null },
+            { LogLevel.TRACE, null },
+            { LogLevel.DEBUG, null },
+            { LogLevel.INFO, null },
+            { LogLevel.WARN, "Test warning issued" },
+            { LogLevel.ERROR, "Test exception happened" },
+            { LogLevel.FATAL, "Test fatality happened" }
         };
 
         private readonly LoginatorViewModel sut;
@@ -60,12 +63,12 @@ namespace Loginator.UnitTests.ViewModels {
             sut = Sut();
 
             var ts = DateTimeOffset.Now;
-            var itemV = Log(LoggingLevel.TRACE, ts.AddMinutes(1));
-            var itemD = Log(LoggingLevel.DEBUG, ts.AddMinutes(2));
-            var itemI = Log(LoggingLevel.INFO, ts.AddMinutes(3));
-            var itemW = Log(LoggingLevel.WARN, ts.AddMinutes(4));
-            var itemE = Log(LoggingLevel.ERROR, ts.AddMinutes(5));
-            var itemF = Log(LoggingLevel.FATAL, ts.AddMinutes(6));
+            var itemV = Log(LogLevel.TRACE, ts.AddMinutes(1));
+            var itemD = Log(LogLevel.DEBUG, ts.AddMinutes(2));
+            var itemI = Log(LogLevel.INFO, ts.AddMinutes(3));
+            var itemW = Log(LogLevel.WARN, ts.AddMinutes(4));
+            var itemE = Log(LogLevel.ERROR, ts.AddMinutes(5));
+            var itemF = Log(LogLevel.FATAL, ts.AddMinutes(6));
 
             testItems = [itemF, itemE, itemW, itemI, itemD, itemV];
         }
@@ -78,16 +81,16 @@ namespace Loginator.UnitTests.ViewModels {
 
         [Test]
         public void Can_create_sut() {
-            var configDao = A.Fake<IOptionsMonitor<Configuration>>();
+            var configDao = A.Fake<IOptionsMonitor<ApplicationOptions>>();
             var stopwatch = A.Fake<IStopwatch>();
             var logger = A.Fake<ILogger<LoginatorViewModel>>();
 
-            var sut = new LoginatorViewModel(configDao, stopwatch, timeProvider, new DispatcherMock(), logger);
+            var sut = new LoginatorViewModel(configDao, timeProvider, stopwatch, new DispatcherMock(), logger);
 
             sut.IsActive.Should().BeTrue();
             sut.NumberOfLogsPerLevel.Should().BeGreaterThan(100);
             sut.Search.Should().NotBeNull();
-            sut.SelectedInitialLogLevel.Should().NotBe(LoggingLevel.NOT_SET);
+            sut.SelectedInitialLogLevel.Should().NotBe(LogLevel.NOT_SET);
             sut.SelectedLog.Should().BeNull();
             sut.SelectedNamespace.Should().BeNull();
             sut.Logs.Should().BeEmpty();
@@ -97,20 +100,20 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public async Task Can_show_logs_for_selected_level(LoggingLevel level) {
+        public async Task Can_show_logs_for_selected_level(LogLevel level) {
             await AssertOrderLevelItemsAsync(level);
         }
 
         [Test]
         public async Task Cannot_show_logs_if_selected_level_is_invalid() {
-            await AssertOrderLevelItemsAsync(LoggingLevel.NOT_SET);
+            await AssertOrderLevelItemsAsync(LogLevel.NOT_SET);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public async Task Can_show_logs_for_selected_level_change(LoggingLevel level) {
-            var newLevel = level == LoggingLevel.FATAL
-                ? LoggingLevel.NOT_SET
-                : LoggingLevel.FromId(level.Id + 1)!;
+        public async Task Can_show_logs_for_selected_level_change(LogLevel level) {
+            var newLevel = level == LogLevel.FATAL
+                ? LogLevel.NOT_SET
+                : LogLevel.FromId(level.Id + 1)!;
             newLevel.Should().NotBeNull();
             sut.SelectedInitialLogLevel = level;
 
@@ -121,7 +124,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public async Task Can_stop_and_restart_adding_logs_by_changing_active(LoggingLevel level) {
+        public async Task Can_stop_and_restart_adding_logs_by_changing_active(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
 
             sut.IsActive = false;
@@ -143,7 +146,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public async Task Can_remove_surplus_logs(LoggingLevel level) {
+        public async Task Can_remove_surplus_logs(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
             sut.UpdateNumberOfLogsPerLevelCommand.Execute(2);
 
@@ -160,27 +163,27 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public async Task Can_show_logs_for_present_search_options(LoggingLevel level) {
+        public async Task Can_show_logs_for_present_search_options(LogLevel level) {
             await AssertOrderLevelSearchItemsAsync(level);
         }
 
         [TestCase]
         public async Task Cannot_show_logs_for_present_search_options_if_level_is_invalid() {
-            await AssertOrderLevelSearchItemsAsync(LoggingLevel.NOT_SET);
+            await AssertOrderLevelSearchItemsAsync(LogLevel.NOT_SET);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public async Task Can_show_logs_for_present_search_options_with_inversion(LoggingLevel level) {
+        public async Task Can_show_logs_for_present_search_options_with_inversion(LogLevel level) {
             await AssertOrderLevelSearchInvertedItemsAsync(level);
         }
 
         [TestCase]
         public async Task Cannot_show_logs_for_present_search_options_with_inversion_if_level_is_invalid() {
-            await AssertOrderLevelSearchInvertedItemsAsync(LoggingLevel.NOT_SET);
+            await AssertOrderLevelSearchInvertedItemsAsync(LogLevel.NOT_SET);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public async Task Can_show_logs_for_updated_search_options(LoggingLevel level) {
+        public async Task Can_show_logs_for_updated_search_options(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
 
             (var expectedItems1, var expectedItems2, var expectedItems3) = await AddItemsOneTwoThreeToSutAsync(level);
@@ -211,9 +214,9 @@ namespace Loginator.UnitTests.ViewModels {
 
         [TestCase]
         public async Task Cannot_show_logs_for_updated_search_options_if_level_is_invalid() {
-            sut.SelectedInitialLogLevel = LoggingLevel.NOT_SET;
+            sut.SelectedInitialLogLevel = LogLevel.NOT_SET;
 
-            _ = await AddItemsOneTwoThreeToSutAsync(LoggingLevel.NOT_SET);
+            _ = await AddItemsOneTwoThreeToSutAsync(LogLevel.NOT_SET);
 
             sut.Logs.Should().BeEmpty();
 
@@ -228,7 +231,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public async Task Can_select_and_highlight_namespace_by_selecting_log(LoggingLevel level) {
+        public async Task Can_select_and_highlight_namespace_by_selecting_log(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
 
             (var expectedItems1, var expectedItems2) = await AddItemsOneTwoDifferentAppsToSutAsync(level);
@@ -243,7 +246,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         [Test]
         public async Task Can_unselect_and_unhighlight_last_selected_namespace_by_unselecting_log() {
-            var level = LoggingLevel.TRACE;
+            var level = LogLevel.TRACE;
             sut.SelectedInitialLogLevel = level;
 
             await AddItemsToSutAsync();
@@ -260,7 +263,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public async Task Can_deactivate_all_applications_at_once(LoggingLevel level) {
+        public async Task Can_deactivate_all_applications_at_once(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
 
             (var expectedItems1, var expectedItems2) = await AddItemsOneTwoDifferentAppsToSutAsync(level);
@@ -277,7 +280,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public async Task Can_clear_all_application_logs_and_namespace_data_at_once(LoggingLevel level) {
+        public async Task Can_clear_all_application_logs_and_namespace_data_at_once(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
 
             (var expectedItems1, var expectedItems2) = await AddItemsOneTwoDifferentAppsToSutAsync(level);
@@ -297,7 +300,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public async Task Can_clear_everything(LoggingLevel level) {
+        public async Task Can_clear_everything(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
 
             (var expectedItems1, var expectedItems2) = await AddItemsOneTwoDifferentAppsToSutAsync(level);
@@ -315,7 +318,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         [Test, Apartment(ApartmentState.STA)]
         public void Can_copy_present_exception_from_selected_log() {
-            var expectedItems = GetExpectedItemsFromLevel(LoggingLevel.TRACE).ToArray();
+            var expectedItems = GetExpectedItemsFromLevel(LogLevel.TRACE).ToArray();
             expectedItems.Should().HaveCount(6);
 
             for (int i = 0; i < expectedItems.Length; i++) {
@@ -345,7 +348,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertCanCopySelectedLog(checkMessageOnly: false);
         }
 
-        private async Task AssertOrderLevelItemsAsync(LoggingLevel level) {
+        private async Task AssertOrderLevelItemsAsync(LogLevel level) {
             var expectedItems = GetExpectedItemsFromLevel(level);
             sut.SelectedInitialLogLevel = level;
 
@@ -355,7 +358,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertApplicationAndNamespaces(level);
         }
 
-        private async Task AssertOrderLevelSearchItemsAsync(LoggingLevel level) {
+        private async Task AssertOrderLevelSearchItemsAsync(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
             SetSearch("Two", false);
 
@@ -364,7 +367,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertLogs(expectedItems2);
         }
 
-        private async Task AssertOrderLevelSearchInvertedItemsAsync(LoggingLevel level) {
+        private async Task AssertOrderLevelSearchInvertedItemsAsync(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
             SetSearch("Two", true);
 
@@ -376,7 +379,7 @@ namespace Loginator.UnitTests.ViewModels {
         private void AssertLogs(params IEnumerable<Log>[] expected) =>
             sut.Logs.Should().BeEquivalentTo(expected.SelectMany(l => l), c => c.WithStrictOrdering());
 
-        private void AssertApplicationAndNamespaces(params LoggingLevel[] levels) {
+        private void AssertApplicationAndNamespaces(params LogLevel[] levels) {
             var expectedCount = levels.Length;
             sut.Applications.Should().HaveCount(expectedCount);
             sut.Namespaces.Should().HaveCount(expectedCount);
@@ -407,7 +410,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         private NamespaceViewModel AssertSelectedNamespaceFromSelectedLog(Log item) {
             var current = GetViewModel(item);
-            var expected = $"{current.Application}{Constants.NAMESPACE_SPLITTER}{current.Namespace}";
+            var expected = $"{current.Application}{NamespaceSplitter}{current.Namespace}";
             var last = sut.SelectedNamespace;
 
             sut.SelectedLog = current;
@@ -426,7 +429,7 @@ namespace Loginator.UnitTests.ViewModels {
 
         private void AssertCanCopySelectedLog(bool checkMessageOnly = false) {
             var command = checkMessageOnly ? sut.CopySelectedLogMessageCommand : sut.CopySelectedLogCommand;
-            var expectedItems = GetExpectedItemsFromLevel(LoggingLevel.TRACE).ToArray();
+            var expectedItems = GetExpectedItemsFromLevel(LogLevel.TRACE).ToArray();
             expectedItems.Should().HaveCount(6);
 
             for (int i = 0; i < expectedItems.Length; i++) {
@@ -443,7 +446,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         private static void AssertNamespaceLevelCounts(NamespaceViewModel ns, bool expectZero = false) {
-            foreach (var l in LoggingLevel.GetAllLogLevels()) {
+            foreach (var l in LogLevel.AllLogLevels) {
                 var actual = GetLevelCount(l, ns);
                 var expected = expectZero ? 0 : 1;
                 actual.Should().Be(expected);
@@ -460,19 +463,19 @@ namespace Loginator.UnitTests.ViewModels {
             ns.CountFatal == 0 &&
             !ns.IsHighlighted;
 
-        private static int GetLevelCount(LoggingLevel level, NamespaceViewModel ns) =>
+        private static int GetLevelCount(LogLevel level, NamespaceViewModel ns) =>
             level switch {
-                var l when l == LoggingLevel.TRACE => ns.CountTrace,
-                var l when l == LoggingLevel.DEBUG => ns.CountDebug,
-                var l when l == LoggingLevel.INFO => ns.CountInfo,
-                var l when l == LoggingLevel.WARN => ns.CountWarn,
-                var l when l == LoggingLevel.ERROR => ns.CountError,
-                var l when l == LoggingLevel.FATAL => ns.CountFatal,
+                var l when l == LogLevel.TRACE => ns.CountTrace,
+                var l when l == LogLevel.DEBUG => ns.CountDebug,
+                var l when l == LogLevel.INFO => ns.CountInfo,
+                var l when l == LogLevel.WARN => ns.CountWarn,
+                var l when l == LogLevel.ERROR => ns.CountError,
+                var l when l == LogLevel.FATAL => ns.CountFatal,
                 _ => -1,
             };
 
-        private IEnumerable<Log> GetExpectedItemsFromLevel(LoggingLevel level, IEnumerable<Log>? items = null) =>
-            level == LoggingLevel.NOT_SET
+        private IEnumerable<Log> GetExpectedItemsFromLevel(LogLevel level, IEnumerable<Log>? items = null) =>
+            level == LogLevel.NOT_SET
             ? []
             : (items ?? testItems).TakeWhile(item => item.Level >= level);
 
@@ -483,19 +486,19 @@ namespace Loginator.UnitTests.ViewModels {
 
         private async Task<IEnumerable<Log>> AddItemsToSutAsync(int tsOffset, string message = "Two", int appId = 1) {
             var ts = DateTimeOffset.Now;
-            var itemV2 = Log(LoggingLevel.TRACE, ts.AddMinutes(tsOffset++), message, appId);
-            var itemD2 = Log(LoggingLevel.DEBUG, ts.AddMinutes(tsOffset++), message, appId);
-            var itemI2 = Log(LoggingLevel.INFO, ts.AddMinutes(tsOffset++), message, appId);
-            var itemW2 = Log(LoggingLevel.WARN, ts.AddMinutes(tsOffset++), message, appId);
-            var itemE2 = Log(LoggingLevel.ERROR, ts.AddMinutes(tsOffset++), message, appId);
-            var itemF2 = Log(LoggingLevel.FATAL, ts.AddMinutes(tsOffset++), message, appId);
+            var itemV2 = Log(LogLevel.TRACE, ts.AddMinutes(tsOffset++), message, appId);
+            var itemD2 = Log(LogLevel.DEBUG, ts.AddMinutes(tsOffset++), message, appId);
+            var itemI2 = Log(LogLevel.INFO, ts.AddMinutes(tsOffset++), message, appId);
+            var itemW2 = Log(LogLevel.WARN, ts.AddMinutes(tsOffset++), message, appId);
+            var itemE2 = Log(LogLevel.ERROR, ts.AddMinutes(tsOffset++), message, appId);
+            var itemF2 = Log(LogLevel.FATAL, ts.AddMinutes(tsOffset++), message, appId);
 
             IEnumerable<Log> items = [itemF2, itemE2, itemW2, itemI2, itemD2, itemV2];
             await AddItemsReversedAsync(items);
             return items;
         }
 
-        private async Task<(IEnumerable<Log>, IEnumerable<Log>, IEnumerable<Log>)> AddItemsOneTwoThreeToSutAsync(LoggingLevel level) {
+        private async Task<(IEnumerable<Log>, IEnumerable<Log>, IEnumerable<Log>)> AddItemsOneTwoThreeToSutAsync(LogLevel level) {
             // message contains "One"
             var allItems1 = await AddItemsToSutAsync();
             var expectedItems1 = GetExpectedItemsFromLevel(level, allItems1);
@@ -511,7 +514,7 @@ namespace Loginator.UnitTests.ViewModels {
             return (expectedItems1, expectedItems2, expectedItems3);
         }
 
-        private async Task<(IEnumerable<Log>, IEnumerable<Log>)> AddItemsOneTwoDifferentAppsToSutAsync(LoggingLevel level, Func<LoggingLevel>? changeLevel = null) {
+        private async Task<(IEnumerable<Log>, IEnumerable<Log>)> AddItemsOneTwoDifferentAppsToSutAsync(LogLevel level, Func<LogLevel>? changeLevel = null) {
             // app 1
             var allItems1 = await AddItemsToSutAsync();
             var expectedItems1 = GetExpectedItemsFromLevel(level, allItems1);
@@ -539,7 +542,7 @@ namespace Loginator.UnitTests.ViewModels {
                 timeProvider.Advance(TimeSpan.FromSeconds(1));
                 await Task.Yield();
 
-                var processedItemCount = logListener.SumFromMessage(LogLevel.Information, RegexReceivedItems(), "count");
+                var processedItemCount = logListener.SumFromMessage(MsLogLevel.Information, RegexReceivedItems(), "count");
                 if (processedItemCount == itemCount) {
                     logListener.Reset();
                     break;
@@ -548,28 +551,30 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         private LoginatorViewModel Sut() {
-            var config = new Configuration {
+            var config = new ApplicationOptions {
                 ConnectionType = ConnectionType.Udp,
-                LogType = LogType.Chainsaw,
+                LogType = LogType.Log4j,
                 Port = 7081,
                 LogTimeFormat = LogTimeFormat.DoNotChange,
             };
-            var configDao = A.Fake<IOptionsMonitor<Configuration>>();
+            var configDao = A.Fake<IOptionsMonitor<ApplicationOptions>>();
             A.CallTo(() => configDao.CurrentValue).Returns(config);
 
-            var receiver = A.Fake<IReceiver>();
+            var receiver = A.Fake<ILogRepository>();
             var serviceProvider = A.Fake<IKeyedServiceProvider>();
             IoC.ServiceProvider = serviceProvider;
-            A.CallTo(() => serviceProvider.GetRequiredKeyedService(typeof(IReceiver), A<object?>._)).Returns(receiver);
-            A.CallTo(() => receiver.ReadAsync(A<int>._, A<CancellationToken>._)).Returns(receivedLogs);
+            A.CallTo(() => serviceProvider.GetRequiredKeyedService(typeof(ILogRepository), A<object?>._)).Returns(receiver);
+            A.CallTo(() => receiver.GetEnumerableAsync(A<int>._, A<CancellationToken>._)).Returns(receivedLogs);
 
             var stopwatch = A.Fake<IStopwatch>();
             var logger = A.Fake<ILogger<LoginatorViewModel>>();
-            A.CallTo(() => logger.IsEnabled(A<LogLevel>._)).Returns(true);
+            A.CallTo(() => logger.IsEnabled(A<MsLogLevel>._)).Returns(true);
             Fake.GetFakeManager(logger).AddInterceptionListener(logListener);
 
-            var sut = new LoginatorViewModel(configDao, stopwatch, timeProvider, new DispatcherMock(), logger);
-            sut.StartListener();
+            var sut = new LoginatorViewModel(configDao, timeProvider, stopwatch, new DispatcherMock(), logger) {
+                OnCopyToClipboard = s => Clipboard.SetText(s)
+            };
+            sut.StartMessageProcessing();
 
             return sut;
         }
@@ -580,7 +585,7 @@ namespace Loginator.UnitTests.ViewModels {
             sut.Search.UpdateCommand.Execute(null);
         }
 
-        private static Log Log(LoggingLevel level, DateTimeOffset ts, string message = "One", int appId = 1) =>
+        private static Log Log(LogLevel level, DateTimeOffset ts, string message = "One", int appId = 1) =>
             new() {
                 Application = APP_NAMES[appId],
                 Namespace = NAMESPACE_NAME,

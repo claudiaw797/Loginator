@@ -1,52 +1,51 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Converter;
-using Backend.Server;
-using Common;
-using Common.Configuration;
+using Loginator.Domain.Converter;
+using Loginator.Domain.Option;
+using Loginator.Domain.Server;
+using Loginator.Infrastructure.Converter;
+using Loginator.Infrastructure.Option;
+using Loginator.Infrastructure.Server;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NLog;
 using System;
 
-namespace Backend.Bootstrapper {
+namespace Loginator.Infrastructure {
 
-    public static class DiBootstrapperBackend {
+    public static class ServiceCollectionExtensions {
 
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
-        public static void Initialize(IServiceCollection services) {
-            logger.Debug("Bootstrapping DI: Backend");
-
-            services.AddKeyedTransient<ILogConverter, ChainsawToLogConverter>(LogType.Chainsaw);
-            services.AddKeyedTransient<ILogConverter, LogcatToLogConverter>(LogType.Logcat);
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services) {
+            services.AddKeyedTransient<ILogConversionFactory, Log4jConversionFactory>(LogType.Log4j);
+            services.AddKeyedTransient<ILogConversionFactory, LogcatConversionFactory>(LogType.Logcat);
 
             services.AddKeyedTransient<AbstractSocket, UdpSocket>(ConnectionType.Udp);
             services.AddKeyedTransient<AbstractSocket, TcpSocket>(ConnectionType.Tcp);
 
-            services.AddReceivers();
+            services.AddLogRepositories();
+
+            return services;
         }
 
-        private static void AddReceivers(this IServiceCollection services) {
+        private static void AddLogRepositories(this IServiceCollection services) {
             ConnectionType[] connectionTypes = [ConnectionType.Udp, ConnectionType.Tcp];
-            LogType[] logTypes = [LogType.Chainsaw, LogType.Logcat];
+            LogType[] logTypes = [LogType.Log4j, LogType.Logcat];
 
             foreach (var connectionType in connectionTypes) {
                 foreach (var logType in logTypes) {
-                    services.AddKeyedSingleton<IReceiver>((connectionType, logType), (sp, key) => sp.GetReceiver(((ConnectionType, LogType)?)key));
+                    services.AddKeyedSingleton<ILogRepository>((connectionType, logType), (sp, key) => sp.GetLogRepository(((ConnectionType, LogType)?)key));
                 }
             }
         }
 
-        private static Receiver GetReceiver(this IServiceProvider serviceProvider, (ConnectionType connectionType, LogType logType)? key) {
+        private static LogRepository GetLogRepository(this IServiceProvider serviceProvider, (ConnectionType connectionType, LogType logType)? key) {
             ArgumentNullException.ThrowIfNull(key);
 
             var socket = serviceProvider.GetRequiredKeyedService<AbstractSocket>(key.Value.connectionType);
-            var converter = serviceProvider.GetRequiredKeyedService<ILogConverter>(key.Value.logType);
-            var configuration = serviceProvider.GetRequiredService<IOptionsMonitor<ApplicationConfiguration>>();
-            var logger = serviceProvider.GetRequiredService<ILogger<Receiver>>();
-            return new Receiver(socket, converter, configuration, logger);
+            var conversionFactory = serviceProvider.GetRequiredKeyedService<ILogConversionFactory>(key.Value.logType);
+            var optionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<LogProcessingOptions>>();
+            var logger = serviceProvider.GetRequiredService<ILogger<LogRepository>>();
+            return new LogRepository(socket, conversionFactory, optionsMonitor, logger);
         }
     }
 }

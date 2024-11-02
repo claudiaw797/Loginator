@@ -1,6 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Model;
+using Loginator.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,9 +8,9 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 
-namespace Loginator.Collections {
+namespace Loginator.Application.Common {
 
-    public class OrderedObservableCollection : ObservableCollection<Log> {
+    internal class OrderedObservableCollection : ObservableCollection<Log> {
 
         public void AddLeading(Log item) {
             ArgumentNullException.ThrowIfNull(item, nameof(item));

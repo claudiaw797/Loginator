@@ -1,13 +1,13 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Bootstrapper;
-using Backend.Model;
-using Common.Bootstrapper;
-using Common.Configuration;
-using Loginator.Controls;
-using Loginator.Model;
-using Loginator.ViewModels;
-using Loginator.Views;
+using Loginator.Application.Model;
+using Loginator.Application.Option;
+using Loginator.Application.Service;
+using Loginator.Application.ViewModel;
+using Loginator.Domain.Option;
+using Loginator.Gui.WPF.Common;
+using Loginator.Gui.WPF.View;
+using Loginator.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,9 +18,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 
-namespace Loginator.Bootstrapper {
+namespace Loginator.Gui.WPF {
 
-    public static class DiBootstrapperFrontend {
+    public static class HostBuilderContextExtensions {
 
         private const string appSettingsDefault = "Config/appsettings.json";
         private const string appSettingsTemplate = "Config/appsettings.{0}.json";
@@ -28,20 +28,26 @@ namespace Loginator.Bootstrapper {
 
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        public static void ConfigureAppSettings(HostBuilderContext context, IConfigurationBuilder configBuilder) {
+        internal static void ConfigureAppSettings(HostBuilderContext context, IConfigurationBuilder configBuilder) =>
+            context.ConfigureSettings(configBuilder);
+
+        internal static void ConfigureAppServices(HostBuilderContext context, IServiceCollection services) =>
+            context.ConfigureServices(services);
+
+        internal static void ConfigureSettings(this HostBuilderContext context, IConfigurationBuilder configBuilder) {
             configBuilder.AddJsonFile(appSettingsDefault, optional: true, reloadOnChange: true)
                          .AddJsonFile(GetAppSettings(context.HostingEnvironment.EnvironmentName), optional: true, reloadOnChange: true)
                          .AddJsonFile(GetAppSettings(Environment.MachineName), optional: true, reloadOnChange: true)
                          .AddJsonFile(GetAppSettings(Environment.UserName), optional: true, reloadOnChange: true);
         }
 
-        public static void Initialize(HostBuilderContext context, IServiceCollection services) {
-            logger.Debug("Bootstrapping DI: Frontend");
+        internal static void ConfigureServices(this HostBuilderContext context, IServiceCollection services) {
+            logger.Debug("Bootstrapping DI: Gui.WPF");
 
             var config = context.Configuration;
             var active = GetActiveAppSettings(context.HostingEnvironment);
-            services.ConfigureWritable<Configuration>(config.GetSection(Configuration.SectionName), active);
-            services.ConfigureWritable<ApplicationConfiguration>(config.GetSection(ApplicationConfiguration.SectionName), active);
+            services.AddWritableOptions<LogProcessingOptions>(config.GetLogProcessingSection(), active);
+            services.AddWritableOptions<ApplicationOptions>(config.GetApplicationSection(), active);
 
             var assemblyInfo = LoadAssemblyInfo();
             if (assemblyInfo is not null) {
@@ -55,14 +61,14 @@ namespace Loginator.Bootstrapper {
             services.AddSingleton<MainWindow>();
             services.AddSingleton<IDispatcher>(new DispatcherImpl());
 
-            if (config.GetAppSettings().IsTimingTraceEnabled) {
+            if (config.GetAppSettings().TracePerformance) {
                 services.AddTransient<IStopwatch, StopwatchEnabled>();
             }
             else {
                 services.AddTransient<IStopwatch, StopwatchDisabled>();
             }
 
-            DiBootstrapperBackend.Initialize(services);
+            services.AddInfrastructure();
         }
 
         private static string GetAppSettings(string infix) =>

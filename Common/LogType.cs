@@ -1,9 +1,10 @@
-﻿
-namespace Common {
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+namespace Loginator.Infrastructure.Option {
 
     public enum LogType {
         None,
-        Chainsaw,
+        Log4j,
         Logcat
     }
 }

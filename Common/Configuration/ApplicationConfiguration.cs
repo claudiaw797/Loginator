@@ -1,19 +1,18 @@
-﻿
-using Microsoft.Extensions.Configuration;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-namespace Common.Configuration {
+using System.Text.Json.Serialization;
 
-    public sealed class ApplicationConfiguration {
+namespace Loginator.Domain.Option {
 
-        public const string SectionName = "AppSettings";
+    public sealed class LogProcessingOptions {
 
-        public bool IsMessageTraceEnabled { get; set; }
-        public bool IsTimingTraceEnabled { get; set; }
-    }
+        public const string SectionName = "LogProcessing";
 
-    public static class ApplicationConfigurationExtensions {
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ApplicationFormat ApplicationFormat { get; set; }
 
-        public static ApplicationConfiguration GetAppSettings(this IConfiguration configuration)
-            => configuration.GetSection(ApplicationConfiguration.SectionName).Get<ApplicationConfiguration>() ?? new ApplicationConfiguration();
+        public bool AllowAnonymousMessages { get; set; }
+
+        public bool TraceMessages { get; set; }
     }
 }

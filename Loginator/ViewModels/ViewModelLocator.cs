@@ -1,9 +1,9 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Common.Configuration;
-using Loginator.Model;
+using Loginator.Application.Model;
+using Loginator.Application.Service;
 
-namespace Loginator.ViewModels {
+namespace Loginator.Application.ViewModel {
 
     public class ViewModelLocator {
 

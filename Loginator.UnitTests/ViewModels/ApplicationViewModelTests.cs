@@ -1,16 +1,16 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
 using FluentAssertions;
-using Loginator.Collections;
-using Loginator.Model;
-using Loginator.ViewModels;
+using Loginator.Application.Common;
+using Loginator.Application.Model;
+using Loginator.Application.ViewModel;
+using Loginator.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace Loginator.UnitTests.ViewModels {
+namespace Loginator.Application.UnitTests.ViewModel {
 
     /// <summary>
     /// Represents unit tests for <see cref="ApplicationViewModel"/>.
@@ -29,16 +29,16 @@ namespace Loginator.UnitTests.ViewModels {
         private readonly IEnumerable<Log> testItems;
 
         public ApplicationViewModelTests() {
-            sut = new ApplicationViewModel(APP_NAME, logs, namespaces, LoggingLevel.NOT_SET);
+            sut = new ApplicationViewModel(APP_NAME, logs, namespaces, LogLevel.NOT_SET);
             namespaceApp = new NamespaceViewModel(APP_NAME, sut);
 
             var ts = DateTimeOffset.Now;
-            var itemV = Log(LoggingLevel.TRACE, ts.AddMinutes(1));
-            var itemD = Log(LoggingLevel.DEBUG, ts.AddMinutes(2));
-            var itemI = Log(LoggingLevel.INFO, ts.AddMinutes(3));
-            var itemW = Log(LoggingLevel.WARN, ts.AddMinutes(4));
-            var itemE = Log(LoggingLevel.ERROR, ts.AddMinutes(5));
-            var itemF = Log(LoggingLevel.FATAL, ts.AddMinutes(6));
+            var itemV = Log(LogLevel.TRACE, ts.AddMinutes(1));
+            var itemD = Log(LogLevel.DEBUG, ts.AddMinutes(2));
+            var itemI = Log(LogLevel.INFO, ts.AddMinutes(3));
+            var itemW = Log(LogLevel.WARN, ts.AddMinutes(4));
+            var itemE = Log(LogLevel.ERROR, ts.AddMinutes(5));
+            var itemF = Log(LogLevel.FATAL, ts.AddMinutes(6));
 
             testItems = [itemF, itemE, itemW, itemI, itemD, itemV];
         }
@@ -52,8 +52,8 @@ namespace Loginator.UnitTests.ViewModels {
         [Test]
         public void Can_create_sut() {
             var expectedAppName = "TestApp(101)";
-            var expectedLogLevels = LoggingLevel.GetAllLogLevels().Order();
-            var expectedLogLevel = LoggingLevel.INFO;
+            var expectedLogLevels = LogLevel.AllLogLevels.Order();
+            var expectedLogLevel = LogLevel.INFO;
             var sut = new ApplicationViewModel(expectedAppName, logs, namespaces, expectedLogLevel);
 
             sut.Name.Should().Be(expectedAppName);
@@ -64,7 +64,7 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public void Cannot_show_logs_without_namespace(LoggingLevel level) {
+        public void Cannot_show_logs_without_namespace(LogLevel level) {
             sut.SelectedMinLogLevel = level;
 
             AddItemsToSut();
@@ -73,47 +73,47 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public void Can_show_logs_for_present_namespace(LoggingLevel level) {
+        public void Can_show_logs_for_present_namespace(LogLevel level) {
             AssertOrderNamespaceLevelItems(level);
         }
 
         [TestCase]
         public void Cannot_show_logs_for_present_namespace_if_level_is_invalid() {
-            AssertOrderNamespaceLevelItems(LoggingLevel.NOT_SET);
+            AssertOrderNamespaceLevelItems(LogLevel.NOT_SET);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public void Can_show_logs_for_updated_namespace(LoggingLevel level) {
+        public void Can_show_logs_for_updated_namespace(LogLevel level) {
             AssertOrderLevelItemsNamespace(level);
         }
 
         [TestCase]
         public void Cannot_show_logs_for_updated_namespace_if_level_is_invalid() {
-            AssertOrderLevelItemsNamespace(LoggingLevel.NOT_SET);
+            AssertOrderLevelItemsNamespace(LogLevel.NOT_SET);
         }
 
         [TestCase]
         public void Can_show_logs_from_updated_level() {
             AddItemsToSut(setNamespaceFirst: true);
 
-            AssertOrderNamespaceItemsLevel(LoggingLevel.NOT_SET);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.TRACE);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.DEBUG);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.INFO);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.WARN);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.ERROR);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.FATAL);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.NOT_SET);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.ERROR);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.WARN);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.INFO);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.DEBUG);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.TRACE);
-            AssertOrderNamespaceItemsLevel(LoggingLevel.NOT_SET);
+            AssertOrderNamespaceItemsLevel(LogLevel.NOT_SET);
+            AssertOrderNamespaceItemsLevel(LogLevel.TRACE);
+            AssertOrderNamespaceItemsLevel(LogLevel.DEBUG);
+            AssertOrderNamespaceItemsLevel(LogLevel.INFO);
+            AssertOrderNamespaceItemsLevel(LogLevel.WARN);
+            AssertOrderNamespaceItemsLevel(LogLevel.ERROR);
+            AssertOrderNamespaceItemsLevel(LogLevel.FATAL);
+            AssertOrderNamespaceItemsLevel(LogLevel.NOT_SET);
+            AssertOrderNamespaceItemsLevel(LogLevel.ERROR);
+            AssertOrderNamespaceItemsLevel(LogLevel.WARN);
+            AssertOrderNamespaceItemsLevel(LogLevel.INFO);
+            AssertOrderNamespaceItemsLevel(LogLevel.DEBUG);
+            AssertOrderNamespaceItemsLevel(LogLevel.TRACE);
+            AssertOrderNamespaceItemsLevel(LogLevel.NOT_SET);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public void Can_hide_logs_for_inactive_application(LoggingLevel level) {
+        public void Can_hide_logs_for_inactive_application(LogLevel level) {
             AddItemsToSut(setNamespaceFirst: true);
 
             var expectedItems = GetExpectedItemsFromLevel(level);
@@ -127,21 +127,21 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public void Can_hide_logs_for_inactive_namespace(LoggingLevel level) {
+        public void Can_hide_logs_for_inactive_namespace(LogLevel level) {
             AddItemsToSut(setNamespaceFirst: true);
 
             var expectedItems = GetExpectedItemsFromLevel(level);
             sut.SelectedMinLogLevel = level;
 
-            namespaceApp.IsChecked = false;
+            namespaceApp.IsActive = false;
             logs.Should().BeEmpty();
 
-            namespaceApp.IsChecked = true;
+            namespaceApp.IsActive = true;
             AssertLogs(expectedItems);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public void Can_remove_surplus_logs(LoggingLevel level) {
+        public void Can_remove_surplus_logs(LogLevel level) {
             var allItems1 = AddItemsToSut(setNamespaceFirst: true);
             var expectedItems1 = GetExpectedItemsFromLevel(level, allItems1);
 
@@ -161,27 +161,27 @@ namespace Loginator.UnitTests.ViewModels {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public void Can_show_logs_for_present_search_options(LoggingLevel level) {
+        public void Can_show_logs_for_present_search_options(LogLevel level) {
             AssertOrderLevelSearchNamespaceItems(level);
         }
 
         [TestCase]
         public void Cannot_show_logs_for_present_search_options_if_level_is_invalid() {
-            AssertOrderLevelSearchNamespaceItems(LoggingLevel.NOT_SET);
+            AssertOrderLevelSearchNamespaceItems(LogLevel.NOT_SET);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public void Can_show_logs_for_present_search_options_with_inversion(LoggingLevel level) {
+        public void Can_show_logs_for_present_search_options_with_inversion(LogLevel level) {
             AssertOrderLevelSearchInvertedNamespaceItems(level);
         }
 
         [TestCase]
         public void Cannot_show_logs_for_present_search_options_with_inversion_if_level_is_invalid() {
-            AssertOrderLevelSearchInvertedNamespaceItems(LoggingLevel.NOT_SET);
+            AssertOrderLevelSearchInvertedNamespaceItems(LogLevel.NOT_SET);
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.AllLogLevels))]
-        public void Can_show_logs_for_updated_search_options(LoggingLevel level) {
+        public void Can_show_logs_for_updated_search_options(LogLevel level) {
             sut.SelectedMinLogLevel = level;
 
             (var expectedItems1, var expectedItems2, var expectedItems3) = AddItemsOneTwoThreeToSut(level);
@@ -212,9 +212,9 @@ namespace Loginator.UnitTests.ViewModels {
 
         [TestCase]
         public void Cannot_show_logs_for_updated_search_options_if_level_is_invalid() {
-            sut.SelectedMinLogLevel = LoggingLevel.NOT_SET;
+            sut.SelectedMinLogLevel = LogLevel.NOT_SET;
 
-            _ = AddItemsOneTwoThreeToSut(LoggingLevel.NOT_SET);
+            _ = AddItemsOneTwoThreeToSut(LogLevel.NOT_SET);
 
             logs.Should().BeEmpty();
 
@@ -228,14 +228,14 @@ namespace Loginator.UnitTests.ViewModels {
             logs.Should().BeEmpty();
         }
 
-        private void AssertOrderNamespaceItemsLevel(LoggingLevel level) {
+        private void AssertOrderNamespaceItemsLevel(LogLevel level) {
             var expectedItems = GetExpectedItemsFromLevel(level);
 
             sut.SelectedMinLogLevel = level;
             AssertLogs(expectedItems);
         }
 
-        private void AssertOrderNamespaceLevelItems(LoggingLevel level) {
+        private void AssertOrderNamespaceLevelItems(LogLevel level) {
             var expectedItems = GetExpectedItemsFromLevel(level);
             namespaces.Add(namespaceApp);
             sut.SelectedMinLogLevel = level;
@@ -245,7 +245,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertLogs(expectedItems);
         }
 
-        private void AssertOrderLevelItemsNamespace(LoggingLevel level) {
+        private void AssertOrderLevelItemsNamespace(LogLevel level) {
             var expectedItems = GetExpectedItemsFromLevel(level);
             sut.SelectedMinLogLevel = level;
 
@@ -255,11 +255,11 @@ namespace Loginator.UnitTests.ViewModels {
             namespaces.Add(namespaceApp);
             logs.Should().BeEmpty();
 
-            sut.UpdateByNamespaceChange(namespaceApp.Children.First());
+            sut.OnNamespaceIsActiveChanged(namespaceApp.Children.First());
             AssertLogs(expectedItems);
         }
 
-        private void AssertOrderLevelSearchNamespaceItems(LoggingLevel level) {
+        private void AssertOrderLevelSearchNamespaceItems(LogLevel level) {
             sut.SelectedMinLogLevel = level;
             sut.SearchOptions = Search("Two", false);
 
@@ -268,7 +268,7 @@ namespace Loginator.UnitTests.ViewModels {
             AssertLogs(expectedItems2);
         }
 
-        private void AssertOrderLevelSearchInvertedNamespaceItems(LoggingLevel level) {
+        private void AssertOrderLevelSearchInvertedNamespaceItems(LogLevel level) {
             sut.SelectedMinLogLevel = level;
             sut.SearchOptions = Search("Two", true);
 
@@ -291,12 +291,12 @@ namespace Loginator.UnitTests.ViewModels {
 
         private IEnumerable<Log> AddItemsToSut(int tsOffset, string message = "Two") {
             var ts = DateTimeOffset.Now;
-            var itemV2 = Log(LoggingLevel.TRACE, ts.AddMinutes(tsOffset++), message);
-            var itemD2 = Log(LoggingLevel.DEBUG, ts.AddMinutes(tsOffset++), message);
-            var itemI2 = Log(LoggingLevel.INFO, ts.AddMinutes(tsOffset++), message);
-            var itemW2 = Log(LoggingLevel.WARN, ts.AddMinutes(tsOffset++), message);
-            var itemE2 = Log(LoggingLevel.ERROR, ts.AddMinutes(tsOffset++), message);
-            var itemF2 = Log(LoggingLevel.FATAL, ts.AddMinutes(tsOffset++), message);
+            var itemV2 = Log(LogLevel.TRACE, ts.AddMinutes(tsOffset++), message);
+            var itemD2 = Log(LogLevel.DEBUG, ts.AddMinutes(tsOffset++), message);
+            var itemI2 = Log(LogLevel.INFO, ts.AddMinutes(tsOffset++), message);
+            var itemW2 = Log(LogLevel.WARN, ts.AddMinutes(tsOffset++), message);
+            var itemE2 = Log(LogLevel.ERROR, ts.AddMinutes(tsOffset++), message);
+            var itemF2 = Log(LogLevel.FATAL, ts.AddMinutes(tsOffset++), message);
 
             IEnumerable<Log> items = [itemF2, itemE2, itemW2, itemI2, itemD2, itemV2];
             AddItemsReversed(items);
@@ -304,7 +304,7 @@ namespace Loginator.UnitTests.ViewModels {
             return items;
         }
 
-        private (IEnumerable<Log>, IEnumerable<Log>, IEnumerable<Log>) AddItemsOneTwoThreeToSut(LoggingLevel level) {
+        private (IEnumerable<Log>, IEnumerable<Log>, IEnumerable<Log>) AddItemsOneTwoThreeToSut(LogLevel level) {
             // message contains "One"
             var allItems1 = AddItemsToSut(setNamespaceFirst: true);
             var expectedItems1 = GetExpectedItemsFromLevel(level, allItems1);
@@ -327,12 +327,12 @@ namespace Loginator.UnitTests.ViewModels {
             }
         }
 
-        private IEnumerable<Log> GetExpectedItemsFromLevel(LoggingLevel level, IEnumerable<Log>? items = null) =>
-            level == LoggingLevel.NOT_SET
+        private IEnumerable<Log> GetExpectedItemsFromLevel(LogLevel level, IEnumerable<Log>? items = null) =>
+            level == LogLevel.NOT_SET
             ? []
             : (items ?? testItems).TakeWhile(item => item.Level >= level);
 
-        private static Log Log(LoggingLevel level, DateTimeOffset ts, string message = "One") =>
+        private static Log Log(LogLevel level, DateTimeOffset ts, string message = "One") =>
             new() {
                 Application = APP_NAME,
                 Namespace = NAMESPACE_NAME,

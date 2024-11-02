@@ -1,12 +1,12 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
+using Loginator.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace Backend.UnitTests {
+namespace Loginator.Infrastructure.UnitTests {
 
     internal class LogComparer : IEqualityComparer<Log> {
 

@@ -1,26 +1,27 @@
-﻿using Common.Configuration;
+﻿// Copyright (C) 2024 Claudia Wagner
+
+using Loginator.Domain.Option;
+using Loginator.Infrastructure.Option;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace Common.Bootstrapper {
+namespace Loginator.Infrastructure {
 
-    public static class DiBootstrapperCommon {
+    public static class ServiceCollectionExtensions {
 
-        public static void ConfigureWritable<T>(this IServiceCollection services,
-            IConfigurationSection section,
-            string file = "appsettings.json")
-            where T : class, new() {
+        public static void AddWritableOptions<TOptions>(this IServiceCollection services, IConfigurationSection section, string file = "appsettings.json")
+            where TOptions : class, new() {
 
-            services.Configure<T>(section);
+            services.Configure<TOptions>(section);
 
-            services.AddTransient<IWritableOptions<T>>(provider => {
+            services.AddTransient<IOptionsRepository<TOptions>>(provider => {
                 var configuration = provider.GetRequiredService<IConfiguration>();
                 var environment = provider.GetRequiredService<IHostEnvironment>();
-                var options = provider.GetRequiredService<IOptionsMonitor<T>>();
+                var options = provider.GetRequiredService<IOptionsMonitor<TOptions>>();
 
-                return new WritableOptions<T>(environment, options, (IConfigurationRoot)configuration, section.Key, file);
+                return new OptionsRepository<TOptions>(environment, options, (IConfigurationRoot)configuration, section.Key, file);
             });
         }
     }

@@ -2,11 +2,11 @@
 
 using FakeItEasy;
 using FluentAssertions;
-using Loginator.Model;
-using Loginator.ViewModels;
+using Loginator.Application.Model;
+using Loginator.Application.ViewModel;
 using System;
 
-namespace Loginator.UnitTests.ViewModels {
+namespace Loginator.Application.UnitTests.ViewModel {
 
     /// <summary>
     /// Represents unit tests for <see cref="SearchViewModel"/>.

@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿// Copyright (C) 2024 Claudia Wagner
+
+using Loginator.Domain.Option;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
@@ -6,23 +9,24 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace Common.Configuration {
+namespace Loginator.Infrastructure.Option {
 
-    public class WritableOptions<T> : IWritableOptions<T> where T : class, new() {
+    public class OptionsRepository<TOptions> : IOptionsRepository<TOptions>
+        where TOptions : class, new() {
 
         private static readonly JsonSerializerOptions serializerOptions = new() {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true
         };
 
-        private readonly IOptionsMonitor<T> options;
+        private readonly IOptionsMonitor<TOptions> optionsMonitor;
         private readonly IConfigurationRoot configuration;
         private readonly string section;
         private readonly string physicalPath;
 
-        public WritableOptions(
+        public OptionsRepository(
             IHostEnvironment environment,
-            IOptionsMonitor<T> options,
+            IOptionsMonitor<TOptions> optionsMonitor,
             IConfigurationRoot configuration,
             string section,
             string file) {
@@ -30,25 +34,23 @@ namespace Common.Configuration {
             var physicalPath = environment.ContentRootFileProvider.GetFileInfo(file).PhysicalPath
                 ?? throw new ArgumentException($"No file found for {file}", nameof(file));
 
-            this.options = options;
+            this.optionsMonitor = optionsMonitor;
             this.configuration = configuration;
             this.section = section;
             this.physicalPath = physicalPath;
         }
 
-        public T Value => options.CurrentValue;
+        public TOptions Get() => optionsMonitor.CurrentValue;
 
-        public T Get(string name) => options.Get(name);
+        public TOptions Get(string name) => optionsMonitor.Get(name);
 
-        public IDisposable? OnChange(Action<T, string?> listener) => options.OnChange(listener);
-
-        public void Update(Action<T> applyChanges) {
+        public void Save(Action<TOptions> applyChanges) {
             // create json object from current file
             var jsonFile = JsonSerializer.Deserialize<JsonObject>(File.ReadAllText(physicalPath));
             // get section: deserialized from file object, current configuration value or newly created
             var sectionObject = jsonFile is null || !jsonFile.TryGetPropertyValue(this.section, out var section)
-                ? Value ?? new T()
-                : JsonSerializer.Deserialize<T>(section!.ToString());
+                ? Get() ?? new TOptions()
+                : JsonSerializer.Deserialize<TOptions>(section!.ToString());
 
             // cannot continue without section
             if (sectionObject is null) return;
@@ -65,5 +67,8 @@ namespace Common.Configuration {
 
             configuration.Reload();
         }
+
+        public IDisposable? OnChanged(Action<TOptions, string?> listener) =>
+            optionsMonitor.OnChange(listener);
     }
 }

@@ -10,11 +10,11 @@
     <EmbeddedResource Include="Resources\AssemblyInfo.json" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\icon.ico" />
-    <Resource Include="Resources\icon.png" />
-    <Resource Include="Resources\mainMenuControl.png" />
-    <Resource Include="Resources\settings.png" />
-    <Resource Include="Resources\statusInformation.png" />
+    <Resource Include="Resources\App.ico" />
+    <Resource Include="Resources\App.png" />
+    <Resource Include="Resources\MainMenuControl.png" />
+    <Resource Include="Resources\Settings.png" />
+    <Resource Include="Resources\StatusInformation.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config\appsettings.json">

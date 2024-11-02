@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-namespace Loginator.ViewModels {
-    public static class ViewModelConstants {
-        public static object SYNC_OBJECT = new Object();
+namespace Loginator.Application.ViewModel {
+
+    internal static class Constants {
+
+        public const int DefaultMaxNumberOfLogsPerLevel = 1000;
+
+        public static object SyncObject = new();
     }
 }

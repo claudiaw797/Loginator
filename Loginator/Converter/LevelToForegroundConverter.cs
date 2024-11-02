@@ -1,37 +1,29 @@
-﻿using Backend.Model;
+﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+
+using Loginator.Domain.Model;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace Loginator.Converter {
-    
+namespace Loginator.Gui.WPF.Converter {
+
     public class LevelToForegroundConverter : IValueConverter {
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
-            if (value != null) {
-                LoggingLevel level = (LoggingLevel)value;
-                if (level == LoggingLevel.TRACE) {
-                    return new SolidColorBrush(Colors.DarkGray);
-                } else if (level == LoggingLevel.DEBUG) {
-                    return new SolidColorBrush(Colors.Gray);
-                } else if (level == LoggingLevel.INFO) {
-                    return new SolidColorBrush(Colors.Green);
-                } else if (level == LoggingLevel.WARN) {
-                    return new SolidColorBrush(Colors.DarkOrange);
-                } else if (level == LoggingLevel.ERROR) {
-                    return new SolidColorBrush(Colors.Red);
-                } else if (level == LoggingLevel.FATAL) {
-                    return new SolidColorBrush(Colors.DarkViolet);
-                }
-            }
-            return new SolidColorBrush(Colors.Black);
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
+            var color = (value as LogLevel) switch {
+                var l when l == LogLevel.TRACE => Colors.DarkGray,
+                var l when l == LogLevel.DEBUG => Colors.Gray,
+                var l when l == LogLevel.INFO => Colors.Green,
+                var l when l == LogLevel.WARN => Colors.DarkOrange,
+                var l when l == LogLevel.ERROR => Colors.Red,
+                var l when l == LogLevel.FATAL => Colors.DarkViolet,
+                _ => Colors.Black,
+            };
+            return new SolidColorBrush(color);
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) {
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
             throw new NotImplementedException("[ConvertBack] not implemented");
-        }
     }
 }

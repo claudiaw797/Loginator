@@ -3,7 +3,7 @@
 using System;
 using System.Windows.Markup;
 
-namespace Loginator.Controls {
+namespace Loginator.Gui.WPF.Control {
 
     /// <summary>
     /// Source https://brianlagunas.com/a-better-way-to-data-bind-enums-in-wpf/

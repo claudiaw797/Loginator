@@ -1,12 +1,16 @@
-﻿using Microsoft.Extensions.Options;
+﻿// Copyright (C) 2024 Claudia Wagner
+
 using System;
 
-namespace Common.Configuration {
+namespace Loginator.Domain.Option {
 
-    public interface IWritableOptions<out T> : IOptions<T> where T : class, new() {
+    public interface IOptionsRepository<out TOptions>
+        where TOptions : class, new() {
 
-        IDisposable? OnChange(Action<T, string?> listener);
+        TOptions Get();
 
-        void Update(Action<T> applyChanges);
+        void Save(Action<TOptions> applyChanges);
+
+        IDisposable? OnChanged(Action<TOptions, string?> listener);
     }
 }

@@ -1,73 +1,75 @@
-using Backend.Model;
+// Copyright (C) 2024 Claudia Wagner
+
 using FluentAssertions;
+using Loginator.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Backend.UnitTests.Model {
+namespace Loginator.Domain.UnitTests.Model {
 
     /// <summary>
-    /// Represents unit tests for <see cref="LoggingLevel"/>.
+    /// Represents unit tests for <see cref="LogLevel"/>.
     /// </summary>
-    public class LoggingLevelTests {
+    public class LogLevelTests {
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.ValidLevels))]
-        public void Can_determine_equality(LoggingLevel sut) {
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.ValidLevels))]
+        public void Can_determine_equality(LogLevel sut) {
             AssertEqualityAndSameOrder(sut, sut, true);
         }
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.ValidLevels))]
-        public void Can_compare_with_null(LoggingLevel sut) {
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.ValidLevels))]
+        public void Can_compare_with_null(LogLevel sut) {
             AssertUnequalityAndOrderWithNull(sut);
         }
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.ValidLevels))]
-        public void Can_determine_greater_and_less_than_or_equal_for_equal_levels(LoggingLevel sut) {
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.ValidLevels))]
+        public void Can_determine_greater_and_less_than_or_equal_for_equal_levels(LogLevel sut) {
             AssertGreaterAndLessThanOrEqualForEqualLevels(sut, sut);
         }
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.FirstLowerThanSecond))]
-        public void Can_determine_greater_and_less_than_or_equal_for_unequal_levels(LoggingLevel sutLower, LoggingLevel sutHigher) {
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.FirstLowerThanSecond))]
+        public void Can_determine_greater_and_less_than_or_equal_for_unequal_levels(LogLevel sutLower, LogLevel sutHigher) {
             AssertGreaterAndLessThanOrEqualForUnequalLevels(sutLower, sutHigher);
         }
 
         [Test]
         public void Can_determine_all_valid_levels_sortable() {
-            LoggingLevel[] expected = [LoggingLevel.TRACE, LoggingLevel.DEBUG, LoggingLevel.INFO, LoggingLevel.WARN, LoggingLevel.ERROR, LoggingLevel.FATAL];
-            var actual = LoggingLevel.GetAllLogLevels().Order();
+            LogLevel[] expected = [LogLevel.TRACE, LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR, LogLevel.FATAL];
+            var actual = LogLevel.AllLogLevels.Order();
 
             actual.Should().BeEquivalentTo(expected, c => c.WithStrictOrdering());
         }
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.LevelsBetweenEmptyResult))]
-        public void Can_determine_empty_levels_between(LoggingLevel? sutFrom, LoggingLevel? sutTo) {
-            var actual = LoggingLevel.GetLogLevelsBetween(ref sutFrom, ref sutTo);
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.LevelsBetweenEmptyResult))]
+        public void Can_determine_empty_levels_between(LogLevel? sutFrom, LogLevel? sutTo) {
+            var actual = LogLevel.GetLogLevelsBetween(ref sutFrom, ref sutTo);
 
             actual.Should().NotBeNull();
             actual.Should().BeEmpty();
         }
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.LevelsBetween))]
-        public void Can_determine_levels_between(LoggingLevel sutFrom, LoggingLevel sutTo, IEnumerable<LoggingLevel> expected) {
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.LevelsBetween))]
+        public void Can_determine_levels_between(LogLevel sutFrom, LogLevel sutTo, IEnumerable<LogLevel> expected) {
             AssertLevelsBetween(sutFrom, sutTo, expected);
             AssertLevelsBetween(sutTo, sutFrom, expected);
         }
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.ValidLevelsByName))]
-        public void Can_determine_valid_levels_by_name(string name, LoggingLevel expected) {
-            var actual = LoggingLevel.FromName(name);
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.ValidLevelsByName))]
+        public void Can_determine_valid_levels_by_name(string name, LogLevel expected) {
+            var actual = LogLevel.FromName(name);
 
             actual.Should().Be(expected);
         }
 
-        [TestCaseSource(typeof(LoggingLevelTestData), nameof(LoggingLevelTestData.ValidLevelsByShortName))]
-        public void Can_determine_valid_levels_by_short_name(char shortName, LoggingLevel expected) {
-            var actual = LoggingLevel.FromShortName(shortName);
+        [TestCaseSource(typeof(LogLevelTestData), nameof(LogLevelTestData.ValidLevelsByShortName))]
+        public void Can_determine_valid_levels_by_short_name(char shortName, LogLevel expected) {
+            var actual = LogLevel.FromShortName(shortName);
 
             actual.Should().Be(expected);
         }
 
-        private static void AssertEqualityAndSameOrder(LoggingLevel levelLeft, LoggingLevel levelRight, bool isExpectedEqual) {
+        private static void AssertEqualityAndSameOrder(LogLevel levelLeft, LogLevel levelRight, bool isExpectedEqual) {
             AssertEquality(levelLeft, levelRight, isExpectedEqual);
             AssertOrder(levelLeft, levelRight, isExpectedEqual);
 
@@ -78,7 +80,7 @@ namespace Backend.UnitTests.Model {
             (levelRight != levelLeft).Should().Be(!isExpectedEqual);
         }
 
-        private static void AssertGreaterAndLessThanOrEqualForEqualLevels(LoggingLevel levelLeft, LoggingLevel levelRight) {
+        private static void AssertGreaterAndLessThanOrEqualForEqualLevels(LogLevel levelLeft, LogLevel levelRight) {
             (levelLeft >= levelRight).Should().BeTrue();
             (levelLeft <= levelRight).Should().BeTrue();
             (levelRight >= levelLeft).Should().BeTrue();
@@ -87,7 +89,7 @@ namespace Backend.UnitTests.Model {
             AssertEqualityAndSameOrder(levelLeft, levelRight, true);
         }
 
-        private static void AssertGreaterAndLessThanOrEqualForUnequalLevels(LoggingLevel lower, LoggingLevel higher) {
+        private static void AssertGreaterAndLessThanOrEqualForUnequalLevels(LogLevel lower, LogLevel higher) {
             (higher > lower).Should().BeTrue();
             (higher >= lower).Should().BeTrue();
             (lower < higher).Should().BeTrue();
@@ -96,8 +98,8 @@ namespace Backend.UnitTests.Model {
             AssertEqualityAndSameOrder(higher, lower, false);
         }
 
-        private static void AssertUnequalityAndOrderWithNull(LoggingLevel level) {
-            var nullLevel = (LoggingLevel?)null;
+        private static void AssertUnequalityAndOrderWithNull(LogLevel level) {
+            var nullLevel = (LogLevel?)null;
 
             level.Equals(nullLevel!).Should().BeFalse();
 
@@ -133,8 +135,8 @@ namespace Backend.UnitTests.Model {
             }
         }
 
-        private static void AssertLevelsBetween(LoggingLevel? sutFrom, LoggingLevel? sutTo, IEnumerable<LoggingLevel> expected) {
-            var actual = LoggingLevel.GetLogLevelsBetween(ref sutFrom, ref sutTo);
+        private static void AssertLevelsBetween(LogLevel? sutFrom, LogLevel? sutTo, IEnumerable<LogLevel> expected) {
+            var actual = LogLevel.GetLogLevelsBetween(ref sutFrom, ref sutTo);
 
             actual.Should().BeEquivalentTo(expected);
         }

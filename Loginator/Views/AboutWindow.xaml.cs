@@ -3,7 +3,7 @@
 using System.Windows;
 using System.Windows.Input;
 
-namespace Loginator.Views {
+namespace Loginator.Gui.WPF.View {
 
     /// <summary>
     /// Interaction logic for AboutWindow.xaml

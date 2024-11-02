@@ -2,10 +2,10 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Loginator.Model;
+using Loginator.Application.Model;
 using System;
 
-namespace Loginator.ViewModels {
+namespace Loginator.Application.ViewModel {
 
     public partial class SearchViewModel : ObservableObject {
 
@@ -28,7 +28,7 @@ namespace Loginator.ViewModels {
 
         [RelayCommand(CanExecute = nameof(CanUpdateSearch))]
         private void Update(string? command) {
-            lock (ViewModelConstants.SYNC_OBJECT) {
+            lock (Constants.SyncObject) {
                 command ??= GetUpdateCommandNameForCriteria(Criteria);
 
                 if (command == UpdateCommandClear) {

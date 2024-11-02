@@ -1,14 +1,21 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Loginator.Domain.Common.Constants;
 
-namespace Backend.Model {
+namespace Loginator.Domain.Model {
 
     public class Log {
 
+        public Log() {
+            Timestamp = DateTimeOffset.Now;
+            Level = LogLevel.NOT_SET;
+            Namespace = NamespaceDefault;
+            Application = ApplicationDefault;
+            Properties = [];
+        }
         /// <summary>
         /// The date and time the log happened. Either this comes from the logging source or is set when received.
         /// </summary>
@@ -17,7 +24,7 @@ namespace Backend.Model {
         /// <summary>
         /// The log level in the form "INFO", "ERROR", etc. This should always be available.
         /// </summary>
-        public LoggingLevel Level { get; internal set; }
+        public LogLevel Level { get; internal set; }
 
         /// <summary>
         /// The log message. Can be anything the logging source writes. This should always be available.
@@ -67,14 +74,6 @@ namespace Backend.Model {
         /// The mapped diagnostic contexts and additional properties of the log. May be empty.
         /// </summary>
         public IReadOnlyCollection<Property> Properties { get; private set; }
-
-        public Log() {
-            Timestamp = DateTimeOffset.Now;
-            Level = LoggingLevel.NOT_SET;
-            Namespace = Constants.NAMESPACE_GLOBAL;
-            Application = Constants.APPLICATION_GLOBAL;
-            Properties = [];
-        }
 
         private static readonly Log def = new();
 

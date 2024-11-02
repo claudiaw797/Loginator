@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace Loginator.Converter {
+namespace Loginator.Gui.WPF.Converter {
 
     public class ExistsToVisibilityConverter : IValueConverter {
 
@@ -14,8 +14,7 @@ namespace Loginator.Converter {
             return hasNoValue ? Visibility.Collapsed : Visibility.Visible;
         }
 
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) {
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
             throw new NotImplementedException();
-        }
     }
 }

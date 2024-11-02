@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Loginator.UnitTests {
+namespace Loginator.Application.UnitTests {
 
     internal class LogListener : IInterceptionListener {
 

@@ -1,17 +1,17 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
+using Loginator.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace Backend.UnitTests.Converter {
+namespace Loginator.Infrastructure.UnitTests.Converter {
 
     /// <summary>
-    /// Represents test data for <see cref="ChainsawToLogConverterTests"/>.
+    /// Represents test data for <see cref="Log4jConversionFactoryTests"/>.
     /// </summary>
-    internal class ChainsawToLogConverterTestData {
+    internal class Log4jConversionFactoryTestData {
 
         private const string NSP_URI = "https://logging.apache.org/xml/ns";
         private const string NSP_PFX = "log4j";
@@ -46,7 +46,7 @@ namespace Backend.UnitTests.Converter {
             SaveOptions.DisableFormatting | SaveOptions.OmitDuplicateNamespaces
         ];
 
-        static ChainsawToLogConverterTestData() {
+        static Log4jConversionFactoryTestData() {
             LogFromValidLog4jXml.AddProperties([
                 new(Name.FromMdc, Value.FromMdc),
                 new(Name.Action, Value.Action),
@@ -183,7 +183,7 @@ namespace Backend.UnitTests.Converter {
 
         private class Value {
             public static readonly DateTimeOffset Timestamp = DateTimeOffset.Parse("2024-08-26 16:13:21.964 +0");
-            public static readonly LoggingLevel Level = LoggingLevel.ERROR;
+            public static readonly LogLevel Level = LogLevel.ERROR;
             public const string Message = "Something really important happened ;)";
             public const string Exception = """
             System.InvalidOperationException: test exception
@@ -265,7 +265,7 @@ namespace Backend.UnitTests.Converter {
         }
     }
 
-    internal static class ChainsawToLogConverterExtensions {
+    internal static class Log4jConversionFactoryExtensions {
 
         private static readonly Random Random = new();
 
@@ -273,7 +273,7 @@ namespace Backend.UnitTests.Converter {
             var result = element.ToString(options);
 
             if (removeNs) {
-                result = result.Replace($" {ChainsawToLogConverterTestData.XAtt.Log4j}", string.Empty);
+                result = result.Replace($" {Log4jConversionFactoryTestData.XAtt.Log4j}", string.Empty);
             }
             return result;
         }

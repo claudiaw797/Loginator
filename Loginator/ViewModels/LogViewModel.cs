@@ -1,13 +1,13 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-using Backend.Model;
+using Loginator.Domain.Model;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using static Common.Constants;
+using static Loginator.Domain.Common.Constants;
 
-namespace Loginator.ViewModels {
+namespace Loginator.Application.ViewModel {
 
     [DebuggerDisplay("{Timestamp} {Level.Id} {Application}.{Namespace} '{Message}'")]
     public class LogViewModel(Log log) {
@@ -15,7 +15,7 @@ namespace Loginator.ViewModels {
         private readonly Log log = log;
 
         public DateTimeOffset Timestamp => log.Timestamp;
-        public LoggingLevel Level => log.Level;
+        public LogLevel Level => log.Level;
         public string? Message => log.Message;
         public string? Exception => log.Exception;
         public string? MachineName => log.MachineName;
@@ -31,7 +31,7 @@ namespace Loginator.ViewModels {
 
         public string ApplicationProcess {
             get {
-                return string.IsNullOrEmpty(log.Process) || RegexLog4jApp().IsMatch(log.Application)
+                return string.IsNullOrEmpty(log.Process) || Log4jAppRegex().IsMatch(log.Application)
                     ? log.Application
                     : $"{log.Application} ({log.Process})";
             }

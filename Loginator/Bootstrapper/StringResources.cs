@@ -1,7 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Backend.Model;
-using Common;
+using Loginator.Application.Option;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -9,13 +8,13 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 
-namespace Loginator.Bootstrapper {
+namespace Loginator.Gui.WPF.Common {
 
     internal class StringResources {
 
         private readonly Dictionary<KnownCulture, ResourceDictionary> stringResources = [];
 
-        public StringResources(IOptionsMonitor<Configuration> configurationDao) {
+        public StringResources(IOptionsMonitor<ApplicationOptions> configurationDao) {
             InitializeDefaultCulture();
             SetCulture(configurationDao.CurrentValue.Language);
 
@@ -40,11 +39,11 @@ namespace Loginator.Bootstrapper {
 
             if (CurrentCulture != KnownCulture.English) {
                 var currentStringResources = stringResources[CurrentCulture];
-                Application.Current.Resources.MergedDictionaries.Remove(currentStringResources);
+                App.Current.Resources.MergedDictionaries.Remove(currentStringResources);
             }
 
             if (nextCulture != KnownCulture.English)
-                Application.Current.Resources.MergedDictionaries.Add(nextStringResources);
+                App.Current.Resources.MergedDictionaries.Add(nextStringResources);
 
             CurrentCulture = nextCulture;
         }
@@ -72,7 +71,7 @@ namespace Loginator.Bootstrapper {
         private void InitializeDefaultCulture() {
             CurrentCulture = KnownCulture.English;
 
-            var mergedResources = Application.Current.Resources.MergedDictionaries;
+            var mergedResources = App.Current.Resources.MergedDictionaries;
             var defaultPath = GetStringResourcesPath(CurrentCulture);
             var defaultStringResources = mergedResources.FirstOrDefault(d => d.Source.OriginalString.Equals(defaultPath));
             if (defaultStringResources is null) {

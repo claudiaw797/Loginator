@@ -3,7 +3,7 @@
 using NLog;
 using System;
 
-namespace Loginator.Controls {
+namespace Loginator.Application.Service {
 
     public class StopwatchEnabled(TimeProvider timeProvider) : IStopwatch {
 
