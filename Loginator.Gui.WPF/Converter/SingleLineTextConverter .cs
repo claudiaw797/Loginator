@@ -6,6 +6,7 @@ using System.Windows.Data;
 
 namespace Loginator.Gui.WPF.Converter {
 
+    [ValueConversion(typeof(string), typeof(string))]
     public class SingleLineTextConverter : IValueConverter {
 
         private const string STRING_NEWLINE_WIN = "\r\n";

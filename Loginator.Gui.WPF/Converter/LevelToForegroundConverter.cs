@@ -8,6 +8,7 @@ using System.Windows.Media;
 
 namespace Loginator.Gui.WPF.Converter {
 
+    [ValueConversion(typeof(LogLevel), typeof(Brush))]
     public class LevelToForegroundConverter : IValueConverter {
 
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {

@@ -8,6 +8,7 @@ using System.Windows.Data;
 
 namespace Loginator.Gui.WPF.Converter {
 
+    [ValueConversion(typeof(LogViewModel), typeof(Log))]
     public class ViewModelToLogConverter : IValueConverter {
 
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {

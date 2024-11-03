@@ -11,7 +11,7 @@
         xmlns:viewmodel="clr-namespace:Loginator.Application.ViewModel;assembly=Loginator.Application"
         mc:Ignorable="d" 
         d:DataContext="{d:DesignInstance Type=viewmodel:ConfigurationViewModel}"
-        DataContext="{Binding ConfigurationViewModel, Source={StaticResource Locator}}"
+        DataContext="{control:ServiceProvider viewmodel:ConfigurationViewModel}"
         Icon="../Resources/Settings.png" Title="{DynamicResource grp.Settings}"
         ResizeMode="NoResize" SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterScreen" MinWidth="293" MinHeight="275">

@@ -9,8 +9,7 @@
              xmlns:viewmodel="clr-namespace:Loginator.Application.ViewModel;assembly=Loginator.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodel:LoginatorViewModel}"
-             d:DesignHeight="450" d:DesignWidth="800"
-             DataContext="{Binding LoginatorViewModel, Source={StaticResource Locator}}">
+             d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter" />
     </UserControl.Resources>

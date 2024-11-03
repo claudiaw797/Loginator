@@ -6,6 +6,7 @@ using System.Windows.Data;
 
 namespace Loginator.Gui.WPF.Converter {
 
+    [ValueConversion(typeof(object), typeof(bool))]
     public class ObjectToBoolConverter : IValueConverter {
 
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>

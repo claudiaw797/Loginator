@@ -24,7 +24,7 @@ namespace Loginator.Gui.WPF {
         private const string appSettingsDefault = "Config/appsettings.json";
         private const string appSettingsTemplate = "Config/appsettings.{0}.json";
 
-        private const string assemblyInfoFile = "Loginator.Gui.WPF.Resources.AssemblyInfo.json";
+        private const string assemblyInfoFile = "{0}.Resources.AssemblyInfo.json";
 
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -55,7 +55,7 @@ namespace Loginator.Gui.WPF {
         internal static void ConfigureServices(HostBuilderContext context, IServiceCollection services) {
             logger.Debug("Bootstrapping DI: adding services for Gui.WPF");
 
-            var assemblyInfo = LoadAssemblyInfo();
+            var assemblyInfo = LoadAssemblyInfo(context.HostingEnvironment.ApplicationName);
             if (assemblyInfo is not null) {
                 services.AddSingleton(assemblyInfo);
             }
@@ -79,9 +79,9 @@ namespace Loginator.Gui.WPF {
             return active!;
         }
 
-        private static AssemblyInfo? LoadAssemblyInfo() {
+        private static AssemblyInfo? LoadAssemblyInfo(string applicationName) {
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly?.GetManifestResourceStream(assemblyInfoFile);
+            using var stream = assembly?.GetManifestResourceStream(string.Format(assemblyInfoFile, applicationName));
 
             return stream is null
                 ? throw new InvalidOperationException("Assembly info resource is missing.")

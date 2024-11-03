@@ -5,7 +5,7 @@ using System;
 
 namespace Loginator.Application.Service {
 
-    public class IoC {
+    internal class IoC {
 
         private static IServiceProvider? serviceProvider;
 

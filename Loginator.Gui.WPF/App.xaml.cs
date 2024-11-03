@@ -47,9 +47,10 @@ namespace Loginator.Gui.WPF {
 
                 stringResources = host.Services.GetRequiredService<StringResources>();
 
-                // Initialize dispatcher helper so we can access UI thread in view model
                 IoC.ServiceProvider = host.Services;
+                Current.Properties.Add(typeof(ServiceProvider), host.Services);
 
+                // Initialize dispatcher helper so we can access UI thread in view model
                 host.Services.GetRequiredService<IDispatcher>().Initialize();
                 host.Services.GetRequiredService<MainWindow>().Show();
 
@@ -79,6 +80,16 @@ namespace Loginator.Gui.WPF {
 
         internal static TWindow? GetCurrent<TWindow>() where TWindow : Window =>
             Current.Windows.OfType<TWindow>().FirstOrDefault();
+
+        internal static T GetService<T>() where T : notnull =>
+            Current.Properties[typeof(ServiceProvider)] is ServiceProvider sp
+                ? sp.GetRequiredService<T>()
+                : throw new ArgumentException("No service provider found", typeof(T).Name);
+
+        internal static object GetService(Type type) =>
+            Current.Properties[typeof(ServiceProvider)] is ServiceProvider sp
+                ? sp.GetRequiredService(type)
+                : throw new ArgumentException("No service provider found", nameof(type));
 
         internal static string? GetStringResource(string key) =>
             Current.FindResource(key)?.ToString();
