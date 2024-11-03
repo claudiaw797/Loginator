@@ -10,7 +10,7 @@
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="//wix:File[@Source='$(var.BuildLocation)\Loginator.exe']">
+  <xsl:template match="//wix:File[@Source='$(var.BuildLocation)\Loginator.Gui.WPF.exe']">
     <wix:CreateFolder/>
   </xsl:template>
 

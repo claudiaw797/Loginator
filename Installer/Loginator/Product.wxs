@@ -44,11 +44,11 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="DesktopFolder" SourceName="Desktop"/>
       <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="Loginator"/>
+        <Directory Id="INSTALLFOLDER" Name="Loginator.Gui.WPF"/>
       </Directory>
       <!-- Step 1: Define the directory structure -->
       <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="Loginator"/>
+        <Directory Id="ApplicationProgramsFolder" Name="Loginator.Gui.WPF"/>
       </Directory>
     </Directory>
 

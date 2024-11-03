@@ -2,12 +2,12 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 	<Fragment>
     <Component Id="DesktopShortcut" Directory="INSTALLFOLDER" Guid="{4522EE59-AD31-4BF6-AB80-2E4AD824B5DF}">
-      <File Id="filApplicationExe" KeyPath="yes" Source="$(var.BuildLocation)\Loginator.exe">
-        <Shortcut Id="scDesktop" Directory="DesktopFolder" Name="Loginator"
+      <File Id="filApplicationExe" KeyPath="yes" Source="$(var.BuildLocation)\Loginator.Gui.WPF.exe">
+        <Shortcut Id="scDesktop" Directory="DesktopFolder" Name="Loginator.Gui.WPF"
                   Description="Display logs in realtime"
                   Icon="ShortcutIcon.exe"
                   WorkingDirectory='INSTALLFOLDER' Advertise="yes">
-          <Icon Id="ShortcutIcon.exe" SourceFile="$(var.BuildLocation)\Loginator.exe" />
+          <Icon Id="ShortcutIcon.exe" SourceFile="$(var.BuildLocation)\Loginator.Gui.WPF.exe" />
         </Shortcut>
       </File>
     </Component>

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 'Unselect all' button and 'Initial level' choice moved to context menu in application view
 - Toolbar buttons moved to separate toolbars
 - Configuration window
+- Solution architecture moved to layered
 
 ## [1.7.5] - 2024-09-19
 

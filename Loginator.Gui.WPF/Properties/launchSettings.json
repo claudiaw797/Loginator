@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Loginator.Gui.WPF": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
