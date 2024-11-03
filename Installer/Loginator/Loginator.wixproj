@@ -19,12 +19,12 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug;BuildLocation=$(SolutionDir)Loginator\bin\$(Configuration)\$(TargetFramework)</DefineConstants>
+    <DefineConstants>Debug;BuildLocation=$(SolutionDir)Loginator.Gui.WPF\bin\$(Configuration)\$(TargetFramework)</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Release;BuildLocation=$(SolutionDir)Loginator\bin\$(Configuration)\$(TargetFramework)</DefineConstants>
+    <DefineConstants>Release;BuildLocation=$(SolutionDir)Loginator.Gui.WPF\bin\$(Configuration)\$(TargetFramework)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application.wxs" />
@@ -39,7 +39,7 @@
     <Content Include="transform.xslt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Loginator\Loginator.csproj">
+    <ProjectReference Include="..\..\Loginator.Gui.WPF\Loginator.Gui.WPF.csproj">
       <Name>Loginator</Name>
       <Project>{62fe85e9-b242-4c66-96fc-6f0d02160c44}</Project>
       <Private>True</Private>
@@ -85,9 +85,9 @@
       <Code Type="Fragment" Language="cs"><![CDATA[
           string[] lines = File.ReadAllLines(PathToVersion);
           foreach (var line in lines) {
-              string[] splittedLine = line.Split(new string[] { "=" }, StringSplitOptions.None);
-              if (splittedLine[0].Trim() == "versionName") {
-                  string newFileName = Path.GetDirectoryName(PathToInstaller) + "\\Loginator_v" + splittedLine[1].Trim() + ".msi";
+              string[] splittedLine = line.Split(':');
+              if (splittedLine[0].Trim('"', ' ', '\t') == "VersionName") {
+                  string newFileName = Path.GetDirectoryName(PathToInstaller) + "\\Loginator_v" + splittedLine[1].Trim('"', ',', ' ', '\t') + ".msi";
                   File.Delete(newFileName);
                   File.Move(PathToInstaller, newFileName);
                   break;
@@ -97,7 +97,7 @@
     </Task>
   </UsingTask>
   <Target Name="AfterBuild">
-    <RenameToFileWithVersion PathToInstaller="$(TargetPath)" PathToVersion="%(ProjectReference.RootDir)%(ProjectReference.Directory)\Resources\Version.txt" />
+    <RenameToFileWithVersion PathToInstaller="$(TargetPath)" PathToVersion="%(ProjectReference.RootDir)%(ProjectReference.Directory)\Resources\AssemblyInfo.json" />
   </Target>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.

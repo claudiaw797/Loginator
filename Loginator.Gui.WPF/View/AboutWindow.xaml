@@ -1,0 +1,92 @@
+﻿<!-- Copyright (C) 2024 Claudia Wagner -->
+<Window x:Class="Loginator.Gui.WPF.View.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:control="clr-namespace:Loginator.Gui.WPF.Control"
+        xmlns:viewmodel="clr-namespace:Loginator.Application.ViewModel;assembly=Loginator.Application"
+        mc:Ignorable="d" 
+        d:DataContext="{d:DesignInstance Type=viewmodel:AboutViewModel}"
+        DataContext="{control:ServiceProvider viewmodel:AboutViewModel}"
+        Icon="../Resources/StatusInformation.png" Title="{DynamicResource grp.About}"
+        ResizeMode="NoResize" SizeToContent="WidthAndHeight"
+        KeyUp="OnKeyUp_Window">
+
+    <Border Margin="5" Padding="15,15,16,13" Background="Gainsboro">
+        <Grid Background="Gainsboro">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Image Grid.Column="0" Grid.RowSpan="6"
+                   Margin="0,0,15,0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Width="170" Height="170"
+                   Source="/Resources/App.png" />
+
+            <StackPanel Grid.Column="1" Grid.Row="0"
+                        Orientation="Horizontal">
+                <TextBlock Margin="0,-10,0,0"
+                           FontSize="32" FontWeight="DemiBold"
+                           Text="{Binding Product}" d:Text="Loginator" />
+
+                <Border Margin="20,-6,0,0"
+                        Height="20" CornerRadius="8" Background="ForestGreen">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" Color="DarkGreen"
+                                          Direction="325" Opacity="90" ShadowDepth="5" RenderingBias="Performance" />
+                    </Border.Effect>
+                    <TextBlock Margin="10,2"
+                               FontSize="12" Foreground="White"
+                               Text="{Binding VersionName}" d:Text="1.7.5" />
+                </Border>
+            </StackPanel>
+
+            <TextBlock Grid.Column="1" Grid.Row="1"
+                       Margin="0,8"
+                       FontSize="15"
+                       Text="{DynamicResource msg.ProductDescription}"/>
+
+            <TextBlock Grid.Column="1" Grid.Row="2"
+                       Foreground="DarkGreen"
+                       Text="{Binding Copyright}" d:Text="© 2024 Claudia Wagner" />
+
+            <StackPanel Grid.Column="1" Grid.Row="3"
+                        Margin="0,10,0,0" Orientation="Horizontal">
+                <TextBlock Margin="0,0,4,0"
+                           Text="{DynamicResource msg.BasedOn}" />
+                <TextBlock Margin="0,0,4,0">
+                    <Hyperlink NavigateUri="https://github.com">Loginator</Hyperlink>
+                </TextBlock>
+                <TextBlock Text="{DynamicResource msg.BaseBy}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Grid.Row="4"
+                        Orientation="Horizontal">
+                <TextBlock Margin="0,0,4,0"
+                           Text="{DynamicResource msg.ProductDownload}" />
+                <TextBlock>
+                    <Hyperlink NavigateUri="{Binding DownloadUrl}">Github</Hyperlink>
+                </TextBlock>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Grid.Row="5"
+                        Orientation="Horizontal" >
+                <TextBlock Margin="0,0,4,0"
+                           Text="{DynamicResource msg.ProductSource}" />
+                <TextBlock>
+                    <Hyperlink NavigateUri="{Binding SourceUrl}">Github</Hyperlink>
+                </TextBlock>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

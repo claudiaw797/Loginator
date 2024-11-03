@@ -1,0 +1,11 @@
+﻿{
+    "Product": "Loginator",
+    "Copyright": "© 2024 Claudia Wagner",
+    "Description": "Open source log viewer for Log4j and Logcat",
+    "VersionName": "1.7.5",
+    "VersionCode": 14,
+    "License": "GNU General Public License, Version 3",
+    "DownloadUrl": "https://github.com/claudiaw797/Loginator/releases",
+    "SourceUrl": "https://github.com/claudiaw797/Loginator",
+    "AssemblyInfoPath": "tree/develop/Loginator/Resources/AssemblyInfo.json"
+}

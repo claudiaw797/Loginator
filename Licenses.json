@@ -1,6 +1,6 @@
 [{
         "PackageName": "CommunityToolkit.Mvvm",
-        "PackageVersion": "8.2.2",
+        "PackageVersion": "8.3.2",
         "PackageUrl": "https://github.com/CommunityToolkit/dotnet",
         "Copyright": "(c) .NET Foundation and Contributors. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -36,9 +36,9 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "FluentAssertions",
-        "PackageVersion": "6.12.0",
+        "PackageVersion": "6.12.1",
         "PackageUrl": "https://www.fluentassertions.com/",
-        "Copyright": "Copyright Dennis Doomen 2010-2023",
+        "Copyright": "Copyright Dennis Doomen 2010-2024",
         "Authors": ["Dennis Doomen", "Jonas Nyrup"],
         "Description": "A very extensive set of extension methods that allow you to more naturally specify the expected outcome of a TDD or\r\n      BDD-style unit tests. Targets .NET Framework 4.7, .NET Core 2.1 and 3.0, .NET 6, as well as .NET Standard 2.0 and 2.1.\r\n      Supports the unit test frameworks MSTest2, NUnit3, XUnit2, MSpec, and NSpec3.\r\n\r\n      Supported by InfoSupport B.V.",
         "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
@@ -53,26 +53,8 @@
         "LicenseUrl": "https://licenses.nuget.org/MIT",
         "LicenseType": "MIT"
     }, {
-        "PackageName": "Microsoft.Extensions.Configuration.Binder",
-        "PackageVersion": "8.0.2",
-        "PackageUrl": "https://dot.net/",
-        "Copyright": "© Microsoft Corporation. All rights reserved.",
-        "Authors": ["Microsoft"],
-        "Description": "Provides the functionality to bind an object to data in configuration providers for Microsoft.Extensions.Configuration. This package enables you to represent the configuration data as strongly-typed classes defined in the application code. To bind a configuration, use the Microsoft.Extensions.Configuration.ConfigurationBinder.Get extension method on the IConfiguration object. To use this package, you also need to install a package for the configuration provider, for example, Microsoft.Extensions.Configuration.Json for the JSON provider.",
-        "LicenseUrl": "https://licenses.nuget.org/MIT",
-        "LicenseType": "MIT"
-    }, {
-        "PackageName": "Microsoft.Extensions.Configuration.Json",
-        "PackageVersion": "8.0.0",
-        "PackageUrl": "https://dot.net/",
-        "Copyright": "© Microsoft Corporation. All rights reserved.",
-        "Authors": ["Microsoft"],
-        "Description": "JSON configuration provider implementation for Microsoft.Extensions.Configuration. This package enables you to read your application's settings from a JSON file. You can use JsonConfigurationExtensions.AddJsonFile extension method on IConfigurationBuilder to add the JSON configuration provider to the configuration builder.",
-        "LicenseUrl": "https://licenses.nuget.org/MIT",
-        "LicenseType": "MIT"
-    }, {
         "PackageName": "Microsoft.Extensions.Hosting",
-        "PackageVersion": "8.0.0",
+        "PackageVersion": "8.0.1",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -81,7 +63,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.Extensions.Hosting.Abstractions",
-        "PackageVersion": "8.0.0",
+        "PackageVersion": "8.0.1",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -89,12 +71,12 @@
         "LicenseUrl": "https://licenses.nuget.org/MIT",
         "LicenseType": "MIT"
     }, {
-        "PackageName": "Microsoft.Extensions.Options",
+        "PackageName": "Microsoft.Extensions.Logging.Abstractions",
         "PackageVersion": "8.0.2",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
-        "Description": "Provides a strongly typed way of specifying and accessing settings using dependency injection.",
+        "Description": "Logging abstractions for Microsoft.Extensions.Logging.\r\n\r\nCommonly Used Types:\r\nMicrosoft.Extensions.Logging.ILogger\r\nMicrosoft.Extensions.Logging.ILoggerFactory\r\nMicrosoft.Extensions.Logging.ILogger<TCategoryName>\r\nMicrosoft.Extensions.Logging.LogLevel\r\nMicrosoft.Extensions.Logging.Logger<T>\r\nMicrosoft.Extensions.Logging.LoggerMessage\r\nMicrosoft.Extensions.Logging.Abstractions.NullLogger",
         "LicenseUrl": "https://licenses.nuget.org/MIT",
         "LicenseType": "MIT"
     }, {
@@ -108,7 +90,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.Extensions.TimeProvider.Testing",
-        "PackageVersion": "8.8.0",
+        "PackageVersion": "8.10.0",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -117,7 +99,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.NET.Test.Sdk",
-        "PackageVersion": "17.11.0",
+        "PackageVersion": "17.11.1",
         "PackageUrl": "https://github.com/microsoft/vstest",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -126,7 +108,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "NLog",
-        "PackageVersion": "5.3.3",
+        "PackageVersion": "5.3.4",
         "PackageUrl": "https://nlog-project.org/",
         "Copyright": "Copyright (c) 2004-2024 NLog Project - https://nlog-project.org/",
         "Authors": ["Jarek Kowalski", "Kim Christensen", "Julian Verdurmen"],
@@ -135,7 +117,7 @@
         "LicenseType": "BSD-3-Clause"
     }, {
         "PackageName": "NLog.Extensions.Hosting",
-        "PackageVersion": "5.3.12",
+        "PackageVersion": "5.3.14",
         "PackageUrl": "https://github.com/NLog/NLog.Extensions.Logging",
         "Copyright": "Copyright (c) 2004-2024 NLog Project - https://nlog-project.org/",
         "Authors": ["Julian Verdurmen", "Bryan Gonzalez"],
@@ -144,7 +126,7 @@
         "LicenseType": "BSD-2-Clause"
     }, {
         "PackageName": "NUnit",
-        "PackageVersion": "4.2.1",
+        "PackageVersion": "4.2.2",
         "PackageUrl": "https://nunit.org/",
         "Copyright": "Copyright (c) Charlie Poole, Rob Prouse and Contributors. MIT License.",
         "Authors": ["Charlie Poole", " Rob Prouse"],
