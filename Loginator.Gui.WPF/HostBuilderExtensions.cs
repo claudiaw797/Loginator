@@ -1,17 +1,13 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
+using Loginator.Application;
 using Loginator.Application.Model;
-using Loginator.Application.Option;
-using Loginator.Application.Service;
-using Loginator.Application.ViewModel;
-using Loginator.Domain.Option;
-using Loginator.Gui.WPF.Common;
-using Loginator.Gui.WPF.View;
 using Loginator.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NLog;
+using NLog.Config;
 using System;
 using System.IO;
 using System.Linq;
@@ -20,55 +16,56 @@ using System.Text.Json;
 
 namespace Loginator.Gui.WPF {
 
-    public static class HostBuilderContextExtensions {
+    internal static class HostBuilderExtensions {
+
+        private const string nlogConfig = "Config/nlog.config";
+        private const string nlogDevConfig = "Config/nlog.Development.config";
 
         private const string appSettingsDefault = "Config/appsettings.json";
         private const string appSettingsTemplate = "Config/appsettings.{0}.json";
+
         private const string assemblyInfoFile = "Loginator.Gui.WPF.Resources.AssemblyInfo.json";
 
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        internal static void ConfigureAppSettings(HostBuilderContext context, IConfigurationBuilder configBuilder) =>
-            context.ConfigureSettings(configBuilder);
+        public static Logger ConfigureLogging() {
+            var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            var file = env == Environments.Development ? nlogDevConfig : nlogConfig;
+            return LogManager
+                .Setup()
+                .LoadConfiguration(new XmlLoggingConfiguration(file))
+                .GetCurrentClassLogger();
+        }
 
-        internal static void ConfigureAppServices(HostBuilderContext context, IServiceCollection services) =>
-            context.ConfigureServices(services);
+        public static IHostBuilder ConfigureAppConfiguration(this IHostBuilder hostBuilder) =>
+            hostBuilder.ConfigureAppConfiguration(ConfigureAppSettings);
 
-        internal static void ConfigureSettings(this HostBuilderContext context, IConfigurationBuilder configBuilder) {
+        public static IHostBuilder ConfigureServices(this IHostBuilder hostBuilder) =>
+            hostBuilder.ConfigureServices(ConfigureServices);
+
+        private static void ConfigureAppSettings(HostBuilderContext context, IConfigurationBuilder configBuilder) {
+            logger.Debug("Bootstrapping DI: adding settings from {0}", appSettingsDefault);
+
             configBuilder.AddJsonFile(appSettingsDefault, optional: true, reloadOnChange: true)
                          .AddJsonFile(GetAppSettings(context.HostingEnvironment.EnvironmentName), optional: true, reloadOnChange: true)
                          .AddJsonFile(GetAppSettings(Environment.MachineName), optional: true, reloadOnChange: true)
                          .AddJsonFile(GetAppSettings(Environment.UserName), optional: true, reloadOnChange: true);
         }
 
-        internal static void ConfigureServices(this HostBuilderContext context, IServiceCollection services) {
-            logger.Debug("Bootstrapping DI: Gui.WPF");
-
-            var config = context.Configuration;
-            var active = GetActiveAppSettings(context.HostingEnvironment);
-            services.AddWritableOptions<LogProcessingOptions>(config.GetLogProcessingSection(), active);
-            services.AddWritableOptions<ApplicationOptions>(config.GetApplicationSection(), active);
+        internal static void ConfigureServices(HostBuilderContext context, IServiceCollection services) {
+            logger.Debug("Bootstrapping DI: adding services for Gui.WPF");
 
             var assemblyInfo = LoadAssemblyInfo();
             if (assemblyInfo is not null) {
                 services.AddSingleton(assemblyInfo);
             }
 
-            services.AddSingleton<StringResources>();
-            services.AddSingleton(TimeProvider.System);
-            services.AddSingleton<LoginatorViewModel>();
-            services.AddTransient<ConfigurationViewModel>();
-            services.AddSingleton<MainWindow>();
-            services.AddSingleton<IDispatcher>(new DispatcherImpl());
+            var activeSettings = GetActiveAppSettings(context.HostingEnvironment);
+            services.AddConfiguration(context.Configuration, activeSettings);
 
-            if (config.GetAppSettings().TracePerformance) {
-                services.AddTransient<IStopwatch, StopwatchEnabled>();
-            }
-            else {
-                services.AddTransient<IStopwatch, StopwatchDisabled>();
-            }
-
+            services.AddApplication(context.Configuration);
             services.AddInfrastructure();
+            services.AddGui();
         }
 
         private static string GetAppSettings(string infix) =>

@@ -29,14 +29,14 @@ namespace Loginator.Application.ViewModel {
         private readonly IOptionsMonitor<ApplicationOptions> optionsMonitor;
         private readonly IDisposable? optionsChangeListener;
         private readonly TimeProvider timeProvider;
-        private readonly IStopwatch stopwatch;
         private readonly IDispatcher dispatcher;
         private readonly ILogger<LoginatorViewModel> logger;
         private readonly OrderedObservableCollection orderedLogs = [];
         private readonly CancellationTokenSource cancellationTokenSource = new();
 
+        private IStopwatch stopwatch;
         private ILogRepository? logRepository;
-        private LogTimeFormat logTimeFormat;
+        private ApplicationOptions currentOptions;
 
         public LoginatorViewModel(
             IOptionsMonitor<ApplicationOptions> optionsMonitor,
@@ -51,7 +51,7 @@ namespace Loginator.Application.ViewModel {
             this.logger = logger;
 
             optionsChangeListener = optionsMonitor.OnChange(OnChange_Options);
-            logTimeFormat = optionsMonitor.CurrentValue.LogTimeFormat;
+            currentOptions = optionsMonitor.CurrentValue;
             isActive = true;
             selectedInitialLogLevel = LogLevel.TRACE;
             numberOfLogsPerLevel = Constants.DefaultMaxNumberOfLogsPerLevel;
@@ -210,14 +210,19 @@ namespace Loginator.Application.ViewModel {
         }
 
         private void OnChange_Options(ApplicationOptions options, string? name = null) {
-            if (logTimeFormat != options.LogTimeFormat) {
-                orderedLogs.RaiseReset();
-                logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", logTimeFormat, options.LogTimeFormat);
-                logTimeFormat = options.LogTimeFormat;
-            }
+            lock (this) {
+                if (currentOptions.LogTimeFormat != options.LogTimeFormat) {
+                    dispatcher.BeginInvokeOnUIThread(orderedLogs.RaiseReset);
+                    logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", currentOptions.LogTimeFormat, options.LogTimeFormat);
+                }
+                if (currentOptions.TracePerformance != options.TracePerformance) {
+                    Interlocked.Exchange(ref stopwatch, IoC.Get<IStopwatch>(options.TracePerformance));
+                }
+                currentOptions = options;
 
-            // refresh language dependent bindings
-            this.OnPropertyChanged(nameof(SelectedInitialLogLevel));
+                // refresh language dependent bindings
+                this.OnPropertyChanged(nameof(SelectedInitialLogLevel));
+            }
         }
 
         private void OnUpdate_Search(object? sender, EventArgs e) {

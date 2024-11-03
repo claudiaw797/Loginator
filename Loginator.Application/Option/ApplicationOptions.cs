@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Loginator.Application.Option {
 
-    public sealed class ApplicationOptions {
+    public sealed record ApplicationOptions {
 
         public const string SectionName = "Application";
 

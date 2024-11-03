@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Loginator.Domain.Option {
 
-    public sealed class LogProcessingOptions {
+    public sealed record LogProcessingOptions {
 
         public const string SectionName = "LogProcessing";
 

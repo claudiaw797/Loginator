@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+﻿// Copyright (C) 2024 Claudia Wagner
 
 using Loginator.Domain.Converter;
 using Loginator.Domain.Option;
@@ -29,7 +29,7 @@ namespace Loginator.Infrastructure {
             return services;
         }
 
-        public static void AddWritableOptions<TOptions>(this IServiceCollection services, IConfigurationSection section, string file = "appsettings.json")
+        public static void AddOptionsRepository<TOptions>(this IServiceCollection services, IConfigurationSection section, string file = "appsettings.json")
             where TOptions : class, new() {
 
             services.Configure<TOptions>(section);
