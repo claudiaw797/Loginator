@@ -45,8 +45,10 @@
     <s:String x:Key="cmd.Cancel">Abbrechen</s:String>
 
     <!-- update dialog -->
-    <s:String x:Key="msg.NewVersionAvailable">Eine neue Loginator-Version ist verfügbar. Möchtest du sie jetzt herunterladen?</s:String>
-    <s:String x:Key="msg.UpdateAvailable">Aktualisierung verfügbar</s:String>
+    <s:String x:Key="grp.UpdateCheck">Aktualisierungssuche</s:String>
+    <s:String x:Key="msg.UpdateAvailable">Loginator ist in der Version {0} verfügbar. Möchtest du den Download starten?</s:String>
+    <s:String x:Key="msg.NoUpdate">Es ist keine neue Version von Loginator verfügbar.</s:String>
+    <s:String x:Key="msg.UpdateError">Version konnte nicht geprüft werden: {0}</s:String>
 
     <!-- about dialog -->
     <s:String x:Key="grp.About">Info</s:String>

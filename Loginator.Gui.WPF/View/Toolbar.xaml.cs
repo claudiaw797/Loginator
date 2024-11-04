@@ -36,7 +36,7 @@ namespace Loginator.Gui.WPF.View {
 
         private async void OnClick_CheckForUpdate(object sender, RoutedEventArgs e) {
             var mainWindow = App.GetCurrent<MainWindow>();
-            if (mainWindow is not null) await mainWindow.CheckForNewVersion();
+            if (mainWindow is not null) await mainWindow.CheckForNewVersion(loud: true);
         }
     }
 }
