@@ -11,7 +11,10 @@ namespace Loginator.Gui.WPF.Converter {
     public class ExistsToVisibilityConverter : IValueConverter {
 
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
-            var hasNoValue = value is null || value is string s && string.IsNullOrEmpty(s);
+            var hasNoValue =
+                value is null ||
+                value is string s && string.IsNullOrEmpty(s) ||
+                value is int i && i == 0;
             return hasNoValue ? Visibility.Collapsed : Visibility.Visible;
         }
 

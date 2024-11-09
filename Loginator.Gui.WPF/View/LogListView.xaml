@@ -6,21 +6,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:control="clr-namespace:Loginator.Gui.WPF.Control"
              xmlns:converter="clr-namespace:Loginator.Gui.WPF.Converter"
+             xmlns:model="clr-namespace:Loginator.Domain.Model;assembly=Loginator.Domain"
              xmlns:viewmodel="clr-namespace:Loginator.Application.ViewModel;assembly=Loginator.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewmodel:LoginatorViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <converter:ViewModelToLogConverter x:Key="ViewModelToLogConverter" />
-    </UserControl.Resources>
 
-    <ListView SelectedItem="{Binding SelectedLog, Converter={StaticResource ViewModelToLogConverter}}"
+    <ListView SelectedItem="{Binding SelectedLog}"
               ItemsSource="{Binding Logs}"
               Name="lvLogs"
               SelectionMode="Single"
               control:GridViewColumnResize.Enabled="True">
         <ListView.Resources>
-            <converter:LevelToForegroundConverter x:Key="LevelToForegroundConverter" />
             <converter:SingleLineTextConverter x:Key="SingleLineTextConverter" />
             <!--
             <Style TargetType="ListViewItem">
@@ -33,45 +30,67 @@
             </Style>
             -->
         </ListView.Resources>
+        <ListView.ItemContainerStyle>
+            <Style TargetType="ListViewItem">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.TRACE}">
+                        <Setter Property="Foreground" Value="DarkGray" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.DEBUG}">
+                        <Setter Property="Foreground" Value="Gray" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.INFO}">
+                        <Setter Property="Foreground" Value="Green" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.WARN}">
+                        <Setter Property="Foreground" Value="DarkOrange" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.ERROR}">
+                        <Setter Property="Foreground" Value="Red" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.FATAL}">
+                        <Setter Property="Foreground" Value="DarkViolet" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsHighlighted}" Value="true">
+                        <Setter Property="Background" Value="LightGoldenrodYellow" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ListView.ItemContainerStyle>
         <ListView.View>
             <GridView AllowsColumnReorder="False">
                 <GridViewColumn Header="{DynamicResource lab.Timestamp}" control:GridViewColumnResize.Width="140">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss.fff}', Converter={StaticResource TimestampConverter}}"
-                                       Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:dd.MM.yyyy HH:mm:ss.fff}', Converter={StaticResource TimestampConverter}}" />
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>
                 </GridViewColumn>
                 <GridViewColumn Header="{DynamicResource lab.Level}" control:GridViewColumnResize.Width="50">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Level.Name}"
-                                       Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                            <TextBlock Text="{Binding Level.Name}" />
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>
                 </GridViewColumn>
                 <GridViewColumn Header="{DynamicResource lab.Message}" control:GridViewColumnResize.Width="*">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Message, Converter={StaticResource SingleLineTextConverter}}"
-                                       Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                            <TextBlock Text="{Binding Message, Converter={StaticResource SingleLineTextConverter}}" />
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>
                 </GridViewColumn>
                 <GridViewColumn Header="{DynamicResource lab.Context}" control:GridViewColumnResize.Width="100">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Context, Converter={StaticResource SingleLineTextConverter}}"
-                                       Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                            <TextBlock Text="{Binding Context, Converter={StaticResource SingleLineTextConverter}}" />
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>
                 </GridViewColumn>
                 <GridViewColumn Header="{DynamicResource lab.Process}" control:GridViewColumnResize.Width="50">
                     <GridViewColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Process}"
-                                       Foreground="{Binding Level, Converter={StaticResource LevelToForegroundConverter}}" />
+                            <TextBlock Text="{Binding Process}" />
                         </DataTemplate>
                     </GridViewColumn.CellTemplate>
                 </GridViewColumn>

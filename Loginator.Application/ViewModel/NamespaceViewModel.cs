@@ -29,7 +29,7 @@ namespace Loginator.Application.ViewModel {
         private bool isActive;
         partial void OnIsActiveChanged(bool value) {
             lock (Constants.SyncObject) {
-                applicationViewModel.OnNamespaceIsActiveChanged(this);
+                applicationViewModel.UpdateIsActive(this);
             }
 
             foreach (var child in Children) {
@@ -70,7 +70,7 @@ namespace Loginator.Application.ViewModel {
             this.IsHighlighted = false;
         }
 
-        internal void UpdateLogCounts(Log log) {
+        internal void UpdateLogCounts(LogViewModel log) {
             this.Count++;
 
             if (log.Level == LogLevel.TRACE) {

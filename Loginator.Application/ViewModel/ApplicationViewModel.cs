@@ -3,7 +3,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Loginator.Application.Common;
 using Loginator.Application.Model;
-using Loginator.Domain.Model;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -25,12 +24,12 @@ namespace Loginator.Application.ViewModel {
 
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        private readonly List<Log> logsTrace = [];
-        private readonly List<Log> logsDebug = [];
-        private readonly List<Log> logsInfo = [];
-        private readonly List<Log> logsWarn = [];
-        private readonly List<Log> logsError = [];
-        private readonly List<Log> logsFatal = [];
+        private readonly List<LogViewModel> logsTrace = [];
+        private readonly List<LogViewModel> logsDebug = [];
+        private readonly List<LogViewModel> logsInfo = [];
+        private readonly List<LogViewModel> logsWarn = [];
+        private readonly List<LogViewModel> logsError = [];
+        private readonly List<LogViewModel> logsFatal = [];
         private readonly OrderedObservableCollection logs;
         private readonly ObservableCollection<NamespaceViewModel> namespaces;
 
@@ -79,7 +78,7 @@ namespace Loginator.Application.ViewModel {
 
         internal bool HasLogs => this.GetLogsFromLevel(LogLevel.TRACE).Any();
 
-        internal void AddLog(Log log) {
+        internal void AddLog(LogViewModel log) {
             var logToRemove = this.AddByLevelPossiblyRemovingFirst(log);
 
             if (this.IsActive &&
@@ -105,20 +104,28 @@ namespace Loginator.Application.ViewModel {
             logsFatal.Clear();
         }
 
-        internal void OnNamespaceIsActiveChanged(NamespaceViewModel ns) {
+        internal void UpdateIsActive(NamespaceViewModel ns) {
             if (!this.IsActive) {
                 return;
             }
 
-            var nsName = ns.Fullname;
-            var prefix = $"{this.Name}{NamespaceSplitter}";
-            var currentLogs = this.GetLogsFromLevel(this.SelectedMinLogLevel)
-                .Where(log => $"{prefix}{log.Namespace}" == nsName);
+            var logsFromLevel = this.GetLogsFromLevel(this.SelectedMinLogLevel).ToArray();
+            var currentLogs = logsFromLevel.Any(log => log.Parent is not null) switch {
+                var b when b => logsFromLevel.Where(log => log.Parent == ns),
+                _ => SelectByNamespace(logsFromLevel, ns)
+            };
 
             if (ns.IsActive)
                 this.logs.Add(currentLogs, this.IsSearchCriteriaMatch);
             else
                 this.logs.Remove(currentLogs);
+        }
+
+        internal void UpdateIsHighlighted(NamespaceViewModel? ns) {
+            var isNotNull = ns is not null;
+            foreach (var log in this.GetLogsFromLevel(LogLevel.TRACE)) {
+                log.IsHighlighted = isNotNull && ns == log.Parent;
+            }
         }
 
         private void UpdateIsActive(bool oldIsActive, bool newIsActive) {
@@ -193,7 +200,7 @@ namespace Loginator.Application.ViewModel {
             }
         }
 
-        private bool IsSearchCriteriaMatch(Log log) {
+        private bool IsSearchCriteriaMatch(LogViewModel log) {
             try {
                 var criteria = this.SearchOptions.Criteria;
 
@@ -217,10 +224,13 @@ namespace Loginator.Application.ViewModel {
             }
         }
 
-        private bool IsNamespaceActive(Log log) {
-            // Try to get existing root namespace with name of application
-            var nsApplication = namespaces.FirstOrDefault(m => m.Name == log.Application);
-            return nsApplication is not null && IsNamespaceActive(nsApplication, log.Namespace);
+        private bool IsNamespaceActive(LogViewModel log) {
+            if (log.Parent is null) {
+                // Try to get existing root namespace with name of application
+                var nsApplication = namespaces.FirstOrDefault(m => m.Name == log.Application);
+                return nsApplication is not null && IsNamespaceActive(nsApplication, log.Namespace);
+            }
+            return log.Parent.IsActive;
         }
 
         private static bool IsNamespaceActive(NamespaceViewModel parent, string suffix) {
@@ -240,10 +250,10 @@ namespace Loginator.Application.ViewModel {
                 : nsChild.IsActive;
         }
 
-        private bool IsNamespaceActiveSearchCriteriaMatch(Log log) =>
+        private bool IsNamespaceActiveSearchCriteriaMatch(LogViewModel log) =>
             this.IsNamespaceActive(log) && this.IsSearchCriteriaMatch(log);
 
-        private List<Log>? GetLogsByLevel(LogLevel level) =>
+        private List<LogViewModel>? GetLogsByLevel(LogLevel level) =>
             level switch {
                 var l when l == LogLevel.TRACE => logsTrace,
                 var l when l == LogLevel.DEBUG => logsDebug,
@@ -254,7 +264,7 @@ namespace Loginator.Application.ViewModel {
                 _ => null,
             };
 
-        private IEnumerable<Log> GetLogsFromLevel(LogLevel level) =>
+        private IEnumerable<LogViewModel> GetLogsFromLevel(LogLevel level) =>
             level switch {
                 var l when l == LogLevel.TRACE => logsTrace.Concat(logsDebug).Concat(logsInfo).Concat(logsWarn).Concat(logsError).Concat(logsFatal),
                 var l when l == LogLevel.DEBUG => logsDebug.Concat(logsInfo).Concat(logsWarn).Concat(logsError).Concat(logsFatal),
@@ -265,8 +275,14 @@ namespace Loginator.Application.ViewModel {
                 _ => [],
             };
 
-        private Log? AddByLevelPossiblyRemovingFirst(Log log) {
-            Log? logToRemove = null;
+        private IEnumerable<LogViewModel> SelectByNamespace(IEnumerable<LogViewModel> logs, NamespaceViewModel ns) {
+            var nsName = ns.Fullname;
+            var prefix = $"{this.Name}{NamespaceSplitter}";
+            return logs.Where(log => $"{prefix}{log.Namespace}" == nsName);
+        }
+
+        private LogViewModel? AddByLevelPossiblyRemovingFirst(LogViewModel log) {
+            LogViewModel? logToRemove = null;
 
             var currentLevelLogs = this.GetLogsByLevel(log.Level);
             if (currentLevelLogs is not null) {
@@ -282,7 +298,7 @@ namespace Loginator.Application.ViewModel {
             return logToRemove;
         }
 
-        private List<Log> RemoveSurplus(List<Log> levelLogs) {
+        private List<LogViewModel> RemoveSurplus(List<LogViewModel> levelLogs) {
             var count = levelLogs.Count - this.MaxNumberOfLogsPerLevel;
             if (count <= 0) {
                 return [];

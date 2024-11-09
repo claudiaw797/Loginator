@@ -94,6 +94,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut.SelectedInitialLogLevel.Should().NotBe(LogLevel.NOT_SET);
             sut.SelectedLog.Should().BeNull();
             sut.SelectedNamespace.Should().BeNull();
+            sut.HighlightedNamespace.Should().BeNull();
             sut.Logs.Should().BeEmpty();
             sut.Namespaces.Should().BeEmpty();
             sut.Applications.Should().BeEmpty();
@@ -232,7 +233,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
         }
 
         [TestCaseSource(typeof(TestData), nameof(TestData.ValidLogLevels))]
-        public async Task Can_select_and_highlight_namespace_by_selecting_log(LogLevel level) {
+        public async Task Can_highlight_namespace_by_selecting_log(LogLevel level) {
             sut.SelectedInitialLogLevel = level;
 
             (var expectedItems1, var expectedItems2) = await AddItemsOneTwoDifferentAppsToSutAsync(level);
@@ -241,12 +242,12 @@ namespace Loginator.Application.UnitTests.ViewModel {
                 .Zip(expectedItems2, (f, s) => new Log[] { f, s })
                 .SelectMany(f => f);
             foreach (var item in zippedItems) {
-                AssertSelectedNamespaceFromSelectedLog(item);
+                AssertHighlightedNamespaceFromSelectedLog(item);
             }
         }
 
         [Test]
-        public async Task Can_unselect_and_unhighlight_last_selected_namespace_by_unselecting_log() {
+        public async Task Can_unhighlight_last_selected_namespace_by_unselecting_log() {
             var level = LogLevel.TRACE;
             sut.SelectedInitialLogLevel = level;
 
@@ -254,11 +255,11 @@ namespace Loginator.Application.UnitTests.ViewModel {
             var expectedItems = GetExpectedItemsFromLevel(level);
 
             foreach (var item in expectedItems) {
-                var last = AssertSelectedNamespaceFromSelectedLog(item);
+                var last = AssertHighlightedNamespaceFromSelectedLog(item);
 
                 sut.SelectedLog = null;
 
-                sut.SelectedNamespace.Should().BeNull();
+                sut.HighlightedNamespace.Should().BeNull();
                 last.IsHighlighted.Should().BeFalse();
             }
         }
@@ -377,7 +378,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
         }
 
         private void AssertLogs(params IEnumerable<Log>[] expected) =>
-            sut.Logs.Should().BeEquivalentTo(expected.SelectMany(l => l), c => c.WithStrictOrdering());
+            sut.Logs.Should().BeEquivalentTo(expected.SelectMany(GetViewModels), c => c.WithStrictOrdering());
 
         private void AssertApplicationAndNamespaces(params LogLevel[] levels) {
             var expectedCount = levels.Length;
@@ -408,13 +409,13 @@ namespace Loginator.Application.UnitTests.ViewModel {
             }
         }
 
-        private NamespaceViewModel AssertSelectedNamespaceFromSelectedLog(Log item) {
+        private NamespaceViewModel AssertHighlightedNamespaceFromSelectedLog(Log item) {
             var current = GetViewModel(item);
             var expected = $"{current.Application}{NamespaceSplitter}{current.Namespace}";
-            var last = sut.SelectedNamespace;
+            var last = sut.HighlightedNamespace;
 
             sut.SelectedLog = current;
-            var actual = sut.SelectedNamespace!;
+            var actual = sut.HighlightedNamespace!;
 
             if (last is not null && last != actual) {
                 last.IsHighlighted.Should().BeFalse();
@@ -599,7 +600,11 @@ namespace Loginator.Application.UnitTests.ViewModel {
                 Exception = EXCEPTION_MESSAGES[level],
             };
 
-        private static LogViewModel GetViewModel(Log log) => new(log);
+        private static LogViewModel GetViewModel(Log log) =>
+            new(log);
+
+        private IEnumerable<LogViewModel> GetViewModels(IEnumerable<Log> logs) =>
+            logs.Select(GetViewModel);
 
         [GeneratedRegex(@"((process)|(discard)).*\s+(?<count>\d+)\s+.*items", RegexOptions.IgnoreCase, "de-AT")]
         private static partial Regex RegexReceivedItems();
