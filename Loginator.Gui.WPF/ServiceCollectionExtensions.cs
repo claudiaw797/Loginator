@@ -22,6 +22,7 @@ namespace Loginator.Gui.WPF {
 
         public static IServiceCollection AddGui(this IServiceCollection services) {
             services.AddSingleton<IDispatcher>(new DispatcherImpl());
+            services.AddSingleton<ColorResources>();
             services.AddSingleton<StringResources>();
             services.AddSingleton<MainWindow>();
 

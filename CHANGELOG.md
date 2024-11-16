@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Configuration options: connection type, language, check for update on startup
+- Configuration options: connection type, language, check for update on startup, log colors
 - 'Check for updates' toolbar button
 - 'Select all' context menu button in application view
 - Only for namespaces having associated log entries count is displayed in namespace view, selecting such a namespace highlights the entries
 - About window
+- Dependencies: PixiEditor.ColorPicker 3.4.1
 
 ### Changed
 

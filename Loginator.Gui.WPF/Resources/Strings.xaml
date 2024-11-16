@@ -43,6 +43,10 @@
     <s:String x:Key="lab.AppConsolidate">Consolidate processes</s:String>
     <s:String x:Key="lab.AppNoChange">Do not change</s:String>
 
+    <s:String x:Key="grp.Colors">Colors</s:String>
+    <s:String x:Key="grp.LogLevels">Log levels</s:String>
+    <s:String x:Key="lab.LogHighlight">Log highlight</s:String>
+
     <s:String x:Key="grp.General">General</s:String>
     <s:String x:Key="lab.CheckUpdate">Check for updates on startup</s:String>
 

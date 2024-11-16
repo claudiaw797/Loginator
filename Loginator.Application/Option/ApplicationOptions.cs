@@ -29,5 +29,7 @@ namespace Loginator.Application.Option {
         public LogTimeFormat LogTimeFormat { get; set; }
 
         public LogProcessingOptions LogProcessing { get; set; } = new();
+
+        public ColorsOptions Colors { get; set; } = new();
     }
 }

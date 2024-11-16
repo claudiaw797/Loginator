@@ -38,6 +38,10 @@
     <s:String x:Key="lab.AppConsolidate">Prozesse zusammenfassen</s:String>
     <s:String x:Key="lab.AppNoChange">Nicht ändern</s:String>
 
+    <s:String x:Key="grp.Colors">Farben</s:String>
+    <s:String x:Key="grp.LogLevels">Loglevel</s:String>
+    <s:String x:Key="grp.LogHighlight">Log-Highlight</s:String>
+
     <s:String x:Key="grp.General">Allgemein</s:String>
     <s:String x:Key="lab.CheckUpdate">Beim Starten nach Aktualisierungen suchen</s:String>
 

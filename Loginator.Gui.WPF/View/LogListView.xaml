@@ -34,25 +34,25 @@
             <Style TargetType="ListViewItem">
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.TRACE}">
-                        <Setter Property="Foreground" Value="DarkGray" />
+                        <Setter Property="Foreground" Value="{DynamicResource brush.level.Trace}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.DEBUG}">
-                        <Setter Property="Foreground" Value="Gray" />
+                        <Setter Property="Foreground" Value="{DynamicResource brush.level.Debug}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.INFO}">
-                        <Setter Property="Foreground" Value="Green" />
+                        <Setter Property="Foreground" Value="{DynamicResource brush.level.Info}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.WARN}">
-                        <Setter Property="Foreground" Value="DarkOrange" />
+                        <Setter Property="Foreground" Value="{DynamicResource brush.level.Warn}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.ERROR}">
-                        <Setter Property="Foreground" Value="Red" />
+                        <Setter Property="Foreground" Value="{DynamicResource brush.level.Error}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Level}" Value="{x:Static model:LogLevel.FATAL}">
-                        <Setter Property="Foreground" Value="DarkViolet" />
+                        <Setter Property="Foreground" Value="{DynamicResource brush.level.Fatal}" />
                     </DataTrigger>
                     <DataTrigger Binding="{Binding IsHighlighted}" Value="true">
-                        <Setter Property="Background" Value="LightGoldenrodYellow" />
+                        <Setter Property="Background" Value="{DynamicResource brush.LogHighlight}" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>

@@ -35,7 +35,7 @@
                             <Style TargetType="StackPanel">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsHighlighted}" Value="true">
-                                        <Setter Property="Background" Value="LightGoldenrodYellow" />
+                                        <Setter Property="Background" Value="{DynamicResource brush.LogHighlight}" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -52,17 +52,17 @@
                             <TextBlock Text="[" />
                             <TextBlock Text="{Binding Count}" />
                             <TextBlock Text=":" />
-                            <TextBlock Text="{Binding CountTrace}" Foreground="DarkGray" />
+                            <TextBlock Text="{Binding CountTrace}" Foreground="{DynamicResource brush.level.Trace}" />
                             <TextBlock Text="," />
-                            <TextBlock Text="{Binding CountDebug}" Foreground="Gray" />
+                            <TextBlock Text="{Binding CountDebug}" Foreground="{DynamicResource brush.level.Debug}" />
                             <TextBlock Text="," />
-                            <TextBlock Text="{Binding CountInfo}" Foreground="Green" />
+                            <TextBlock Text="{Binding CountInfo}" Foreground="{DynamicResource brush.level.Info}" />
                             <TextBlock Text="," />
-                            <TextBlock Text="{Binding CountWarn}" Foreground="DarkOrange" />
+                            <TextBlock Text="{Binding CountWarn}" Foreground="{DynamicResource brush.level.Warn}" />
                             <TextBlock Text="," />
-                            <TextBlock Text="{Binding CountError}" Foreground="Red" />
+                            <TextBlock Text="{Binding CountError}" Foreground="{DynamicResource brush.level.Error}" />
                             <TextBlock Text="," />
-                            <TextBlock Text="{Binding CountFatal}" Foreground="DarkViolet" />
+                            <TextBlock Text="{Binding CountFatal}" Foreground="{DynamicResource brush.level.Fatal}" />
                             <TextBlock Text="]" />
                         </StackPanel>
                     </StackPanel>
