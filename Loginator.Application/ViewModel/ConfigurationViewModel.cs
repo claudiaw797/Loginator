@@ -6,6 +6,7 @@ using Loginator.Application.Option;
 using Loginator.Domain.Option;
 using Loginator.Infrastructure.Option;
 using System;
+using System.Drawing;
 
 namespace Loginator.Application.ViewModel {
 
@@ -27,6 +28,13 @@ namespace Loginator.Application.ViewModel {
             applicationFormat = options.LogProcessing.ApplicationFormat;
             allowAnonymousMessages = options.LogProcessing.AllowAnonymousMessages;
             traceMessages = options.LogProcessing.TraceMessages;
+            colorLevelTrace = options.Colors.LevelTrace;
+            colorLevelDebug = options.Colors.LevelDebug;
+            colorLevelInfo = options.Colors.LevelInfo;
+            colorLevelWarn = options.Colors.LevelWarn;
+            colorLevelError = options.Colors.LevelError;
+            colorLevelFatal = options.Colors.LevelFatal;
+            colorLogHighlight = options.Colors.LogHighlight;
         }
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
@@ -59,6 +67,27 @@ namespace Loginator.Application.ViewModel {
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private bool traceMessages;
 
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private Color colorLevelTrace;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private Color colorLevelDebug;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private Color colorLevelInfo;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private Color colorLevelWarn;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private Color colorLevelError;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private Color colorLevelFatal;
+
+        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
+        private Color colorLogHighlight;
+
         public Action? OnClose { get; set; }
 
         public OnErrorHandler? OnError { get; set; }
@@ -87,6 +116,13 @@ namespace Loginator.Application.ViewModel {
                     options.LogProcessing.ApplicationFormat = this.ApplicationFormat;
                     options.LogProcessing.AllowAnonymousMessages = this.AllowAnonymousMessages;
                     options.LogProcessing.TraceMessages = this.TraceMessages;
+                    options.Colors.LevelTrace = this.ColorLevelTrace;
+                    options.Colors.LevelDebug = this.ColorLevelDebug;
+                    options.Colors.LevelInfo = this.ColorLevelInfo;
+                    options.Colors.LevelWarn = this.ColorLevelWarn;
+                    options.Colors.LevelError = this.ColorLevelError;
+                    options.Colors.LevelFatal = this.ColorLevelFatal;
+                    options.Colors.LogHighlight = this.ColorLogHighlight;
                 });
 
                 this.OnClose?.Invoke();
@@ -108,7 +144,14 @@ namespace Loginator.Application.ViewModel {
                 this.LogTimeFormat != options.LogTimeFormat ||
                 this.ApplicationFormat != options.LogProcessing.ApplicationFormat ||
                 this.AllowAnonymousMessages != options.LogProcessing.AllowAnonymousMessages ||
-                this.TraceMessages != options.LogProcessing.TraceMessages;
+                this.TraceMessages != options.LogProcessing.TraceMessages ||
+                this.ColorLevelTrace != options.Colors.LevelTrace ||
+                this.ColorLevelDebug != options.Colors.LevelDebug ||
+                this.ColorLevelInfo != options.Colors.LevelInfo ||
+                this.ColorLevelWarn != options.Colors.LevelWarn ||
+                this.ColorLevelError != options.Colors.LevelError ||
+                this.ColorLevelFatal != options.Colors.LevelFatal ||
+                this.ColorLogHighlight != options.Colors.LogHighlight;
             return result;
         }
 

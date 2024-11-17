@@ -14,11 +14,11 @@ namespace Loginator.Gui.WPF.Common {
 
         private readonly Dictionary<KnownCulture, ResourceDictionary> stringResources = [];
 
-        public StringResources(IOptionsMonitor<ApplicationOptions> configurationDao) {
+        public StringResources(IOptionsMonitor<ApplicationOptions> applicationOptionsMonitor) {
             InitializeDefaultCulture();
-            SetCulture(configurationDao.CurrentValue.Language);
+            SetCulture(applicationOptionsMonitor.CurrentValue.Language);
 
-            configurationDao.OnChange(o => this.SetCulture(o.Language));
+            applicationOptionsMonitor.OnChange(o => this.SetCulture(o.Language));
         }
 
         public KnownCulture CurrentCulture { get; private set; }

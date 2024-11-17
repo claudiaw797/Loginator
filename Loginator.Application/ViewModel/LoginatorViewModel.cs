@@ -72,12 +72,28 @@ namespace Loginator.Application.ViewModel {
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CopySelectedLogCommand), nameof(CopySelectedLogExceptionCommand), nameof(CopySelectedLogMessageCommand), nameof(UnselectLogCommand))]
         private LogViewModel? selectedLog;
         partial void OnSelectedLogChanged(LogViewModel? value) {
-            SetSelectedNamespaceFromLog(value);
+            HighlightedNamespace = value is null
+                ? null
+                : value.Parent ?? GetNamespaceFromLog(value);
         }
 
         [ObservableProperty]
         private NamespaceViewModel? selectedNamespace;
-        partial void OnSelectedNamespaceChanged(NamespaceViewModel? oldValue, NamespaceViewModel? newValue) {
+        partial void OnSelectedNamespaceChanged(NamespaceViewModel? value) {
+            var isNotNull = value is not null;
+            foreach (var log in this.Logs) {
+                log.IsHighlighted = isNotNull && value == log.Parent;
+            }
+            Task.Run(() => {
+                foreach (var application in Applications) {
+                    application.UpdateIsHighlighted(value);
+                }
+            });
+        }
+
+        [ObservableProperty]
+        private NamespaceViewModel? highlightedNamespace;
+        partial void OnHighlightedNamespaceChanged(NamespaceViewModel? oldValue, NamespaceViewModel? newValue) {
             if (oldValue is not null) {
                 oldValue.IsHighlighted = false;
             }
@@ -88,7 +104,7 @@ namespace Loginator.Application.ViewModel {
 
         public IReadOnlyList<LogLevel> LogLevels { get; } = [.. LogLevel.AllLogLevels.Order()];
 
-        public ObservableCollection<Log> Logs => orderedLogs;
+        public ObservableCollection<LogViewModel> Logs => orderedLogs;
         public ObservableCollection<NamespaceViewModel> Namespaces { get; init; } = [];
         public ObservableCollection<ApplicationViewModel> Applications { get; init; } = [];
 
@@ -258,7 +274,10 @@ namespace Loginator.Application.ViewModel {
         private void ProcessLogs(IEnumerable<Log> logs) {
             lock (Constants.SyncObject) {
                 try {
-                    var logsToInsert = logs.OrderBy(m => m.Timestamp);
+                    var logsToInsert = logs
+                        .OrderBy(m => m.Timestamp)
+                        .Select(m => new LogViewModel(m))
+                        .ToArray();
 
                     // 1. Add missing applications using incoming logs
                     stopwatch.Start();
@@ -285,7 +304,7 @@ namespace Loginator.Application.ViewModel {
             }
         }
 
-        private void AddLogs(IEnumerable<Log> logsToInsert) {
+        private void AddLogs(IEnumerable<LogViewModel> logsToInsert) {
             try {
                 foreach (var logToInsert in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == logToInsert.Application);
@@ -301,7 +320,7 @@ namespace Loginator.Application.ViewModel {
             }
         }
 
-        private void UpdateNamespaces(IEnumerable<Log> logsToInsert) {
+        private void UpdateNamespaces(IEnumerable<LogViewModel> logsToInsert) {
             try {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
@@ -324,7 +343,7 @@ namespace Loginator.Application.ViewModel {
             }
         }
 
-        private static void HandleNamespace(NamespaceViewModel parent, string suffix, ApplicationViewModel application, Log log) {
+        private static void HandleNamespace(NamespaceViewModel parent, string suffix, ApplicationViewModel application, LogViewModel log) {
             // Example: Verbosus.VerbTeX.View
             var nsLogFull = suffix;
             // Example: 1st Verbosus, 2nd VerbTeX, 3rd View
@@ -339,16 +358,17 @@ namespace Loginator.Application.ViewModel {
                 parent.Children.Add(nsChild);
             }
 
-            var index = suffix is null ? -1 : suffix.IndexOf(NamespaceSplitter);
+            var index = nsLogFull is null ? -1 : nsLogFull.IndexOf(NamespaceSplitter);
             if (index >= 0) {
-                HandleNamespace(nsChild, suffix![(index + 1)..], application, log);
+                HandleNamespace(nsChild, nsLogFull![(index + 1)..], application, log);
             }
             else {
                 nsChild.UpdateLogCounts(log);
+                log.Parent = nsChild;
             }
         }
 
-        private void UpdateApplications(IEnumerable<Log> logsToInsert) {
+        private void UpdateApplications(IEnumerable<LogViewModel> logsToInsert) {
             try {
                 foreach (var log in logsToInsert) {
                     var application = Applications.FirstOrDefault(m => m.Name == log.Application);
@@ -366,11 +386,6 @@ namespace Loginator.Application.ViewModel {
                 logger.LogError(e, "Could not update applications");
             }
         }
-
-        private void SetSelectedNamespaceFromLog(LogViewModel? log) =>
-            SelectedNamespace = log is null
-                ? null
-                : GetNamespaceFromLog(log);
 
         private NamespaceViewModel? GetNamespaceFromLog(LogViewModel log) {
             var fullname = $"{log.Application}{NamespaceSplitter}{log.Namespace}";

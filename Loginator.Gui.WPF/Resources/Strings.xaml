@@ -43,6 +43,10 @@
     <s:String x:Key="lab.AppConsolidate">Consolidate processes</s:String>
     <s:String x:Key="lab.AppNoChange">Do not change</s:String>
 
+    <s:String x:Key="grp.Colors">Colors</s:String>
+    <s:String x:Key="grp.LogLevels">Log levels</s:String>
+    <s:String x:Key="lab.LogHighlight">Log highlight</s:String>
+
     <s:String x:Key="grp.General">General</s:String>
     <s:String x:Key="lab.CheckUpdate">Check for updates on startup</s:String>
 
@@ -50,8 +54,10 @@
     <s:String x:Key="cmd.Cancel">Cancel</s:String>
 
     <!-- update dialog -->
-    <s:String x:Key="msg.NewVersionAvailable">A new version of Loginator is available. Would you like to download it?</s:String>
-    <s:String x:Key="msg.UpdateAvailable">Update available</s:String>
+    <s:String x:Key="grp.UpdateCheck">Update check</s:String>
+    <s:String x:Key="msg.UpdateAvailable">Loginator version {0} is available. Would you like to download it?</s:String>
+    <s:String x:Key="msg.NoUpdate">No new version of Loginator is available.</s:String>
+    <s:String x:Key="msg.UpdateError">Could not check for new version: {0}</s:String>
 
     <!-- about dialog -->
     <s:String x:Key="grp.About">About</s:String>

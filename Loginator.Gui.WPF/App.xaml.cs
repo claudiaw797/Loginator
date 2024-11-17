@@ -46,6 +46,7 @@ namespace Loginator.Gui.WPF {
                 await host.StartAsync();
 
                 stringResources = host.Services.GetRequiredService<StringResources>();
+                host.Services.GetRequiredService<ColorResources>();
 
                 IoC.ServiceProvider = host.Services;
                 Current.Properties.Add(typeof(ServiceProvider), host.Services);
@@ -92,7 +93,7 @@ namespace Loginator.Gui.WPF {
                 : throw new ArgumentException("No service provider found", nameof(type));
 
         internal static string? GetStringResource(string key) =>
-            Current.FindResource(key)?.ToString();
+            string.IsNullOrEmpty(key) ? null : Current.FindResource(key)?.ToString();
 
         private static Exception GetInnerException(Exception exception) =>
                 exception.InnerException is null

@@ -8,7 +8,10 @@
         xmlns:doption="clr-namespace:Loginator.Domain.Option;assembly=Loginator.Domain"
         xmlns:ioption="clr-namespace:Loginator.Infrastructure.Option;assembly=Loginator.Infrastructure"
         xmlns:control="clr-namespace:Loginator.Gui.WPF.Control"
+        xmlns:converter="clr-namespace:Loginator.Gui.WPF.Converter"
+        xmlns:model="clr-namespace:Loginator.Domain.Model;assembly=Loginator.Domain"
         xmlns:viewmodel="clr-namespace:Loginator.Application.ViewModel;assembly=Loginator.Application"
+        xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"        
         mc:Ignorable="d" 
         d:DataContext="{d:DesignInstance Type=viewmodel:ConfigurationViewModel}"
         DataContext="{control:ServiceProvider viewmodel:ConfigurationViewModel}"
@@ -17,11 +20,13 @@
         WindowStartupLocation="CenterScreen" MinWidth="293" MinHeight="275">
 
     <Window.Resources>
+        <converter:SystemToMediaColorConverter x:Key="SystemToMediaColorConverter" />
         <Style TargetType="CheckBox">
             <Setter Property="Padding" Value="0,0,0,5" />
         </Style>
         <Style TargetType="ComboBox">
             <Setter Property="Height" Value="22" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
         <Style TargetType="Label">
             <Setter Property="FontWeight" Value="Bold" />
@@ -31,6 +36,16 @@
         </Style>
         <Style TargetType="TabControl">
             <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="colorpicker:PortableColorPicker">
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Margin" Value="5,0,0,0" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="control:PortableColorPickerBehavior.SelectedSlider" Value="RGB" />
         </Style>
     </Window.Resources>
 
@@ -56,8 +71,6 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="1" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Label Grid.ColumnSpan="3" Grid.Row="0"
@@ -77,18 +90,69 @@
                     <RadioButton Grid.Column="2" Grid.Row="6"
                                  Content="{DynamicResource lab.TimeNoChange}" GroupName="TimeFormat"
                                  IsChecked="{Binding LogTimeFormat, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static aoption:LogTimeFormat.DoNotChange}}" />
+                </Grid>
+            </TabItem>
 
-                    <Label Grid.Column="0" Grid.Row="8"
-                           Content="{DynamicResource lab.Language}" />
-                    <ComboBox Grid.Column="2" Grid.Row="8"
-                              ItemsSource="{Binding Source={control:EnumBindingSource {x:Type aoption:KnownCulture}}}"
-                              SelectedValue="{Binding Language}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding ., Converter={StaticResource KeyToResourceStringConverter}, ConverterParameter='cmd.{0}'}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+            <TabItem Header="{DynamicResource grp.Colors}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Column="0" Grid.Row="0"
+                           Content="{DynamicResource grp.LogLevels}" />
+                    <TextBlock Grid.Column="2" Grid.Row="0"
+                           Text="{Binding Path=(model:LogLevel.TRACE), Converter={StaticResource ObjectToFormattedResourceStringConverter}}" />
+                    <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="0"
+                                                     SelectedColor="{Binding ColorLevelTrace, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
+
+                    <TextBlock Grid.Column="2" Grid.Row="1"
+                           Text="{Binding Path=(model:LogLevel.DEBUG), Converter={StaticResource ObjectToFormattedResourceStringConverter}}" />
+                    <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="1"
+                                                     SelectedColor="{Binding ColorLevelDebug, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
+
+                    <TextBlock Grid.Column="2" Grid.Row="3"
+                           Text="{Binding Path=(model:LogLevel.INFO), Converter={StaticResource ObjectToFormattedResourceStringConverter}}" />
+                    <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="3"
+                                                     SelectedColor="{Binding ColorLevelInfo, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
+
+                    <TextBlock Grid.Column="2" Grid.Row="5"
+                           Text="{Binding Path=(model:LogLevel.WARN), Converter={StaticResource ObjectToFormattedResourceStringConverter}}" />
+                    <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="5"
+                                                     SelectedColor="{Binding ColorLevelWarn, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
+
+                    <TextBlock Grid.Column="2" Grid.Row="7"
+                           Text="{Binding Path=(model:LogLevel.ERROR), Converter={StaticResource ObjectToFormattedResourceStringConverter}}" />
+                    <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="7"
+                                                     SelectedColor="{Binding ColorLevelError, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
+
+                    <TextBlock Grid.Column="2" Grid.Row="9"
+                           Text="{Binding Path=(model:LogLevel.FATAL), Converter={StaticResource ObjectToFormattedResourceStringConverter}}" />
+                    <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="9"
+                                                     SelectedColor="{Binding ColorLevelFatal, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
+
+                    <Label Grid.ColumnSpan="3" Grid.Row="11"
+                           Content="{DynamicResource lab.LogHighlight}" />
+                    <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="11"
+                                                     SelectedColor="{Binding ColorLogHighlight, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
                 </Grid>
             </TabItem>
 
@@ -143,15 +207,30 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="5" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <CheckBox Margin="7,6,0,5"
+                    <CheckBox Grid.ColumnSpan="3" Grid.Row="0" Margin="7,6,0,5"
                               Content="{DynamicResource lab.CheckUpdate}"
                               IsChecked="{Binding CheckForUpdateOnStartup}" />
+
+                    <Label Grid.Column="0" Grid.Row="2"
+                           Content="{DynamicResource lab.Language}" />
+                    <ComboBox Grid.Column="2" Grid.Row="2"
+                              Width="100"
+                              ItemsSource="{Binding Source={control:EnumBindingSource {x:Type aoption:KnownCulture}}}"
+                              SelectedValue="{Binding Language}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding ., Converter={StaticResource KeyToResourceStringConverter}, ConverterParameter='cmd.{0}'}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </Grid>
             </TabItem>
         </TabControl>

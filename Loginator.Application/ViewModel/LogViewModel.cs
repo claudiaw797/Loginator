@@ -1,5 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
+using CommunityToolkit.Mvvm.ComponentModel;
 using Loginator.Domain.Model;
 using System;
 using System.Diagnostics;
@@ -10,9 +11,12 @@ using static Loginator.Domain.Common.Constants;
 namespace Loginator.Application.ViewModel {
 
     [DebuggerDisplay("{Timestamp} {Level.Id} {Application}.{Namespace} '{Message}'")]
-    public class LogViewModel(Log log) {
+    public partial class LogViewModel(Log log) : ObservableObject {
 
         private readonly Log log = log;
+
+        [ObservableProperty]
+        private bool isHighlighted;
 
         public DateTimeOffset Timestamp => log.Timestamp;
         public LogLevel Level => log.Level;
@@ -60,7 +64,7 @@ namespace Loginator.Application.ViewModel {
             }
         }
 
-        internal Log Log => log;
+        internal NamespaceViewModel? Parent { get; set; }
 
         public override string ToString() {
             // TODO: Localize this with .resx

@@ -50,27 +50,40 @@ namespace Loginator.Gui.WPF.View {
 
         public ScrollViewerBehavior.RowResize GridRowBehavior => new(SplitterRow, SelectedLogRow, 250);
 
-        internal async Task CheckForNewVersion() {
+        internal async Task CheckForNewVersion(bool loud = false) {
+            var path = $"{assemblyInfo.SourceUrl}/{assemblyInfo.AssemblyInfoPath}";
             try {
-                var path = $"{assemblyInfo.SourceUrl}/{assemblyInfo.AssemblyInfoPath}";
                 using var webClient = new HttpClient();
                 using var stream = await webClient.GetStreamAsync(path);
 
                 var latestAssembly = JsonSerializer.Deserialize<AssemblyInfo>(stream);
                 if (latestAssembly is not null && latestAssembly.VersionCode > assemblyInfo.VersionCode) {
-                    logger.LogInformation($"New version available. Current: '{assemblyInfo.VersionCode}'. Latest: '{latestAssembly.VersionCode}'");
+                    logger.LogInformation($"New version available. Current {assemblyInfo.VersionName} ({assemblyInfo.VersionCode}), latest {latestAssembly.VersionName} ({latestAssembly.VersionCode})");
 
-                    MessageBoxResult messageBoxResult = MessageBox.Show(App.GetStringResource("msg.NewVersionAvailable"), App.GetStringResource("msg.UpdateAvailable"), MessageBoxButton.YesNo);
+                    var messageBoxResult = MessageBox.Show(
+                        string.Format(App.GetStringResource("msg.UpdateAvailable")!, latestAssembly.VersionName),
+                        App.GetStringResource("grp.UpdateCheck"),
+                        MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (messageBoxResult == MessageBoxResult.Yes) {
                         Process.Start(assemblyInfo.DownloadUrl);
                     }
                 }
                 else {
-                    logger.LogInformation($"No new version available. Current: '{assemblyInfo.VersionCode}'");
+                    logger.LogInformation($"No new version available. Current {assemblyInfo.VersionName} ({assemblyInfo.VersionCode})");
+
+                    if (loud) MessageBox.Show(
+                        App.GetStringResource("msg.NoUpdate"),
+                        App.GetStringResource("grp.UpdateCheck"),
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception e) {
-                logger.LogError(e, "Could not check for new version");
+                logger.LogError(e, $"Could not check for new version on path {path}");
+
+                if (loud) MessageBox.Show(
+                    string.Format(App.GetStringResource("msg.UpdateError")!, e.Message),
+                    App.GetStringResource("grp.UpdateCheck"),
+                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
     }

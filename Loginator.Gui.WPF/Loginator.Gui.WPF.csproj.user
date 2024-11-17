@@ -13,5 +13,8 @@
     <Page Update="Resources\Strings.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Resources\Colors.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

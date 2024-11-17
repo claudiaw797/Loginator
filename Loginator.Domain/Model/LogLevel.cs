@@ -20,14 +20,14 @@ namespace Loginator.Domain.Model {
         public string Name { get; private set; }
         public char ShortName { get; private set; }
 
-        public static readonly LogLevel NOT_SET = new(-1, "[not set]", '-');
-        public static readonly LogLevel TRACE = new(0, "TRACE", 'V');
-        public static readonly LogLevel DEBUG = new(1, "DEBUG", 'D');
-        public static readonly LogLevel INFO = new(2, "INFO", 'I');
-        public static readonly LogLevel WARN = new(3, "WARN", 'W');
-        public static readonly LogLevel ERROR = new(4, "ERROR", 'E');
-        public static readonly LogLevel FATAL = new(5, "FATAL", 'F');
-        private static readonly LogLevel INVALID = new(99, "INVALID", '!');
+        public static LogLevel NOT_SET { get; } = new(-1, "[not set]", '-');
+        public static LogLevel TRACE { get; } = new(0, "TRACE", 'V');
+        public static LogLevel DEBUG { get; } = new(1, "DEBUG", 'D');
+        public static LogLevel INFO { get; } = new(2, "INFO", 'I');
+        public static LogLevel WARN { get; } = new(3, "WARN", 'W');
+        public static LogLevel ERROR { get; } = new(4, "ERROR", 'E');
+        public static LogLevel FATAL { get; } = new(5, "FATAL", 'F');
+        private static LogLevel INVALID { get; } = new(99, "INVALID", '!');
 
         private static readonly IEnumerable<LogLevel> Levels = [NOT_SET, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, INVALID];
 
