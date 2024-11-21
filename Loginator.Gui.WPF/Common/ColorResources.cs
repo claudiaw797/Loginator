@@ -13,12 +13,12 @@ namespace Loginator.Gui.WPF.Common {
     internal class ColorResources {
 
         private ResourceDictionary colorResources;
-        private ColorsOptions colorOptions;
+        private ColorsOptions colorOptions = new();
 
         public ColorResources(IOptionsMonitor<ApplicationOptions> applicationOptionsMonitor) {
-            colorOptions = applicationOptionsMonitor.CurrentValue.Colors;
-            colorResources = InitializeDefaultColors(colorOptions);
+            colorResources = InitializeDefaultColors(applicationOptionsMonitor.CurrentValue.Colors);
 
+            SetColors(applicationOptionsMonitor.CurrentValue);
             applicationOptionsMonitor.OnChange(SetColors);
         }
 
