@@ -39,7 +39,7 @@ namespace Loginator.Infrastructure {
                 var environment = provider.GetRequiredService<IHostEnvironment>();
                 var options = provider.GetRequiredService<IOptionsMonitor<TOptions>>();
 
-                return new OptionsRepository<TOptions>(environment, options, (IConfigurationRoot)configuration, section.Key, file);
+                return new OptionsRepository<TOptions>(environment, options, (IConfigurationRoot)configuration, section, file);
             });
         }
 

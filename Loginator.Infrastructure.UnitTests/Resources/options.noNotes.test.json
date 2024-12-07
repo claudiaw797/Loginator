@@ -1,0 +1,20 @@
+{
+    "Other": "None",
+    "Person": {
+        "FirstName": "Doofus",
+        "LastName": "Flintstones",
+        "Address": {
+            "Street": {
+                "Line1": "Stockholm",
+                "Line2": "Sweden",
+                "Line3": "Nordic",
+                "Note": {
+                    "Text": "Something",
+                    "Number": 1,
+                    "Other": "Anything"
+                }
+            },
+            "Postcode": 1234
+        }
+    }
+}
