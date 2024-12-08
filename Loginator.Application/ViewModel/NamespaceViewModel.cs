@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using Loginator.Application.Common;
 using Loginator.Domain.Model;
 using System;
 using System.Collections.ObjectModel;

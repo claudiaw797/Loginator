@@ -547,7 +547,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
                 timeProvider.Advance(TimeSpan.FromSeconds(1));
                 await Task.Yield();
 
-                var processedItemCount = logListener.SumFromMessage(MsLogLevel.Information, RegexReceivedItems(), "count");
+                var processedItemCount = logListener.SumFromMessage(MsLogLevel.Information, ReceivedItemsRegex(), "count");
                 if (processedItemCount == itemCount) {
                     logListener.Reset();
                     break;
@@ -607,6 +607,6 @@ namespace Loginator.Application.UnitTests.ViewModel {
             logs.Select(GetViewModel);
 
         [GeneratedRegex(@"((process)|(discard)).*\s+(?<count>\d+)\s+.*items", RegexOptions.IgnoreCase, "de-AT")]
-        private static partial Regex RegexReceivedItems();
+        private static partial Regex ReceivedItemsRegex();
     }
 }

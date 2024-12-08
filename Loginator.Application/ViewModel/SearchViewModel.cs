@@ -2,6 +2,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Loginator.Application.Common;
 using Loginator.Application.Model;
 using System;
 

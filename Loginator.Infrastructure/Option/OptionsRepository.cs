@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -53,7 +52,7 @@ namespace Loginator.Infrastructure.Option {
 
             var (jsonParent, jsonChild) = Nodes(this.section.Path, jsonFile);
             var sectionObject = jsonChild is null
-                ? GetDefault()
+                ? new TOptions()
                 : JsonSerializer.Deserialize<TOptions>(jsonChild.ToString()) ?? new();
 
             // apply changes to section
@@ -70,7 +69,7 @@ namespace Loginator.Infrastructure.Option {
         public IDisposable? OnChanged(Action<TOptions, string?> listener) =>
             optionsMonitor.OnChange(listener);
 
-        private static (JsonNode parent, JsonNode child) Nodes(string path, JsonObject? rootNode) {
+        private static (JsonNode parent, JsonNode? child) Nodes(string path, JsonObject? rootNode) {
             ReadOnlySpan<char> input = path.AsSpan();
             JsonNode parent = rootNode ?? [];
             JsonNode? child = parent;
@@ -82,11 +81,11 @@ namespace Loginator.Infrastructure.Option {
                 child = parent[key];
 
                 if (child is null) {
-                    child =
-                        keyRange.End.Value == path.Length &&
-                        typeof(TOptions).IsAssignableTo(typeof(IEnumerable))
-                        ? new JsonArray()
-                        : new JsonObject();
+                    if (keyRange.End.Value == path.Length) {
+                        child = null;
+                        break;
+                    }
+                    child = new JsonObject();
                     parent[key] = child;
                 }
             }

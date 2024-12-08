@@ -17,7 +17,8 @@
         DataContext="{control:ServiceProvider viewmodel:ConfigurationViewModel}"
         Icon="../Resources/Settings.png" Title="{DynamicResource grp.Settings}"
         ResizeMode="NoResize" SizeToContent="WidthAndHeight"
-        WindowStartupLocation="CenterScreen" MinWidth="293" MinHeight="275">
+        WindowStartupLocation="CenterScreen" MinWidth="293" MinHeight="275"
+        KeyUp="OnKeyUp_Window">
 
     <Window.Resources>
         <converter:SystemToMediaColorConverter x:Key="SystemToMediaColorConverter" />

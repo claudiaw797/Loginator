@@ -26,6 +26,8 @@
     <s:String x:Key="grp.NetworkProtocol">Netzwerkprotokoll</s:String>
 
     <s:String x:Key="grp.SourceType">Quellformat</s:String>
+    <s:String x:Key="lab.IpAddress">IP Adresse</s:String>
+    <s:String x:Key="msg.IpAddress">IP Adresse, von der Lognachrichten gesendet werden</s:String>
     <s:String x:Key="msg.Port">Port, an den Lognachrichten gesendet werden</s:String>
 
     <s:String x:Key="grp.Display">Darstellung</s:String>
@@ -47,6 +49,11 @@
 
     <s:String x:Key="cmd.Save">Speichern</s:String>
     <s:String x:Key="cmd.Cancel">Abbrechen</s:String>
+
+    <!-- connection dialog and views -->
+    <s:String x:Key="grp.AddConnection">Verbindung hinzufügen</s:String>
+    <s:String x:Key="lab.NetworkProtocol">Protokoll</s:String>
+    <s:String x:Key="lab.SourceType">Quellformat</s:String>
 
     <!-- update dialog -->
     <s:String x:Key="grp.UpdateCheck">Aktualisierungssuche</s:String>

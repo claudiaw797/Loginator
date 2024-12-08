@@ -56,7 +56,6 @@ namespace Loginator.Gui.WPF.Control {
             public RowResize(GridSplitter gridSplitter, RowDefinition scrollRow, double scrollRowDefaultHeight) {
                 ArgumentNullException.ThrowIfNull(gridSplitter);
                 ArgumentNullException.ThrowIfNull(scrollRow);
-                ArgumentNullException.ThrowIfNull(scrollRowDefaultHeight);
 
                 this.gridSplitter = gridSplitter;
                 this.targetRow = scrollRow;

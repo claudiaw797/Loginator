@@ -15,6 +15,7 @@
     <Resource Include="Resources\App.ico" />
     <Resource Include="Resources\App.png" />
     <Resource Include="Resources\MainMenuControl.png" />
+    <Resource Include="Resources\NewConnection.png" />
     <Resource Include="Resources\Settings.png" />
     <Resource Include="Resources\StatusInformation.png" />
   </ItemGroup>

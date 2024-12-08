@@ -7,12 +7,14 @@ using Loginator.Domain.Option;
 using Loginator.Infrastructure.Option;
 using System;
 using System.Drawing;
+using static Loginator.Application.Common.Constants;
 
 namespace Loginator.Application.ViewModel {
 
-    public partial class ConfigurationViewModel : ObservableObject {
+    public sealed partial class ConfigurationViewModel : ObservableObject, IDisposable {
 
         private readonly IOptionsRepository<ApplicationOptions> optionsRepository;
+        private readonly IDisposable? optionsChangeListener;
 
         public ConfigurationViewModel(IOptionsRepository<ApplicationOptions> optionsRepository) {
             this.optionsRepository = optionsRepository;
@@ -35,6 +37,8 @@ namespace Loginator.Application.ViewModel {
             colorLevelError = options.Colors.LevelError;
             colorLevelFatal = options.Colors.LevelFatal;
             colorLogHighlight = options.Colors.LogHighlight;
+
+            optionsChangeListener = optionsRepository.OnChanged(OnChange_Options);
         }
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
@@ -91,6 +95,10 @@ namespace Loginator.Application.ViewModel {
         public Action? OnClose { get; set; }
 
         public OnErrorHandler? OnError { get; set; }
+
+        public void Dispose() {
+            optionsChangeListener?.Dispose();
+        }
 
         [RelayCommand]
         private void CancelChanges() {
@@ -155,6 +163,26 @@ namespace Loginator.Application.ViewModel {
             return result;
         }
 
-        public delegate void OnErrorHandler(string actionKey, Exception exception);
+        private void OnChange_Options(ApplicationOptions options, string? name = null) {
+            lock (this) {
+                this.ConnectionType = options.ConnectionType;
+                this.LogType = options.LogType;
+                this.Port = options.Port.ToString();
+                this.Language = options.Language;
+                this.CheckForUpdateOnStartup = options.CheckForUpdateOnStartup;
+                this.TracePerformance = options.TracePerformance;
+                this.LogTimeFormat = options.LogTimeFormat;
+                this.ApplicationFormat = options.LogProcessing.ApplicationFormat;
+                this.AllowAnonymousMessages = options.LogProcessing.AllowAnonymousMessages;
+                this.TraceMessages = options.LogProcessing.TraceMessages;
+                this.ColorLevelTrace = options.Colors.LevelTrace;
+                this.ColorLevelDebug = options.Colors.LevelDebug;
+                this.ColorLevelInfo = options.Colors.LevelInfo;
+                this.ColorLevelWarn = options.Colors.LevelWarn;
+                this.ColorLevelError = options.Colors.LevelError;
+                this.ColorLevelFatal = options.Colors.LevelFatal;
+                this.ColorLogHighlight = options.Colors.LogHighlight;
+            }
+        }
     }
 }

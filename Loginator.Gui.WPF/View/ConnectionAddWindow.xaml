@@ -1,0 +1,98 @@
+﻿<!-- Copyright (C) 2024 Claudia Wagner -->
+<Window x:Class="Loginator.Gui.WPF.View.ConnectionAddWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:option="clr-namespace:Loginator.Infrastructure.Option;assembly=Loginator.Infrastructure"
+        xmlns:control="clr-namespace:Loginator.Gui.WPF.Control"
+        xmlns:viewmodel="clr-namespace:Loginator.Application.ViewModel;assembly=Loginator.Application"
+        mc:Ignorable="d" 
+        d:DataContext="{d:DesignInstance Type=viewmodel:ConnectionAddViewModel}"
+        Icon="../Resources/NewConnection.png" Title="{DynamicResource grp.AddConnection}"
+        ResizeMode="NoResize" SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterScreen"
+        KeyUp="OnKeyUp_Window">
+
+    <Window.Resources>
+        <Style TargetType="Label">
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style TargetType="RadioButton">
+            <Setter Property="Margin" Value="0,0,6,5" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="80" />
+            <Setter Property="Height" Value="22" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="1" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="1" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label Grid.ColumnSpan="3" Grid.Row="0"
+                   Content="{DynamicResource grp.NetworkProtocol}" />
+            <RadioButton Grid.Column="2" Grid.Row="1"
+                         Content="{DynamicResource lab.Udp}" GroupName="ConnectionType"
+                         IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static option:ConnectionType.Udp}}" />
+            <RadioButton Grid.Column="2" Grid.Row="2"
+                         Content="{DynamicResource lab.Tcp}" GroupName="ConnectionType"
+                         IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static option:ConnectionType.Tcp}}" />
+
+            <Label Grid.Column="0" Grid.Row="4"
+                   Content="{DynamicResource lab.Port}" />
+            <TextBox Grid.Column="2" Grid.Row="4"
+                     Width="100" HorizontalAlignment="Left"
+                     Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="{DynamicResource msg.Port}"                                                                                    
+                     PreviewTextInput="OnPreviewTextInput_Port" />
+
+            <Label Grid.Column="0" Grid.Row="5"
+                   Content="{DynamicResource lab.IpAddress}" />
+            <TextBox Grid.Column="2" Grid.Row="5"
+                     Width="100" HorizontalAlignment="Left"
+                     Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="{DynamicResource msg.IpAddress}" />
+
+            <Label Grid.ColumnSpan="3" Grid.Row="7"
+                   Content="{DynamicResource grp.SourceType}" />
+            <RadioButton Grid.Column="2" Grid.Row="8"
+                         Content="{DynamicResource lab.Log4j}" GroupName="Source"
+                         IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static option:LogType.Log4j}}" />
+            <RadioButton Grid.Column="2" Grid.Row="9"
+                         Content="{DynamicResource lab.Logcat}" GroupName="Source"
+                         IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static option:LogType.Logcat}}" />
+        </Grid>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal"
+                    Margin="0,5,0,0" HorizontalAlignment="Right">
+            <Button Content="{DynamicResource cmd.Save}"
+                    Command="{Binding AcceptChangesCommand}" />
+            <Button Margin="5,0,0,0"
+                    Content="{DynamicResource cmd.Cancel}"
+                    Command="{Binding CancelChangesCommand}" />
+        </StackPanel>
+    </Grid>
+</Window>

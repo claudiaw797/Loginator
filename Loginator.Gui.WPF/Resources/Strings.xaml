@@ -30,6 +30,8 @@
     <s:String x:Key="grp.SourceType">Source format</s:String>
     <s:String x:Key="lab.Log4j">Log4j (Chainsaw, NLog, log4net, etc.)</s:String>
     <s:String x:Key="lab.Logcat">Logcat (Android)</s:String>
+    <s:String x:Key="lab.IpAddress">IP address</s:String>
+    <s:String x:Key="msg.IpAddress">IP address log messages are sent from</s:String>
     <s:String x:Key="lab.Port">Port</s:String>
     <s:String x:Key="msg.Port">Port log messages are sent to</s:String>
 
@@ -52,6 +54,11 @@
 
     <s:String x:Key="cmd.Save">Save</s:String>
     <s:String x:Key="cmd.Cancel">Cancel</s:String>
+
+    <!-- connection dialog and views -->
+    <s:String x:Key="grp.AddConnection">Add connection</s:String>
+    <s:String x:Key="lab.NetworkProtocol">Protocol</s:String>
+    <s:String x:Key="lab.SourceType">Source format</s:String>
 
     <!-- update dialog -->
     <s:String x:Key="grp.UpdateCheck">Update check</s:String>

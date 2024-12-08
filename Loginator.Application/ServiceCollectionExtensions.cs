@@ -27,6 +27,7 @@ namespace Loginator.Application {
             services.AddSingleton<LoginatorViewModel>();
             services.AddTransient<AboutViewModel>();
             services.AddTransient<ConfigurationViewModel>();
+            services.AddTransient<ConnectionsViewModel>();
 
             return services;
         }

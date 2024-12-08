@@ -11,7 +11,10 @@ namespace Loginator.Application.Option {
             => configuration.GetSection(ApplicationOptions.SectionName);
 
         public static IConfigurationSection GetLogProcessingSection(this IConfiguration configuration)
-            => configuration.GetSection($"{ApplicationOptions.SectionName}:{LogProcessingOptions.SectionName}");
+            => configuration.GetSection(ApplicationOptions.LogProcessingSectionName);
+
+        public static IConfigurationSection GetConnectionsSection(this IConfiguration configuration)
+            => configuration.GetSection(ApplicationOptions.ConnectionsSectionName);
 
         public static IConfigurationSection GetColorsSection(this IConfiguration configuration)
             => configuration.GetSection($"{ApplicationOptions.SectionName}:{ColorsOptions.SectionName}");
@@ -21,6 +24,9 @@ namespace Loginator.Application.Option {
 
         public static LogProcessingOptions GetMessagingSettings(this IConfiguration configuration)
             => configuration.GetLogProcessingSection().Get<LogProcessingOptions>() ?? new();
+
+        public static ConnectionsOptions GetConnectionsSettings(this IConfiguration configuration)
+            => configuration.GetConnectionsSection().Get<ConnectionsOptions>() ?? [];
 
         public static ColorsOptions GetColorsSettings(this IConfiguration configuration)
             => configuration.GetColorsSection().Get<ColorsOptions>() ?? new();

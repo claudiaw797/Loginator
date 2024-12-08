@@ -3,6 +3,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:s="clr-namespace:System;assembly=mscorlib"
                     xmlns:converter="clr-namespace:Loginator.Gui.WPF.Converter"
                     mc:Ignorable="d">
 
@@ -36,4 +37,7 @@
     <converter:ObjectToFormattedResourceStringConverter x:Key="ObjectToFormattedResourceStringConverter" />
     <converter:StringToIntConverter x:Key="StringToIntConverter" />
     <converter:TimestampConverter x:Key="TimestampConverter" />
+
+    <s:Boolean x:Key="True">True</s:Boolean>
+    <s:Boolean x:Key="False">False</s:Boolean>
 </ResourceDictionary>

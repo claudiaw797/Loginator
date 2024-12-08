@@ -46,7 +46,7 @@ namespace Loginator.Gui.WPF {
                 await host.StartAsync();
 
                 stringResources = host.Services.GetRequiredService<StringResources>();
-                host.Services.GetRequiredService<ColorResources>();
+                _ = host.Services.GetRequiredService<ColorResources>();
 
                 IoC.ServiceProvider = host.Services;
                 Current.Properties.Add(typeof(ServiceProvider), host.Services);

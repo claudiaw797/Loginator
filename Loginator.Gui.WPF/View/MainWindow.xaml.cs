@@ -48,7 +48,9 @@ namespace Loginator.Gui.WPF.View {
             }
         }
 
-        public ScrollViewerBehavior.RowResize GridRowBehavior => new(SplitterRow, SelectedLogRow, 250);
+        public ScrollViewerBehavior.RowResize ApplicationsRowBehavior => new(ApplicationsSplitter, ApplicationsRow, 250);
+
+        public ScrollViewerBehavior.RowResize SelectedLogRowBehavior => new(SelectedLogSplitter, SelectedLogRow, 250);
 
         internal async Task CheckForNewVersion(bool loud = false) {
             var path = $"{assemblyInfo.SourceUrl}/{assemblyInfo.AssemblyInfoPath}";
