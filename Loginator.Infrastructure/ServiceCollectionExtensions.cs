@@ -1,8 +1,10 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
+using Loginator.Domain.Channel;
 using Loginator.Domain.Converter;
 using Loginator.Domain.Option;
 using Loginator.Domain.Server;
+using Loginator.Infrastructure.Channel;
 using Loginator.Infrastructure.Converter;
 using Loginator.Infrastructure.Option;
 using Loginator.Infrastructure.Server;
@@ -18,13 +20,16 @@ namespace Loginator.Infrastructure {
     public static class ServiceCollectionExtensions {
 
         public static IServiceCollection AddInfrastructure(this IServiceCollection services) {
-            services.AddKeyedTransient<ILogConversionFactory, Log4jConversionFactory>(LogType.Log4j);
-            services.AddKeyedTransient<ILogConversionFactory, LogcatConversionFactory>(LogType.Logcat);
+            services.AddKeyedTransient<ILogConversionService, Log4jConversionService>(LogType.Log4j);
+            services.AddKeyedTransient<ILogConversionService, LogcatConversionService>(LogType.Logcat);
 
             services.AddKeyedTransient<AbstractSocket, UdpSocket>(ConnectionType.Udp);
             services.AddKeyedTransient<AbstractSocket, TcpSocket>(ConnectionType.Tcp);
 
+            services.AddTransient<ILogService, LogService>();
+
             services.AddLogRepositories();
+            services.AddSingleton<ILogRepositoryFactory>(sp => new LogRepositoryFactory(sp));
 
             return services;
         }
@@ -45,20 +50,24 @@ namespace Loginator.Infrastructure {
 
         private static void AddLogRepositories(this IServiceCollection services) {
             ConnectionType[] connectionTypes = [ConnectionType.Udp, ConnectionType.Tcp];
-            LogType[] logTypes = [LogType.Log4j, LogType.Logcat];
+            LogType[] logTypes = [LogType.Log4j, LogType.Logcat, LogType.PlainText];
 
             foreach (var connectionType in connectionTypes) {
                 foreach (var logType in logTypes) {
-                    services.AddKeyedSingleton<ILogRepository>((connectionType, logType), (sp, key) => sp.GetLogRepository(((ConnectionType, LogType)?)key));
+                    services.AddKeyedTransient<ILogRepository>(
+                        (connectionType, logType),
+                        (sp, key) => sp.GetLogRepository(((ConnectionType, LogType)?)key));
                 }
             }
         }
 
-        private static LogRepository GetLogRepository(this IServiceProvider serviceProvider, (ConnectionType connectionType, LogType logType)? key) {
-            ArgumentNullException.ThrowIfNull(key);
+        private static LogRepository GetLogRepository(
+            this IServiceProvider serviceProvider,
+            (ConnectionType connectionType, LogType logType)? key) {
+            if (!key.HasValue) throw new ArgumentNullException(nameof(key));
 
             var socket = serviceProvider.GetRequiredKeyedService<AbstractSocket>(key.Value.connectionType);
-            var conversionFactory = serviceProvider.GetRequiredKeyedService<ILogConversionFactory>(key.Value.logType);
+            var conversionFactory = serviceProvider.GetRequiredKeyedService<ILogConversionService>(key.Value.logType);
             var optionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<LogProcessingOptions>>();
             var logger = serviceProvider.GetRequiredService<ILogger<LogRepository>>();
             return new LogRepository(socket, conversionFactory, optionsMonitor, logger);

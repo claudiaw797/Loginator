@@ -22,6 +22,6 @@ namespace Loginator.Application.Service {
 
         /// <inheritdoc/>
         public void TraceElapsedTime(string message) =>
-            logger.Trace("{0} {1:G}", message, timeProvider.GetElapsedTime(start));
+            logger.Trace("{message} {time:G}", message, timeProvider.GetElapsedTime(start));
     }
 }

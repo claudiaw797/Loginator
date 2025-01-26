@@ -38,13 +38,6 @@ namespace Loginator.Gui.WPF.View {
 
             if (DataContext is LoginatorViewModel vm) {
                 vm.OnCopyToClipboard = s => Clipboard.SetText(s);
-
-                try {
-                    vm.StartMessageProcessing();
-                }
-                catch (Exception ex) {
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Stop, MessageBoxResult.OK);
-                }
             }
         }
 
@@ -60,7 +53,8 @@ namespace Loginator.Gui.WPF.View {
 
                 var latestAssembly = JsonSerializer.Deserialize<AssemblyInfo>(stream);
                 if (latestAssembly is not null && latestAssembly.VersionCode > assemblyInfo.VersionCode) {
-                    logger.LogInformation($"New version available. Current {assemblyInfo.VersionName} ({assemblyInfo.VersionCode}), latest {latestAssembly.VersionName} ({latestAssembly.VersionCode})");
+                    logger.LogInformation("New version available. Current {localName} ({localCode}), latest {latestName} ({latestCode})",
+                        assemblyInfo.VersionName, assemblyInfo.VersionCode, latestAssembly.VersionName, latestAssembly.VersionCode);
 
                     var messageBoxResult = MessageBox.Show(
                         string.Format(App.GetStringResource("msg.UpdateAvailable")!, latestAssembly.VersionName),
@@ -71,7 +65,8 @@ namespace Loginator.Gui.WPF.View {
                     }
                 }
                 else {
-                    logger.LogInformation($"No new version available. Current {assemblyInfo.VersionName} ({assemblyInfo.VersionCode})");
+                    logger.LogInformation("No new version available. Current {currentName} ({currentCode})",
+                        assemblyInfo.VersionName, assemblyInfo.VersionCode);
 
                     if (loud) MessageBox.Show(
                         App.GetStringResource("msg.NoUpdate"),
@@ -80,7 +75,7 @@ namespace Loginator.Gui.WPF.View {
                 }
             }
             catch (Exception e) {
-                logger.LogError(e, $"Could not check for new version on path {path}");
+                logger.LogError(e, "Could not check for new version on path {path}", path);
 
                 if (loud) MessageBox.Show(
                     string.Format(App.GetStringResource("msg.UpdateError")!, e.Message),

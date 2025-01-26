@@ -7,7 +7,7 @@ namespace Loginator.Domain.UnitTests.Model {
     /// <summary>
     /// Represents test data for <see cref="LogLevelTests"/>.
     /// </summary>
-    internal class LogLevelTestData {
+    internal static class LogLevelTestData {
 
         public static readonly object[] ValidLevels = [
             new object[] { LogLevel.TRACE },
@@ -16,24 +16,6 @@ namespace Loginator.Domain.UnitTests.Model {
             new object[] { LogLevel.WARN },
             new object[] { LogLevel.ERROR },
             new object[] { LogLevel.FATAL },
-        ];
-
-        public static readonly object[] ValidLevelsByName = [
-            new object[] { "trace", LogLevel.TRACE  },
-            new object[] { "debug", LogLevel.DEBUG },
-            new object[] { "info", LogLevel.INFO },
-            new object[] { "warn", LogLevel.WARN },
-            new object[] { "error", LogLevel.ERROR },
-            new object[] { "fatal", LogLevel.FATAL },
-        ];
-
-        public static readonly object[] ValidLevelsByShortName = [
-            new object[] { 'V', LogLevel.TRACE },
-            new object[] { 'D', LogLevel.DEBUG },
-            new object[] { 'I', LogLevel.INFO },
-            new object[] { 'W', LogLevel.WARN },
-            new object[] { 'E', LogLevel.ERROR },
-            new object[] { 'F', LogLevel.FATAL },
         ];
 
         public static readonly object[] FirstLowerThanSecond = [

@@ -35,12 +35,13 @@
 
         <ToolBar KeyboardNavigation.TabNavigation="Continue">
             <CheckBox Content="{DynamicResource cmd.Active}"
+                      ToolTip="{DynamicResource msg.Active}"
                       IsChecked="{Binding IsActive}"/>
 
             <StackPanel Style="{StaticResource ToolbarStackPanel}">
                 <TextBox Name="numberOfLogsPerLevel" Width="55"
                          Text="{Binding NumberOfLogsPerLevel, Mode=OneWay}"
-                         ToolTip="Enter limit per application per log level"
+                         ToolTip="{DynamicResource msg.Limit}"
                          PreviewTextInput="OnPreviewTextInput_NumberOfLogsPerLevel">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Enter"
@@ -55,8 +56,10 @@
             </StackPanel>
 
             <Button Content="{DynamicResource cmd.ClearLogs}"
+                    ToolTip="{DynamicResource msg.ClearLogs}"
                     Command="{Binding ClearLogsCommand}" />
             <Button Content="{DynamicResource cmd.ClearAll}"
+                    ToolTip="{DynamicResource msg.ClearAll}"
                     Command="{Binding ClearAllCommand}" />
         </ToolBar>
 
@@ -76,6 +79,7 @@
                         CommandParameter="{Binding Search.UpdateCommandName}"/>
             </StackPanel>
             <CheckBox Content="{DynamicResource cmd.Invert}"
+                      ToolTip="{DynamicResource msg.Invert}"
                       IsChecked="{Binding Search.IsInverted}"
                       Command="{Binding Search.UpdateCommand}"
                       CommandParameter="Invert"/>

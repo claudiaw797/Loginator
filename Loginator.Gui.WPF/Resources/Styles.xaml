@@ -8,6 +8,7 @@
                     mc:Ignorable="d">
 
     <Style TargetType="{x:Type Control}" x:Key="BaseStyle">
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
     </Style>
     <Style TargetType="{x:Type Label}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="Height" Value="26" />
@@ -30,7 +31,10 @@
     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="Height" Value="22" />
     </Style>
+    <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource BaseStyle}">
+    </Style>
 
+    <converter:ConnectionStateToImageConverter x:Key="ConnectionStateToImageConverter" />
     <converter:ExistsToVisibilityConverter x:Key="ExistsToVisibilityConverter" />
     <converter:KeyToResourceStringConverter x:Key="KeyToResourceStringConverter" />
     <converter:ObjectToBoolConverter x:Key="ObjectToBoolConverter" />

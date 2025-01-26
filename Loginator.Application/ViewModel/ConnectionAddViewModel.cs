@@ -2,8 +2,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Loginator.Application.Model;
-using Loginator.Infrastructure.Option;
+using Loginator.Domain.Option;
 using System;
 using static Loginator.Application.Common.Constants;
 
@@ -20,14 +19,25 @@ namespace Loginator.Application.ViewModel {
         private LogType logType;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private string port = "7071";
+        private int port = 0;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private string? ipAddress;
 
-        public Action? OnClose { get; set; }
+        public bool StartImmediately { get; set; } = true;
+
+        public OnCloseHandler? OnClose { get; set; }
 
         public OnErrorHandler? OnError { get; set; }
+
+        internal Connection ToConnection() =>
+            new() {
+                ConnectionType = this.ConnectionType,
+                LogType = this.LogType,
+                Port = this.Port,
+                IpAddress = this.IpAddress,
+                State = StartImmediately ? ConnectionState.Running : ConnectionState.Stopped,
+            };
 
         [RelayCommand]
         private void CancelChanges() {
@@ -42,12 +52,7 @@ namespace Loginator.Application.ViewModel {
         [RelayCommand(CanExecute = nameof(CanAcceptChanges))]
         private void AcceptChanges() {
             try {
-                var connection = new Connection {
-                    ConnectionType = this.ConnectionType,
-                    LogType = this.LogType,
-                    Port = Convert.ToInt32(this.Port),
-                    IpAddress = this.IpAddress
-                };
+                var connection = ToConnection();
                 connectionsViewModel.AddConnection(connection);
 
                 this.OnClose?.Invoke();
@@ -60,7 +65,7 @@ namespace Loginator.Application.ViewModel {
         private bool CanAcceptChanges() {
             var result = ConnectionType != ConnectionType.None &&
                 LogType != LogType.None &&
-                (Port is not null && int.TryParse(Port, out var p) && connectionsViewModel.IsAvailablePort(p)) &&
+                Port > 0 && connectionsViewModel.IsAvailablePort(Port) &&
                 (IpAddress is null || IpAddressRegex().IsMatch(IpAddress));
             return result;
         }

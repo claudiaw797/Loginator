@@ -3,6 +3,7 @@
 using Loginator.Application.Option;
 using Loginator.Application.Service;
 using Loginator.Application.ViewModel;
+using Loginator.Domain.Channel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -23,6 +24,8 @@ namespace Loginator.Application {
             else {
                 services.AddTransient<IStopwatch, StopwatchDisabled>();
             }
+
+            services.AddTransient<ILogProcessor>(sp => sp.GetRequiredService<LoginatorViewModel>());
 
             services.AddSingleton<LoginatorViewModel>();
             services.AddTransient<AboutViewModel>();

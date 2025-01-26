@@ -5,8 +5,8 @@ using CommunityToolkit.Mvvm.Input;
 using Loginator.Application.Common;
 using Loginator.Application.Option;
 using Loginator.Application.Service;
+using Loginator.Domain.Channel;
 using Loginator.Domain.Model;
-using Loginator.Domain.Server;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using static Loginator.Domain.Common.Constants;
@@ -22,30 +21,24 @@ using LogLevel = Loginator.Domain.Model.LogLevel;
 
 namespace Loginator.Application.ViewModel {
 
-    public sealed partial class LoginatorViewModel : ObservableObject, IDisposable {
+    public sealed partial class LoginatorViewModel : ObservableObject, ILogProcessor, IDisposable {
 
         private static readonly TimeSpan BATCH_TIME_INTERVAL = TimeSpan.FromMilliseconds(300);
 
-        private readonly IOptionsMonitor<ApplicationOptions> optionsMonitor;
         private readonly IDisposable? optionsChangeListener;
-        private readonly TimeProvider timeProvider;
         private readonly IDispatcher dispatcher;
         private readonly ILogger<LoginatorViewModel> logger;
         private readonly OrderedObservableCollection orderedLogs = [];
         private readonly CancellationTokenSource cancellationTokenSource = new();
 
         private IStopwatch stopwatch;
-        private ILogRepository? logRepository;
         private ApplicationOptions currentOptions;
 
         public LoginatorViewModel(
             IOptionsMonitor<ApplicationOptions> optionsMonitor,
-            TimeProvider timeProvider,
             IStopwatch stopwatch,
             IDispatcher dispatcher,
             ILogger<LoginatorViewModel> logger) {
-            this.optionsMonitor = optionsMonitor;
-            this.timeProvider = timeProvider;
             this.stopwatch = stopwatch;
             this.dispatcher = dispatcher;
             this.logger = logger;
@@ -193,38 +186,6 @@ namespace Loginator.Application.ViewModel {
         internal IEnumerable<NamespaceViewModel> AllNamespaces() =>
             Namespaces.Flatten(x => x.Children);
 
-        internal void StartMessageProcessing() {
-            if (logRepository is not null) return;
-
-            Task.Run(async () => {
-                while (!cancellationTokenSource.IsCancellationRequested) {
-                    try {
-                        await ReadFromLogRepository();
-                    }
-                    catch (ObjectDisposedException ex) {
-                        logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly, restarting receiver.", optionsMonitor.CurrentValue.Port);
-                    }
-                    catch (OperationCanceledException ex) {
-                        logger.LogInformation("Receiver listening on port {port} closed: {message}", optionsMonitor.CurrentValue.Port, ex.Message);
-                        break;
-                    }
-                    catch (SocketException ex) {
-                        if (cancellationTokenSource.IsCancellationRequested) {
-                            logger.LogInformation("Receiver listening on port {port} closed: {message}", optionsMonitor.CurrentValue.Port, ex.Message);
-                            break;
-                        }
-                        else {
-                            logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly, restarting receiver.", optionsMonitor.CurrentValue.Port);
-                        }
-                    }
-                    catch (Exception ex) {
-                        logger.LogError(ex, "Receiver listening on port {port} closed unexpectedly.", optionsMonitor.CurrentValue.Port);
-                        break;
-                    }
-                }
-            });
-        }
-
         private void OnChange_Options(ApplicationOptions options, string? name = null) {
             lock (this) {
                 if (currentOptions.LogTimeFormat != options.LogTimeFormat) {
@@ -254,24 +215,12 @@ namespace Loginator.Application.ViewModel {
             }
         }
 
-        private async Task ReadFromLogRepository() {
-            var config = optionsMonitor.CurrentValue;
-            logRepository = IoC.Get<ILogRepository>((config.ConnectionType, config.LogType));
-
-            var logQuery = logRepository
-                .GetEnumerableAsync(config.Port, cancellationTokenSource.Token)
-                .Batch(BATCH_TIME_INTERVAL, timeProvider, cancellationTokenSource.Token);
-            await foreach (var logs in logQuery) {
-                if (!IsActive) {
-                    logger.LogInformation("Discarded {count} log items", logs.Count);
-                    continue;
-                }
-
-                dispatcher.BeginInvokeOnUIThread(() => ProcessLogs(logs));
+        void ILogProcessor.ProcessLogs(IEnumerable<Log> logs) {
+            if (!IsActive) {
+                logger.LogInformation("Discarded {count} log items", logs.Count());
+                return;
             }
-        }
 
-        private void ProcessLogs(IEnumerable<Log> logs) {
             lock (Constants.SyncObject) {
                 try {
                     var logsToInsert = logs
@@ -293,7 +242,7 @@ namespace Loginator.Application.ViewModel {
                     AddLogs(logsToInsert);
                     stopwatch.TraceElapsedTime("[UpdateLogs]");
 
-                    logger.LogInformation("Processed {count} log items", logs.Count());
+                    logger.LogInformation("Processed {count} log items", logsToInsert.Length);
                 }
                 catch (Exception ex) {
                     logger.LogError(ex, "Error processing {count} new log items", logs.Count());

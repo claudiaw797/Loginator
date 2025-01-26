@@ -5,41 +5,44 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Loginator.Application.UnitTests {
+namespace Loginator.UnitTests.Infrastructure {
 
-    internal class AsyncEnumerableQueue<T> : ConcurrentQueue<T>, IAsyncEnumerable<T> {
+    public class AsyncEnumerableQueue<T> : ConcurrentQueue<T>, IAsyncEnumerable<T> {
 
         public bool IsCompleted { get; set; }
 
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancelToken = default) =>
-            new AsyncEnumerator(this);
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken ct = default) =>
+            new AsyncEnumerator(this, ct);
 
-        private class AsyncEnumerator(AsyncEnumerableQueue<T> inner) : IAsyncEnumerator<T> {
-
-            private readonly AsyncEnumerableQueue<T> inner = inner;
+        private class AsyncEnumerator(AsyncEnumerableQueue<T> outer, CancellationToken ct) : IAsyncEnumerator<T> {
 
             public ValueTask<bool> MoveNextAsync() {
                 var tcs = new TaskCompletionSource<bool>();
                 Task.Run(async () => {
                     while (true) {
-                        if (inner.IsCompleted) {
+                        if (outer.IsCompleted) {
                             tcs.SetResult(false);
                             break;
                         }
-                        if (inner.TryPeek(out var _)) {
+                        if (outer.TryPeek(out var _)) {
                             tcs.SetResult(true);
                             break;
                         }
                         await Task.Yield();
                     }
-                });
+                }, ct);
                 return new(tcs.Task);
             }
 
-            public T Current => inner.TryDequeue(out var t) ? t : default!;
+            public T Current {
+                get {
+                    outer.TryDequeue(out var t);
+                    return t!;
+                }
+            }
 
             public ValueTask DisposeAsync() {
-                inner.IsCompleted = true;
+                outer.IsCompleted = true;
 
                 return new ValueTask(Task.CompletedTask);
             }

@@ -12,7 +12,7 @@ namespace Loginator.Infrastructure.Server {
 
         public override void Listen() { }
 
-        public override Task<bool> IsConnected(Socket s, CancellationToken _) =>
+        public override Task<bool> IsConnectedAsync(Socket? s, CancellationToken _) =>
             Task.FromResult(true);
     }
 }

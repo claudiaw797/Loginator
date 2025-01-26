@@ -1,14 +1,9 @@
 // Copyright (C) 2024 Claudia Wagner
 
-using FakeItEasy.Core;
 using Loginator.Domain.Model;
-using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
-using static Loginator.Infrastructure.UnitTests.Converter.Log4jConversionFactoryTestData;
+using static Loginator.Infrastructure.UnitTests.Converter.Log4jConversionServiceTestData;
 
 namespace Loginator.Infrastructure.UnitTests.Server {
 
@@ -18,7 +13,7 @@ namespace Loginator.Infrastructure.UnitTests.Server {
     internal class LogRepositoryTestData {
 
         public static string ValidLogMessage() {
-            var input = Log4JDefault(false, false, false, SaveOptions.None);
+            var input = Log4jFull(false, false, false, SaveOptions.None);
             return input;
         }
 
@@ -29,7 +24,7 @@ namespace Loginator.Infrastructure.UnitTests.Server {
                 foreach (var hasNamespace in booleans) {
                     foreach (var isMixed in booleans) {
                         foreach (var option in FormatOptions) {
-                            var input = Log4JDefault(hasPrefix, hasNamespace, isMixed, option);
+                            var input = Log4jFull(hasPrefix, hasNamespace, isMixed, option);
                             yield return input;
                         }
                     }
@@ -38,62 +33,6 @@ namespace Loginator.Infrastructure.UnitTests.Server {
         }
 
         public static Log ValidLog =>
-            LogFromValidLog4jXml;
-
-        public class SocketServer {
-
-            private readonly CancellationTokenSource cancellationTokenSource = new();
-            private string[] returnValues = [];
-            private int callCounter = 0;
-
-            public bool AutoCancel { get; set; } = true;
-
-            public CancellationToken CancellationToken =>
-                cancellationTokenSource.Token;
-
-            public void Cancel(TimeSpan? delay = null) {
-                if (delay.HasValue)
-                    cancellationTokenSource.CancelAfter(delay.Value);
-                else
-                    cancellationTokenSource.Cancel();
-            }
-
-            public void SetReturnValues(params string[] returnValues) =>
-                this.returnValues = returnValues;
-
-            public ValueTask<int> FillMemoryAndReturnLength(IFakeObjectCall call) {
-                if (CancellationToken.IsCancellationRequested) {
-                    throw new InvalidOperationException("Cancellation token is already canceled, method should not be called anymore.");
-                }
-
-                if (returnValues is null || returnValues.Length == 0) {
-                    if (AutoCancel) Cancel();
-                    return new(0);
-                }
-
-                if (callCounter >= returnValues.Length) {
-                    if (AutoCancel) {
-                        Cancel();
-                        return new(0);
-                    }
-
-                    callCounter = 0;
-                }
-
-                var memory = Encoding.UTF8.GetBytes(returnValues[callCounter++]).AsMemory();
-                var argument = call.Arguments.Get<Memory<byte>>(0);
-                memory.CopyTo(argument);
-                return new(memory.Length);
-            }
-
-            public ValueTask<int> WaitUntilCanceled(IFakeObjectCall _) {
-                var tcs = new TaskCompletionSource<int>();
-                Task.Factory.StartNew(async () => {
-                    await Task.Delay(Timeout.Infinite, CancellationToken);
-                    tcs.SetResult(0);
-                }, CancellationToken, TaskCreationOptions.PreferFairness, TaskScheduler.FromCurrentSynchronizationContext());
-                return new(tcs.Task);
-            }
-        }
+            LogFromFullLog4jXml;
     }
 }

@@ -1,9 +1,8 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using Loginator.Infrastructure.Option;
 using System.Text.Json.Serialization;
 
-namespace Loginator.Application.Model {
+namespace Loginator.Domain.Option {
 
     public record Connection {
 
@@ -16,5 +15,10 @@ namespace Loginator.Application.Model {
         public string? IpAddress { get; init; }
 
         public int Port { get; init; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ConnectionState State { get; init; }
+
+        public override string ToString() => $"{ConnectionType}:{Port}";
     }
 }

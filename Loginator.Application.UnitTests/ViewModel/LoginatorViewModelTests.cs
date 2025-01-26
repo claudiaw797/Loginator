@@ -5,10 +5,9 @@ using FluentAssertions;
 using Loginator.Application.Option;
 using Loginator.Application.Service;
 using Loginator.Application.ViewModel;
+using Loginator.Domain.Channel;
 using Loginator.Domain.Model;
-using Loginator.Domain.Server;
-using Loginator.Infrastructure.Option;
-using Microsoft.Extensions.DependencyInjection;
+using Loginator.UnitTests.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
@@ -35,6 +34,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
             { 1, "TestApp" },
             { 2, "TästApp" }
         };
+        private static readonly TimeSpan DEFAULT_TIMESPAN = TimeSpan.FromSeconds(1);
 
         private const string NAMESPACE_NAME = "TestNs";
 
@@ -49,17 +49,16 @@ namespace Loginator.Application.UnitTests.ViewModel {
         };
 
         private readonly LoginatorViewModel sut;
-        private readonly FakeTimeProvider timeProvider;
+        private readonly FakeTimeProvider timeProvider = new();
         private readonly Action<string?> clipboardMock;
         private readonly LogListener logListener = new();
-        private readonly AsyncEnumerableQueue<Log> receivedLogs;
+        private readonly AsyncEnumerableQueue<Log> receivedLogs = new();
+        private readonly TestChannel testChannel;
 
         private readonly IEnumerable<Log> testItems;
 
         public LoginatorViewModelTests() {
-            timeProvider = new FakeTimeProvider();
             clipboardMock = A.Fake<Action<string?>>();
-            receivedLogs = new();
 
             sut = Sut();
 
@@ -72,21 +71,29 @@ namespace Loginator.Application.UnitTests.ViewModel {
             var itemF = Log(LogLevel.FATAL, ts.AddMinutes(6));
 
             testItems = [itemF, itemE, itemW, itemI, itemD, itemV];
+
+            testChannel = new(sut, receivedLogs);
         }
 
-        [OneTimeTearDown]
-        public void OneTimeTearDown() {
+        [SetUp]
+        public void Startup() {
+            testChannel.Start();
+        }
+
+        [TearDown]
+        public async Task TearDown() {
             receivedLogs.IsCompleted = true;
             sut.Dispose();
+            await testChannel.DisposeAsync().ConfigureAwait(false);
         }
 
         [Test]
         public void Can_create_sut() {
-            var configDao = A.Fake<IOptionsMonitor<ApplicationOptions>>();
+            var appOptionsMonitor = A.Fake<IOptionsMonitor<ApplicationOptions>>();
             var stopwatch = A.Fake<IStopwatch>();
             var logger = A.Fake<ILogger<LoginatorViewModel>>();
 
-            var sut = new LoginatorViewModel(configDao, timeProvider, stopwatch, new DispatcherMock(), logger);
+            var sut = new LoginatorViewModel(appOptionsMonitor, stopwatch, new DispatcherMock(), logger);
 
             sut.IsActive.Should().BeTrue();
             sut.NumberOfLogsPerLevel.Should().BeGreaterThan(100);
@@ -544,11 +551,11 @@ namespace Loginator.Application.UnitTests.ViewModel {
             }
 
             while (true) {
-                timeProvider.Advance(TimeSpan.FromSeconds(1));
+                timeProvider.Advance(DEFAULT_TIMESPAN);
                 await Task.Yield();
 
-                var processedItemCount = logListener.SumFromMessage(MsLogLevel.Information, ReceivedItemsRegex(), "count");
-                if (processedItemCount == itemCount) {
+                var actualCount = logListener.SumFromMessage(MsLogLevel.Information, ReceivedItemsRegex(), "count");
+                if (actualCount == itemCount) {
                     logListener.Reset();
                     break;
                 }
@@ -556,30 +563,17 @@ namespace Loginator.Application.UnitTests.ViewModel {
         }
 
         private LoginatorViewModel Sut() {
-            var config = new ApplicationOptions {
-                ConnectionType = ConnectionType.Udp,
-                LogType = LogType.Log4j,
-                Port = 7081,
+            var appOptions = new ApplicationOptions {
                 LogTimeFormat = LogTimeFormat.DoNotChange,
             };
-            var configDao = A.Fake<IOptionsMonitor<ApplicationOptions>>();
-            A.CallTo(() => configDao.CurrentValue).Returns(config);
-
-            var receiver = A.Fake<ILogRepository>();
-            var serviceProvider = A.Fake<IKeyedServiceProvider>();
-            IoC.ServiceProvider = serviceProvider;
-            A.CallTo(() => serviceProvider.GetRequiredKeyedService(typeof(ILogRepository), A<object?>._)).Returns(receiver);
-            A.CallTo(() => receiver.GetEnumerableAsync(A<int>._, A<CancellationToken>._)).Returns(receivedLogs);
+            var appOptionsMonitor = A.Fake<IOptionsMonitor<ApplicationOptions>>();
+            A.CallTo(() => appOptionsMonitor.CurrentValue).Returns(appOptions);
 
             var stopwatch = A.Fake<IStopwatch>();
-            var logger = A.Fake<ILogger<LoginatorViewModel>>();
-            A.CallTo(() => logger.IsEnabled(A<MsLogLevel>._)).Returns(true);
-            Fake.GetFakeManager(logger).AddInterceptionListener(logListener);
-
-            var sut = new LoginatorViewModel(configDao, timeProvider, stopwatch, new DispatcherMock(), logger) {
+            var logger = logListener.Setup<LoginatorViewModel>();
+            var sut = new LoginatorViewModel(appOptionsMonitor, stopwatch, new DispatcherMock(), logger) {
                 OnCopyToClipboard = clipboardMock
             };
-            sut.StartMessageProcessing();
 
             return sut;
         }
@@ -608,5 +602,32 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
         [GeneratedRegex(@"((process)|(discard)).*\s+(?<count>\d+)\s+.*items", RegexOptions.IgnoreCase, "de-AT")]
         private static partial Regex ReceivedItemsRegex();
+
+        private class TestChannel(ILogProcessor sut, IAsyncEnumerable<Log> input) : IAsyncDisposable {
+
+            private readonly CancellationTokenSource cts = new();
+            private Task? task;
+
+            public async ValueTask DisposeAsync() {
+                if (!cts.IsCancellationRequested) {
+                    try {
+                        await cts.CancelAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception) {
+                    }
+                    if (task is not null) {
+                        await task.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            public void Start() {
+                task ??= Task.Run(async () => {
+                    await foreach (var log in input) {
+                        sut.ProcessLogs([log]);
+                    }
+                }, cts.Token);
+            }
+        }
     }
 }

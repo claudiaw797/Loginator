@@ -91,8 +91,5 @@ namespace Loginator.Infrastructure.Option {
             }
             return (parent, child);
         }
-
-        private TOptions GetDefault() =>
-            Get() ?? new TOptions();
     }
 }

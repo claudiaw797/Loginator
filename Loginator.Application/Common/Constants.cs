@@ -7,6 +7,8 @@ namespace Loginator.Application.Common {
 
     public static partial class Constants {
 
+        public delegate void OnCloseHandler();
+
         public delegate void OnErrorHandler(string actionKey, Exception exception);
 
         [GeneratedRegex(@"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$")]

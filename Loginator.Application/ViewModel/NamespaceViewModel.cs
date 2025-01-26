@@ -5,18 +5,20 @@ using Loginator.Application.Common;
 using Loginator.Domain.Model;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text;
 using static Loginator.Domain.Common.Constants;
 
 namespace Loginator.Application.ViewModel {
 
+    [DebuggerDisplay("{Name} '{Fullname}' Active={IsActive} Hilited={IsHighlighted}")]
     public partial class NamespaceViewModel : ObservableObject {
 
         private readonly ApplicationViewModel applicationViewModel;
         private readonly Lazy<string> fullName;
 
         public NamespaceViewModel(string name, ApplicationViewModel applicationViewModel) {
-            ArgumentNullException.ThrowIfNull(applicationViewModel);
+            ArgumentNullException.ThrowIfNull(applicationViewModel, nameof(applicationViewModel));
 
             this.applicationViewModel = applicationViewModel;
             this.Name = name;

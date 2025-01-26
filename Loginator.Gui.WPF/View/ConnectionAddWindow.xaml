@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:option="clr-namespace:Loginator.Infrastructure.Option;assembly=Loginator.Infrastructure"
+        xmlns:option="clr-namespace:Loginator.Domain.Option;assembly=Loginator.Domain"
         xmlns:control="clr-namespace:Loginator.Gui.WPF.Control"
         xmlns:viewmodel="clr-namespace:Loginator.Application.ViewModel;assembly=Loginator.Application"
         mc:Ignorable="d" 
@@ -50,6 +50,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="1" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Label Grid.ColumnSpan="3" Grid.Row="0"
@@ -72,7 +74,7 @@
             <Label Grid.Column="0" Grid.Row="5"
                    Content="{DynamicResource lab.IpAddress}" />
             <TextBox Grid.Column="2" Grid.Row="5"
-                     Width="100" HorizontalAlignment="Left"
+                     Width="170" HorizontalAlignment="Left"
                      Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}"
                      ToolTip="{DynamicResource msg.IpAddress}" />
 
@@ -83,11 +85,15 @@
                          IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static option:LogType.Log4j}}" />
             <RadioButton Grid.Column="2" Grid.Row="9"
                          Content="{DynamicResource lab.Logcat}" GroupName="Source"
-                         IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static option:LogType.Logcat}}" />
+                         IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static option:LogType.PlainText}}" />
+
+            <CheckBox Grid.ColumnSpan="3" Grid.Row="11"
+                      Content="{DynamicResource lab.StartImmediately}"
+                      IsChecked="{Binding StartImmediately}"/>
         </Grid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal"
-                    Margin="0,5,0,0" HorizontalAlignment="Right">
+                    Margin="0,12,0,0" HorizontalAlignment="Right">
             <Button Content="{DynamicResource cmd.Save}"
                     Command="{Binding AcceptChangesCommand}" />
             <Button Margin="5,0,0,0"

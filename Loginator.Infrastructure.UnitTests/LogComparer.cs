@@ -17,7 +17,7 @@ namespace Loginator.Infrastructure.UnitTests {
             if (y is null || x is null)
                 return false;
 
-            return x.Timestamp == y.Timestamp &&
+            var b = x.Timestamp == y.Timestamp &&
                 x.Level == y.Level &&
                 x.Message?.ReplaceLineEndings() == y.Message?.ReplaceLineEndings() &&
                 x.Exception?.ReplaceLineEndings() == y.Exception?.ReplaceLineEndings() &&
@@ -29,6 +29,7 @@ namespace Loginator.Infrastructure.UnitTests {
                 x.Location == y.Location &&
                 x.Context?.ReplaceLineEndings() == y.Context?.ReplaceLineEndings() &&
                 Enumerable.SequenceEqual(x.Properties.OrderBy(p => p.Name), y.Properties.OrderBy(p => p.Name));
+            return b;
         }
 
         public int GetHashCode([DisallowNull] Log obj) {
@@ -47,7 +48,6 @@ namespace Loginator.Infrastructure.UnitTests {
             foreach (var property in obj.Properties) {
                 hash.Add(property);
             }
-            hash.Add(obj.Properties);
             return hash.ToHashCode();
         }
     }

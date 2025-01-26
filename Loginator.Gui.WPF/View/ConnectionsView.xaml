@@ -13,24 +13,83 @@
              DataContext="{control:ServiceProvider viewmodel:ConnectionsViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <Expander Height="Auto" Margin="5,0,2,2">
+    <Expander Height="Auto" Margin="5,-1,2,2"
+              ToolTip="{DynamicResource msg.ShowConnections}"
+              ToolTipService.Placement="Top">
         <Expander.Header>
-            <ToolBarPanel>
-                <Button Click="OnClick_ConnectionAdd"
-                        ToolTip="{DynamicResource grp.AddConnection}">
-                    <Image Source="/Resources/NewConnection.png" />
-                </Button>
+            <ToolBarPanel ClipToBounds="True">
+                <ToolBar ToolBarTray.IsLocked="True" Margin="-6,0,-12,0" Padding="5,0,0,0">
+                    <Button ToolBar.OverflowMode="Never" Click="OnClick_ConnectionAdd"
+                        ToolTip="{DynamicResource msg.AddConnection}">
+                        <Image Source="/Resources/NewConnection.png" />
+                    </Button>
+                </ToolBar>
             </ToolBarPanel>
         </Expander.Header>
 
-        <ListView Height="Auto" Margin="-6,3,-3,1"
-              ItemsSource="{Binding Connections}"
-              SelectionMode="Single"
-              ScrollViewer.CanContentScroll="False"
-              control:GridViewColumnResize.Enabled="True">
+        <ListView Height="Auto" Margin="-6,1,-3,1"
+                  ItemsSource="{Binding Connections}"
+                  SelectionMode="Single"
+                  ScrollViewer.CanContentScroll="False"
+                  control:GridViewColumnResize.Enabled="True">
+            <ListView.Resources>
+                <ContextMenu x:Key="ConnectionMenu"
+                             d:DataContext="{d:DesignInstance Type=viewmodel:ConnectionViewModel}">
+                    <MenuItem Header="{DynamicResource cmd.StartConnection}"
+                              ToolTip="{DynamicResource msg.StartConnection}"
+                              Command="{Binding StartCommand}">
+                        <MenuItem.Icon>
+                            <control:AutoDisableImage Source="/Resources/StatusRunning.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{DynamicResource cmd.StopConnection}"
+                              ToolTip="{DynamicResource msg.StopConnection}"
+                              Command="{Binding StopCommand}">
+                        <MenuItem.Icon>
+                            <control:AutoDisableImage Source="/Resources/StatusStoppedOutlineGrey.png" DisabledOpacity="0.4" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="{DynamicResource cmd.PauseConnection}"
+                              ToolTip="{DynamicResource msg.PauseConnection}"
+                              Command="{Binding PauseCommand}">
+                        <MenuItem.Icon>
+                            <control:AutoDisableImage Source="/Resources/StatusPaused.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{DynamicResource cmd.ResumeConnection}"
+                              ToolTip="{DynamicResource msg.ResumeConnection}"
+                              Command="{Binding ResumeCommand}">
+                        <MenuItem.Icon>
+                            <control:AutoDisableImage Source="/Resources/StatusResumed.png" DisabledOpacity="0.6" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="{DynamicResource cmd.RemoveConnection}"
+                              ToolTip="{DynamicResource msg.RemoveConnection}"
+                              Command="{Binding RemoveCommand}">
+                        <MenuItem.Icon>
+                            <control:AutoDisableImage Source="/Resources/RemoveConnection.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </ListView.Resources>
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="{x:Type ListViewItem}" >
+                    <Setter Property="ContextMenu" Value="{StaticResource ConnectionMenu}" />
+                </Style>
+            </ListView.ItemContainerStyle>
 
             <ListView.View>
                 <GridView AllowsColumnReorder="False">
+                    <GridViewColumn Width="30">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding State, Converter={StaticResource ConnectionStateToImageConverter}}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn Header="{DynamicResource lab.NetworkProtocol}" control:GridViewColumnResize.Width="56">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>

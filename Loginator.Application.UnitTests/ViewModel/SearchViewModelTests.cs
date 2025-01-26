@@ -16,8 +16,8 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
         private const string CRITERIA = "Test criteria";
 
-        private readonly SearchViewModel sut;
         private readonly EventHandler<EventArgs> updateHandler;
+        private readonly SearchViewModel sut;
 
         public SearchViewModelTests() {
             updateHandler = A.Fake<EventHandler<EventArgs>>();

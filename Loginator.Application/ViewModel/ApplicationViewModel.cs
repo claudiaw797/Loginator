@@ -7,6 +7,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using static Loginator.Domain.Common.Constants;
 using LogLevel = Loginator.Domain.Model.LogLevel;
@@ -20,6 +21,7 @@ namespace Loginator.Application.ViewModel {
     /// * Check if the namespace is active: IsNamespaceActive()
     /// * Check if the search criteria match: IsSearchCriteriaMatch()
     /// </summary>
+    [DebuggerDisplay("{Name} Active={IsActive} MinLevel={SelectedMinLogLevel}")]
     public partial class ApplicationViewModel : ObservableObject {
 
         private readonly Logger logger = LogManager.GetCurrentClassLogger();

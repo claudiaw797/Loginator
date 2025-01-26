@@ -9,17 +9,25 @@ using System.Threading.Tasks;
 
 namespace Loginator.Infrastructure.Server {
 
-    internal abstract class AbstractSocket(Socket socket) {
+    internal abstract class AbstractSocket {
 
         private static readonly byte[] PingBytes = Encoding.UTF8.GetBytes("ping");
 
-        protected readonly Socket socket = socket;
+        protected readonly Socket socket;
 
-        public static implicit operator Socket(AbstractSocket s) =>
-            s.socket;
+        protected AbstractSocket(Socket socket) {
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            this.socket = socket;
+        }
 
-        public virtual AbstractSocket Accept() =>
-            this;
+        public bool IsBound =>
+            socket.IsBound;
+
+        public static implicit operator Socket?(AbstractSocket s) =>
+            s?.socket;
+
+        public virtual ValueTask<AbstractSocket> AcceptAsync(CancellationToken ct) =>
+            new(this);
 
         public virtual void Bind(EndPoint localEp) =>
             socket.Bind(localEp);
@@ -33,11 +41,13 @@ namespace Loginator.Infrastructure.Server {
         public virtual void Listen() =>
             socket.Listen();
 
-        public virtual ValueTask<int> ReceiveAsync(Memory<byte> buffer, SocketFlags socketFlags, CancellationToken cancelToken = default) =>
-            socket.ReceiveAsync(buffer, socketFlags, cancelToken);
+        public virtual ValueTask<int> ReceiveAsync(Memory<byte> buffer, SocketFlags socketFlags, CancellationToken ct = default) =>
+            socket.ReceiveAsync(buffer, socketFlags, ct);
 
-        public virtual async Task<bool> IsConnected(Socket socket, CancellationToken cancelToken) {
-            int count = await socket.SendAsync(PingBytes, cancelToken);
+        public virtual async Task<bool> IsConnectedAsync(Socket? socket, CancellationToken ct) {
+            if (socket is null) return false;
+
+            int count = await socket.SendAsync(PingBytes, ct).ConfigureAwait(false);
             return count == PingBytes.Length && socket.Connected;
         }
     }

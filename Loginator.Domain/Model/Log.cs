@@ -7,7 +7,9 @@ using static Loginator.Domain.Common.Constants;
 
 namespace Loginator.Domain.Model {
 
-    public class Log {
+    public class Log : IEquatable<Log> {
+
+        private static readonly Log def = new();
 
         public Log() {
             Timestamp = DateTimeOffset.Now;
@@ -76,18 +78,13 @@ namespace Loginator.Domain.Model {
         /// </summary>
         public IReadOnlyCollection<Property> Properties { get; private set; }
 
-        private static readonly Log def = new();
-
         public static Log DEFAULT => def;
 
-        /// <summary>
-        /// Adds <paramref name="properties"/> to <see cref="Properties"/> and sorts the result.
-        /// </summary>
-        /// <param name="properties"></param>
-        internal void AddProperties(IEnumerable<Property> properties) {
-            var final = Properties.Count > 0 ? Properties.Concat(properties) : properties;
-            Properties = [.. final.OrderBy(p => p.Name)];
-        }
+        public static bool operator ==(Log left, Log right) =>
+            Equals(left, right);
+
+        public static bool operator !=(Log left, Log right) =>
+            !Equals(left, right);
 
         public bool Equals(Log? other) =>
             other is not null &&
@@ -111,5 +108,14 @@ namespace Loginator.Domain.Model {
                 Process,
                 Namespace,
                 Thread);
+
+        /// <summary>
+        /// Adds <paramref name="properties"/> to <see cref="Properties"/> and sorts the result.
+        /// </summary>
+        /// <param name="properties"></param>
+        internal void AddProperties(IEnumerable<Property> properties) {
+            var final = Properties.Count > 0 ? Properties.Concat(properties) : properties;
+            Properties = [.. final.OrderBy(p => p.Name)];
+        }
     }
 }

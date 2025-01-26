@@ -1,7 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
 using Loginator.Domain.Option;
-using Loginator.Infrastructure.Option;
 using System.Text.Json.Serialization;
 
 namespace Loginator.Application.Option {
@@ -12,14 +11,6 @@ namespace Loginator.Application.Option {
 
         public const string LogProcessingSectionName = $"{SectionName}:{LogProcessingOptions.SectionName}";
         public const string ConnectionsSectionName = $"{SectionName}:{ConnectionsOptions.SectionName}";
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ConnectionType ConnectionType { get; set; }
-
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public LogType LogType { get; set; }
-
-        public int Port { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public KnownCulture Language { get; set; }

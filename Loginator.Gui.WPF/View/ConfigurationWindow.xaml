@@ -6,7 +6,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:aoption="clr-namespace:Loginator.Application.Option;assembly=Loginator.Application"
         xmlns:doption="clr-namespace:Loginator.Domain.Option;assembly=Loginator.Domain"
-        xmlns:ioption="clr-namespace:Loginator.Infrastructure.Option;assembly=Loginator.Infrastructure"
         xmlns:control="clr-namespace:Loginator.Gui.WPF.Control"
         xmlns:converter="clr-namespace:Loginator.Gui.WPF.Converter"
         xmlns:model="clr-namespace:Loginator.Domain.Model;assembly=Loginator.Domain"
@@ -154,52 +153,6 @@
                            Content="{DynamicResource lab.LogHighlight}" />
                     <colorpicker:PortableColorPicker Grid.Column="4" Grid.Row="11"
                                                      SelectedColor="{Binding ColorLogHighlight, Converter={StaticResource SystemToMediaColorConverter}, Mode=TwoWay}" />
-                </Grid>
-            </TabItem>
-
-            <TabItem Header="{DynamicResource grp.Connection}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="5" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="1" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="1" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <Label Grid.ColumnSpan="3" Grid.Row="0"
-                           Content="{DynamicResource grp.NetworkProtocol}" />
-                    <RadioButton Grid.Column="2" Grid.Row="1"
-                                 Content="{DynamicResource lab.Udp}" GroupName="ConnectionType"
-                                 IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static ioption:ConnectionType.Udp}}" />
-                    <RadioButton Grid.Column="2" Grid.Row="2"
-                                 Content="{DynamicResource lab.Tcp}" GroupName="ConnectionType"
-                                 IsChecked="{Binding ConnectionType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static ioption:ConnectionType.Tcp}}" />
-
-                    <Label Grid.Column="0" Grid.Row="4"
-                           Content="{DynamicResource lab.Port}" />
-                    <TextBox Grid.Column="2" Grid.Row="4"
-                             Width="100" HorizontalAlignment="Left"
-                             Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="{DynamicResource msg.Port}" />
-
-                    <Label Grid.ColumnSpan="3" Grid.Row="6"
-                           Content="{DynamicResource grp.SourceType}" />
-                    <RadioButton Grid.Column="2" Grid.Row="7"
-                                 Content="{DynamicResource lab.Log4j}" GroupName="Source"
-                                 IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static ioption:LogType.Log4j}}" />
-                    <RadioButton Grid.Column="2" Grid.Row="8"
-                                 Content="{DynamicResource lab.Logcat}" GroupName="Source"
-                                 IsChecked="{Binding LogType, Converter={StaticResource ObjectToBoolConverter}, ConverterParameter={x:Static ioption:LogType.Logcat}}" />
                 </Grid>
             </TabItem>
 

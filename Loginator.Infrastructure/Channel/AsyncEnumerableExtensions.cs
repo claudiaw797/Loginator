@@ -2,15 +2,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Loginator.Application.Common {
+namespace Loginator.Infrastructure.Channel {
 
-    internal static class AsyncEnumerableExtensions {
+    public static class AsyncEnumerableExtensions {
 
-        public static async IAsyncEnumerable<IList<TSource>> Batch<TSource>(
+        public static async IAsyncEnumerable<IList<TSource>> BatchAsync<TSource>(
             this IAsyncEnumerable<TSource> source,
             TimeSpan timeSpan,
             TimeProvider timeProvider,
@@ -23,8 +24,7 @@ namespace Loginator.Application.Common {
                 return timer.WaitForNextTickAsync(ct).AsTask();
             }
 
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            IAsyncEnumerator<TSource> enumerator = source.GetAsyncEnumerator(linkedCts.Token);
+            IAsyncEnumerator<TSource> enumerator = source.GetAsyncEnumerator(ct);
             Task<bool>? moveNext = null;
             try {
                 List<TSource> buffer = [];
@@ -36,7 +36,7 @@ namespace Loginator.Application.Common {
                     return array;
                 }
 
-                while (true) {
+                while (!ct.IsCancellationRequested) {
                     moveNext ??= enumerator.MoveNextAsync().AsTask();
 
                     var hasNext = await moveNext.ConfigureAwait(false);
@@ -57,17 +57,19 @@ namespace Loginator.Application.Common {
                 if (buffer.Count > 0) yield return ConsumeBuffer();
             }
             finally {
-                try {
-                    // cancel enumerator for more responsive completion
-                    linkedCts.Cancel();
-                }
-                finally {
-                    // last moveNext must be completed before disposing
-                    if (moveNext is not null && !moveNext.IsCompleted)
-                        await moveNext.ConfigureAwait(false);
-                    await enumerator.DisposeAsync().ConfigureAwait(false);
-                    timer?.Dispose();
-                }
+                await FinalizeAsync(enumerator, timer).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task FinalizeAsync<TSource>(
+            IAsyncEnumerator<TSource> enumerator,
+            PeriodicTimer? timer) {
+            try {
+                timer?.Dispose();
+                await enumerator.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) {
+                Trace.WriteLine(ex);
             }
         }
     }
