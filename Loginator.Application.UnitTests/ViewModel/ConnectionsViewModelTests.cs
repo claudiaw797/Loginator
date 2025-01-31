@@ -24,36 +24,23 @@ namespace Loginator.Application.UnitTests.ViewModel {
     public class ConnectionsViewModelTests {
 
         private const string VALID_IP_ADDRESS = "140.82.121.3";
-        //private const int TEST_PORT = 7071;
         private static readonly Connection DefaultConnection = Connection();
 
-        private readonly IOptionsRepository<ConnectionsOptions> optionsRepository;
-        private readonly ILogService logService;
-        private readonly ILogWriter logWriter;
-        private readonly ILogger<ConnectionsViewModel> logger;
-        private readonly ConnectionsOptions connectionsOptions = [];
-
+        private readonly SutFactory sutFactory = new();
         private readonly ConnectionsViewModel sut;
 
         public ConnectionsViewModelTests() {
-            optionsRepository = A.Fake<IOptionsRepository<ConnectionsOptions>>();
-            logService = A.Fake<ILogService>();
-            logWriter = A.Fake<ILogWriter>();
-            logger = A.Fake<ILogger<ConnectionsViewModel>>();
-
-            sut = Sut();
+            sut = sutFactory.Create();
         }
 
         [OneTimeTearDown]
         public async Task OneTimeTearDown() {
             await sut.DisposeAsync().ConfigureAwait(false);
-            await logService.DisposeAsync().ConfigureAwait(false);
-            await logWriter.DisposeAsync().ConfigureAwait(false);
         }
 
         [Test]
         public void Can_create_sut_without_connections() {
-            var sut = Sut();
+            var sut = sutFactory.Create();
 
             sut.Connections.Should()
                 .BeEmpty();
@@ -61,24 +48,25 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
         [Test]
         public void Can_create_sut_with_existing_connections() {
-            var testData = ArrangeConnections();
+            var testConnections = ArrangeConnections();
 
-            var sut = new ConnectionsViewModel(optionsRepository, logService, logger);
+            var sut = sutFactory.Create();
 
             sut.Connections.Select(vm => vm.Connection).Should()
-                .BeEquivalentTo(testData.Select(t => t.Connection));
+                .BeEquivalentTo(testConnections.Select(t => t.Connection));
+            SutFactory.Dispose(testConnections);
         }
 
         [Test]
         public async Task Can_save_connections_when_disposed() {
-            var testData = ArrangeConnections();
-            var sut = new ConnectionsViewModel(optionsRepository, logService, logger);
+            var testConnections = ArrangeConnections();
+            var sut = sutFactory.Create();
 
             await sut.DisposeAsync().ConfigureAwait(false);
 
-            connectionsOptions.Should()
-                .BeEquivalentTo(testData.Select(t => t.Connection));
-            A.CallTo(() => logService.DisposeAsync()).MustHaveHappened();
+            sutFactory.AssertConnectionsOptions(testConnections);
+            sutFactory.CallToLogServiceDispose().MustHaveHappened();
+            SutFactory.Dispose(testConnections);
         }
 
         [Test]
@@ -88,98 +76,135 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
         [Test]
         public void Can_determine_port_availability_when_connections_exist() {
-            var testData = ArrangeConnections();
+            var testConnections = ArrangeConnections();
 
-            var sut = new ConnectionsViewModel(optionsRepository, logService, logger);
+            var sut = sutFactory.Create();
 
-            foreach (var test in testData) {
+            foreach (var test in testConnections) {
                 sut.IsAvailablePort(test.Connection.Port).Should().BeFalse();
                 sut.IsAvailablePort(test.Connection.Port + 10).Should().BeTrue();
             }
+            SutFactory.Dispose(testConnections);
         }
 
         [Test]
         public void Can_add_connection() {
             sut.AddConnection(DefaultConnection);
 
-            CallToLogServiceCreateWriter().MustHaveHappenedOnceExactly();
+            sutFactory.CallToLogServiceCreateWriter().MustHaveHappenedOnceExactly();
             sut.Connections.Select(vm => vm.Connection).Should().BeEquivalentTo([DefaultConnection]);
         }
 
         [Test]
         public void Can_start_log_writer() {
-            sut.Start(logWriter);
+            var logWriter = A.Fake<ILogWriter>();
 
-            A.CallTo(() => logService.StartWriter(logWriter)).MustHaveHappenedOnceExactly();
+            sut.StartAsync(logWriter);
+
+            sutFactory.CallToLogServiceStartWriter(logWriter).MustHaveHappenedOnceExactly();
         }
 
         [Test]
         public void Can_stop_log_writer() {
-            sut.Stop(logWriter);
+            var logWriter = A.Fake<ILogWriter>();
 
-            A.CallTo(() => logService.StopWriter(logWriter)).MustHaveHappenedOnceExactly();
+            sut.StopAsync(logWriter);
+
+            sutFactory.CallToLogServiceStopWriter(logWriter).MustHaveHappenedOnceExactly();
         }
 
         [Test]
-        public void Can_remove_connection() {
-            var testData = ArrangeConnections();
-            var sut = new ConnectionsViewModel(optionsRepository, logService, logger);
+        public async Task Can_remove_connection() {
+            var testConnections = ArrangeConnections();
+            var sut = sutFactory.Create();
 
             foreach (var connectionViewModel in sut.Connections.ToArray()) {
-                var test = testData.Single(t => t.Connection == connectionViewModel.Connection);
-                sut.Remove(connectionViewModel, test.LogWriter);
+                var test = testConnections.Single(t => t.Connection == connectionViewModel.Connection);
+                await sut.RemoveAsync(connectionViewModel, test.LogWriter).ConfigureAwait(false);
 
-                A.CallTo(() => logService.RemoveWriter(test.LogWriter)).MustHaveHappenedOnceExactly();
+                test.CallToLogServiceRemoveWriter().MustHaveHappenedOnceExactly();
                 sut.Connections.Should().NotContain(connectionViewModel);
             }
+            SutFactory.Dispose(testConnections);
         }
 
-        private IReturnValueArgumentValidationConfiguration<ConnectionsOptions> CallToOptionsRepositoryGet() =>
-            A.CallTo(() => optionsRepository.Get());
-
-        private IVoidArgumentValidationConfiguration CallToOptionsRepositorySave() =>
-            A.CallTo(() => optionsRepository.Save(A<Action<ConnectionsOptions>>._));
-
-        private IReturnValueArgumentValidationConfiguration<Connection> CallToLogWriterConnection() =>
-            A.CallTo(() => logWriter.Connection);
-
-        private IReturnValueArgumentValidationConfiguration<ILogWriter> CallToLogServiceCreateWriter(Connection? connection = null) =>
-            A.CallTo(() => logService.CreateWriter(connection ?? DefaultConnection));
-
-        private List<ConnectionData> ArrangeConnections() {
+        private TestConnection[] ArrangeConnections() {
             var connections = new Connection[] {
                 Connection(ConnectionType.Udp, LogType.Log4j, TEST_PORT + 1, VALID_IP_ADDRESS, ConnectionState.Stopped),
-                Connection(ConnectionType.Tcp, LogType.Logcat, TEST_PORT + 2, null, ConnectionState.Paused),
+                Connection(ConnectionType.Tcp, LogType.Logcat, TEST_PORT + 2, null, ConnectionState.Running),
                 Connection(ConnectionType.Udp, LogType.Logcat, TEST_PORT + 3, "127.0.0.1", ConnectionState.Running)
             };
+            return sutFactory.Arrange(connections);
+        }
 
-            var connectionOptions = new ConnectionsOptions(connections);
-            CallToOptionsRepositoryGet().Returns(connectionOptions);
+        private class SutFactory {
 
-            var connectionData = new List<ConnectionData>();
-            foreach (var connection in connections.Reverse()) {
-                var logWriter = A.Fake<ILogWriter>();
-                A.CallTo(() => logWriter.Connection).Returns(connection);
-                CallToLogServiceCreateWriter(connection).Returns(logWriter).Once();
-                connectionData.Add(new(connection, logWriter));
+            private readonly IOptionsRepository<ConnectionsOptions> optionsRepository;
+            private readonly ILogService logService;
+            private readonly ILogWriter logWriter;
+            private readonly ILogger<ConnectionsViewModel> logger;
+            private readonly ConnectionsOptions connectionsOptions = [];
+
+            public SutFactory() {
+                optionsRepository = A.Fake<IOptionsRepository<ConnectionsOptions>>();
+                CallToOptionsRepositoryGet().Returns(connectionsOptions);
+                CallToOptionsRepositorySave().Invokes(OnOptionsRepositorySave);
+
+                logService = A.Fake<ILogService>();
+                logWriter = A.Fake<ILogWriter>();
+                CallToLogWriterConnection().Returns(DefaultConnection);
+                CallToLogServiceCreateWriter().Returns(logWriter);
+
+                logger = A.Fake<ILogger<ConnectionsViewModel>>();
             }
-            return connectionData;
+
+            public TestConnection[] Arrange(IEnumerable<Connection> connections) {
+                connectionsOptions.Clear();
+                connectionsOptions.AddRange(connections);
+
+                return connections.Reverse().Select(c => new TestConnection(c, logService)).ToArray();
+            }
+
+            public ConnectionsViewModel Create() =>
+                new(optionsRepository, logService, logger);
+
+
+            public void AssertConnectionsOptions(IEnumerable<TestConnection> testConnections) {
+                connectionsOptions.Should()
+                    .BeEquivalentTo(testConnections.Select(t => t.Connection));
+            }
+
+            public static void Dispose(IEnumerable<TestConnection> testConnections) {
+                foreach (var testConnection in testConnections) {
+                    testConnection.Dispose();
+                }
+            }
+
+            public IReturnValueArgumentValidationConfiguration<ILogWriter> CallToLogServiceCreateWriter(Connection? connection = null) =>
+                A.CallTo(() => logService.CreateWriter(connection ?? DefaultConnection));
+
+            public IReturnValueArgumentValidationConfiguration<Task> CallToLogServiceStartWriter(ILogWriter logWriter) =>
+                A.CallTo(() => logService.StartWriterAsync(logWriter));
+
+            public IReturnValueArgumentValidationConfiguration<Task> CallToLogServiceStopWriter(ILogWriter logWriter) =>
+                A.CallTo(() => logService.StopWriterAsync(logWriter));
+
+            public IReturnValueArgumentValidationConfiguration<ValueTask> CallToLogServiceDispose() =>
+                A.CallTo(() => logService.DisposeAsync());
+
+            private IReturnValueArgumentValidationConfiguration<ConnectionsOptions> CallToOptionsRepositoryGet() =>
+                A.CallTo(() => optionsRepository.Get());
+
+            private IVoidArgumentValidationConfiguration CallToOptionsRepositorySave() =>
+                A.CallTo(() => optionsRepository.Save(A<Action<ConnectionsOptions>>._));
+
+            private IReturnValueArgumentValidationConfiguration<Connection> CallToLogWriterConnection() =>
+                A.CallTo(() => logWriter.Connection);
+
+            private void OnOptionsRepositorySave(IFakeObjectCall call) {
+                var changeMethod = call.Arguments.Get<Action<ConnectionsOptions>>(0);
+                changeMethod?.Invoke(connectionsOptions);
+            }
         }
-
-        private void OnOptionsRepositorySave(IFakeObjectCall call) {
-            var changeMethod = call.Arguments.Get<Action<ConnectionsOptions>>(0);
-            changeMethod?.Invoke(connectionsOptions);
-        }
-
-        private ConnectionsViewModel Sut() {
-            CallToOptionsRepositoryGet().Returns(connectionsOptions);
-            CallToOptionsRepositorySave().Invokes(OnOptionsRepositorySave);
-            CallToLogWriterConnection().Returns(DefaultConnection);
-            CallToLogServiceCreateWriter().Returns(logWriter);
-
-            return new ConnectionsViewModel(optionsRepository, logService, logger);
-        }
-
-        public record ConnectionData(Connection Connection, ILogWriter LogWriter) { }
     }
 }

@@ -59,15 +59,15 @@ namespace Loginator.Application.ViewModel {
             Connections.Add(new(this, logService.CreateWriter(connection), logger));
         }
 
-        internal void Start(ILogWriter logWriter) =>
-            logService.StartWriter(logWriter);
+        internal Task StartAsync(ILogWriter logWriter) =>
+            logService.StartWriterAsync(logWriter);
 
-        internal void Stop(ILogWriter logWriter) =>
-            logService.StopWriter(logWriter);
+        internal Task StopAsync(ILogWriter logWriter) =>
+            logService.StopWriterAsync(logWriter);
 
-        internal void Remove(ConnectionViewModel connectionViewModel, ILogWriter logWriter) {
+        internal async Task RemoveAsync(ConnectionViewModel connectionViewModel, ILogWriter logWriter) {
             using TransactionScope scope = new TransactionScope();
-            logService.RemoveWriter(logWriter);
+            await logService.RemoveWriterAsync(logWriter).ConfigureAwait(false);
             Connections.Remove(connectionViewModel);
             scope.Complete();
         }

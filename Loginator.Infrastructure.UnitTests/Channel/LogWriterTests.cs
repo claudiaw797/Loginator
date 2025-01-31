@@ -73,9 +73,9 @@ namespace Loginator.Infrastructure.UnitTests.Channel {
             var expectedItems = TestLogs();
             var cts = new CancellationTokenSource();
 
-            sut.Start(logRepositoryFactory, cts.Token);
+            var startTask = sut.StartAsync(logRepositoryFactory, cts.Token);
             await logQueueReader.AddItemsAsync(expectedItems).ConfigureAwait(false);
-            StopSut(cts);
+            await StopSutAsync(cts).ConfigureAwait(false);
 
             logQueueReader.ReceivedLogs.Should().BeEquivalentTo(expectedItems, c => c.WithStrictOrdering());
         }
@@ -85,9 +85,9 @@ namespace Loginator.Infrastructure.UnitTests.Channel {
             A.CallTo(() => logRepository.GetEnumerableAsync(A<int>._, A<string>._, A<CancellationToken>._)).Throws(expectedException).Once();
             var cts = new CancellationTokenSource();
 
-            sut.Start(logRepositoryFactory, cts.Token);
+            var startTask = sut.StartAsync(logRepositoryFactory, cts.Token);
             await WaitForLogCallAsync(expectedLevel).ConfigureAwait(false);
-            StopSut(cts);
+            await StopSutAsync(cts).ConfigureAwait(false);
 
             logQueueReader.ReceivedLogs.Should().BeEmpty();
             logListener.Contains(expectedLevel, messagePattern: $".*{expectedMessage}.*").Should().BeTrue();
@@ -97,7 +97,7 @@ namespace Loginator.Infrastructure.UnitTests.Channel {
         public async Task Can_deactivate_log_repository() {
             sut.IsActive.Should().BeFalse();
 
-            sut.Start(logRepositoryFactory, CancellationToken.None);
+            var startTask = sut.StartAsync(logRepositoryFactory, CancellationToken.None);
             await Task.Yield();
             sut.IsActive.Should().BeTrue();
 
@@ -110,22 +110,24 @@ namespace Loginator.Infrastructure.UnitTests.Channel {
             var cts = new CancellationTokenSource();
             sut.Task.IsCompleted.Should().BeTrue();
 
-            sut.Start(logRepositoryFactory, cts.Token);
+            var startTask1 = sut.StartAsync(logRepositoryFactory, cts.Token);
             await Task.Yield();
             sut.Task.IsCompleted.Should().BeFalse();
 
-            sut.Start(logRepositoryFactory, cts.Token);
+            var startTask2 = sut.StartAsync(logRepositoryFactory, cts.Token);
             await Task.Yield();
+            startTask1.Should().Be(startTask2);
+            sut.Task.Should().Be(startTask1);
             sut.Task.IsCompleted.Should().BeFalse();
 
-            StopSut(cts);
+            await StopSutAsync(cts).ConfigureAwait(false);
             logListener.Contains(LogLevel.Information, messagePattern: ".*already.*running.*").Should().BeTrue();
         }
 
-        private void StopSut(CancellationTokenSource cts) {
+        private async Task StopSutAsync(CancellationTokenSource cts) {
             try {
-                cts.Cancel(false);
-                sut.Stop(cts.Token);
+                await cts.CancelAsync().ConfigureAwait(false);
+                await sut.StopAsync(cts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) {
             }

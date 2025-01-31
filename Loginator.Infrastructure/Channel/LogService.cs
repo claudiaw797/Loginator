@@ -48,17 +48,17 @@ namespace Loginator.Infrastructure.Channel {
             return logWriter;
         }
 
-        public void StartWriter(ILogWriter logWriter) {
-            logWriter.Start(logRepositoryFactory, Token);
+        public Task StartWriterAsync(ILogWriter logWriter) {
+            return logWriter.StartAsync(logRepositoryFactory, Token);
         }
 
-        public void StopWriter(ILogWriter logWriter) {
-            logWriter.Stop(Token);
+        public Task StopWriterAsync(ILogWriter logWriter) {
+            return logWriter.StopAsync(Token);
         }
 
-        public void RemoveWriter(ILogWriter logWriter) {
+        public async Task RemoveWriterAsync(ILogWriter logWriter) {
             using TransactionScope scope = new TransactionScope();
-            logWriter.Stop(Token);
+            await logWriter.StopAsync(Token).ConfigureAwait(false);
             writers.Remove(logWriter);
             scope.Complete();
         }

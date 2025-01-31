@@ -14,7 +14,9 @@ namespace Loginator.UnitTests.Infrastructure {
         public static IVoidArgumentValidationConfiguration CallToError(this IDelegateHandler delegateHandler) =>
             A.CallTo(() => delegateHandler.Error(A<string>._, A<Exception>._));
 
-        public static IVoidArgumentValidationConfiguration CallToError(this IDelegateHandler delegateHandler, Exception expected) =>
-            A.CallTo(() => delegateHandler.Error(A<string>._, A<Exception>.That.Matches(ex => ex == expected)));
+        public static IVoidArgumentValidationConfiguration CallToError(this IDelegateHandler delegateHandler, Exception? expected = null) =>
+            expected is null
+            ? A.CallTo(() => delegateHandler.Error(A<string>._, A<Exception>._))
+            : A.CallTo(() => delegateHandler.Error(A<string>._, expected));
     }
 }

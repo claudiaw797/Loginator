@@ -72,8 +72,7 @@ namespace Loginator.Infrastructure.UnitTests.Channel {
                 TestContext.Out.WriteLine($"{timeProvider.GetUtcNow()}: received {items.Count}, so far {actualCount}");
 
                 if (actualCount == expectedCount) {
-                    cts.Cancel();
-                    await Task.Yield();
+                    await cts.CancelAsync().ConfigureAwait(false);
                     break;
                 }
             }

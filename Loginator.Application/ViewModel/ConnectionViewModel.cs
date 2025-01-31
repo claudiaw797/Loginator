@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Loginator.Domain.Channel;
 using Loginator.Domain.Option;
 using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace Loginator.Application.ViewModel {
 
@@ -21,34 +22,20 @@ namespace Loginator.Application.ViewModel {
             this.connectionsViewModel = connectionsViewModel;
             this.logWriter = logWriter;
             this.logger = logger;
-            DesiredState = logWriter.Connection.State;
-        }
 
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(PauseCommand), nameof(ResumeCommand), nameof(StartCommand), nameof(StopCommand))]
-        private ConnectionState? desiredState;
-        partial void OnDesiredStateChanging(ConnectionState? value) {
-            switch (value) {
-                case ConnectionState.Stopped:
-                    if (CanStop()) {
-                        connectionsViewModel.Stop(logWriter);
-                    }
-                    break;
-                case ConnectionState.Paused:
-                    logWriter.IsActive = false;
-                    break;
-                case ConnectionState.Running:
-                    if (CanStart()) {
-                        connectionsViewModel.Start(logWriter);
-                    }
-                    logWriter.IsActive = true;
-                    break;
-            }
-        }
+            PauseAsyncCommand = new AsyncRelayCommand(
+                () => SetStateAsync(ConnectionState.Paused), CanPause, AsyncRelayCommandOptions.FlowExceptionsToTaskScheduler);
+            ResumeAsyncCommand = new AsyncRelayCommand(
+                () => SetStateAsync(ConnectionState.Running), CanResume, AsyncRelayCommandOptions.FlowExceptionsToTaskScheduler);
+            StartAsyncCommand = new AsyncRelayCommand(
+                () => SetStateAsync(ConnectionState.Running), CanStart, AsyncRelayCommandOptions.FlowExceptionsToTaskScheduler);
+            StopAsyncCommand = new AsyncRelayCommand(
+                () => SetStateAsync(ConnectionState.Stopped), CanStop, AsyncRelayCommandOptions.FlowExceptionsToTaskScheduler);
+            RemoveAsyncCommand = new AsyncRelayCommand(
+                RemoveWriterAsync, AsyncRelayCommandOptions.FlowExceptionsToTaskScheduler);
 
-        partial void OnDesiredStateChanged(ConnectionState? value) {
-            logger.LogTrace("State changed: actual={state}, desired={value}", State, value);
-
-            OnPropertyChanged(nameof(State));
+            var desiredState = logWriter.Connection.State;
+            SetStateAsync(desiredState == ConnectionState.Paused ? ConnectionState.Stopped : desiredState).GetAwaiter().GetResult();
         }
 
         public ConnectionState State =>
@@ -68,34 +55,24 @@ namespace Loginator.Application.ViewModel {
         public int Port =>
             logWriter.Connection.Port;
 
+        public IAsyncRelayCommand PauseAsyncCommand { get; }
+
+        public IAsyncRelayCommand ResumeAsyncCommand { get; }
+
+        public IAsyncRelayCommand StartAsyncCommand { get; }
+
+        public IAsyncRelayCommand StopAsyncCommand { get; }
+
+        public IAsyncRelayCommand RemoveAsyncCommand { get; }
+
         internal Connection Connection =>
             new() {
                 ConnectionType = ConnectionType,
                 LogType = LogType,
                 Port = Port,
                 IpAddress = IpAddress,
-                State = DesiredState ?? ConnectionState.Stopped
+                State = this.State
             };
-
-        [RelayCommand(CanExecute = nameof(CanPause))]
-        private void Pause() =>
-            SetDesiredState(ConnectionState.Paused);
-
-        [RelayCommand(CanExecute = nameof(CanResume))]
-        private void Resume() =>
-            SetDesiredState(ConnectionState.Running);
-
-        [RelayCommand(CanExecute = nameof(CanStart))]
-        private void Start() =>
-            SetDesiredState(ConnectionState.Running);
-
-        [RelayCommand(CanExecute = nameof(CanStop))]
-        private void Stop() =>
-            SetDesiredState(ConnectionState.Stopped);
-
-        [RelayCommand]
-        private void Remove() =>
-            connectionsViewModel.Remove(this, logWriter);
 
         public override string ToString() =>
             $"{ConnectionType}:{Port}";
@@ -112,11 +89,52 @@ namespace Loginator.Application.ViewModel {
         private bool CanStop() =>
             !logWriter.Task.IsCompleted;
 
-        private void SetDesiredState(ConnectionState state) {
-#pragma warning disable MVVMTK0034 // Direct field reference to [ObservableProperty] backing field
-            desiredState = null;
-#pragma warning restore MVVMTK0034
-            DesiredState = state;
+        private Task RemoveWriterAsync() =>
+            connectionsViewModel.RemoveAsync(this, logWriter);
+
+        private async Task<ConnectionState?> SetStateAsync(ConnectionState value) {
+            if (value != this.State) {
+                await ChangeStateAsync(value).ConfigureAwait(false);
+
+                if (value == this.State) {
+                    OnPropertyChanged(nameof(State));
+                    NotifyStateDependentCommands();
+                }
+                else {
+                    logger.LogWarning("State changed: actual={state}, desired={value}", State, value);
+                    return null;
+                }
+            }
+            return value;
+        }
+
+        private Task ChangeStateAsync(ConnectionState value) {
+            switch (value) {
+                case ConnectionState.Stopped:
+                    if (CanStop()) {
+                        return connectionsViewModel.StopAsync(logWriter);
+                    }
+                    break;
+
+                case ConnectionState.Paused:
+                    logWriter.IsActive = false;
+                    break;
+
+                case ConnectionState.Running:
+                    if (CanStart()) {
+                        connectionsViewModel.StartAsync(logWriter);
+                    }
+                    logWriter.IsActive = true;
+                    break;
+            }
+            return Task.CompletedTask;
+        }
+
+        private void NotifyStateDependentCommands() {
+            PauseAsyncCommand.NotifyCanExecuteChanged();
+            ResumeAsyncCommand.NotifyCanExecuteChanged();
+            StartAsyncCommand.NotifyCanExecuteChanged();
+            StopAsyncCommand.NotifyCanExecuteChanged();
         }
     }
 }

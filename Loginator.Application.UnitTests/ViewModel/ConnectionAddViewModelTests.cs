@@ -10,6 +10,7 @@ using Loginator.Domain.Option;
 using Loginator.UnitTests.Infrastructure;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using static Loginator.UnitTests.Infrastructure.DelegateHandlerExtensions;
 
@@ -25,38 +26,24 @@ namespace Loginator.Application.UnitTests.ViewModel {
         private const int DEFAULT_PORT = 7071;
         private static readonly Exception TestException = new InvalidOperationException("test error");
 
-        private readonly ILogService logService;
-        private readonly ILogWriter logWriter;
-        private readonly ILogger<ConnectionsViewModel> logger;
-        private readonly IDelegateHandler delegateHandler;
-        private readonly ConnectionsViewModel connectionsViewModel;
-
         private readonly ConnectionAddViewModel sut;
+        private readonly SutService sutService = new();
 
         public ConnectionAddViewModelTests() {
-            logService = A.Fake<ILogService>();
-            logWriter = A.Fake<ILogWriter>();
-            logger = A.Fake<ILogger<ConnectionsViewModel>>();
-            delegateHandler = A.Fake<IDelegateHandler>();
-
-            var optionsRepository = A.Fake<IOptionsRepository<ConnectionsOptions>>();
-            connectionsViewModel = new ConnectionsViewModel(optionsRepository, logService, logger);
-
-            sut = Sut();
+            sut = sutService.Sut;
         }
 
         [OneTimeTearDown]
         public async Task OneTimeTearDown() {
-            await connectionsViewModel.DisposeAsync().ConfigureAwait(false);
-            await logService.DisposeAsync().ConfigureAwait(false);
+            await sutService.DisposeAsync().ConfigureAwait(false);
         }
 
         [Test]
         public void Can_call_close_handler_without_saving_changes() {
             TestCancelChanges();
 
-            delegateHandler.CallToClose().MustHaveHappened();
-            delegateHandler.CallToError().MustNotHaveHappened();
+            sutService.DelegateCallToClose().MustHaveHappened();
+            sutService.DelegateCallToError().MustNotHaveHappened();
         }
 
         [Test]
@@ -65,15 +52,15 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
             TestCancelChanges();
 
-            delegateHandler.CallToClose().MustNotHaveHappened();
-            delegateHandler.CallToError().MustNotHaveHappened();
+            sutService.DelegateCallToClose().MustNotHaveHappened();
+            sutService.DelegateCallToError().MustNotHaveHappened();
         }
 
         [Test]
         public void Can_call_error_handler_if_close_handler_throws_when_canceling() {
             TestCloseHandlerThrowsOnCancel();
 
-            delegateHandler.CallToError(TestException).MustHaveHappened();
+            sutService.DelegateCallToError(TestException).MustHaveHappened();
         }
 
         [Test]
@@ -82,10 +69,10 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
             TestCloseHandlerThrowsOnCancel();
 
-            delegateHandler.CallToError().MustNotHaveHappened();
+            sutService.DelegateCallToError().MustNotHaveHappened();
         }
 
-        [Test]//, Order(1)]
+        [Test]
         public void Can_only_execute_save_if_fields_are_initialized_to_valid_values() {
             TestFreshFields();
 
@@ -95,7 +82,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut.LogType = LogType.Log4j;
             AssertCanSaveChanges(false);
 
-            sut.Port = DEFAULT_PORT;
+            sut.Port = DEFAULT_PORT + 1;
             AssertCanSaveChanges(true);
 
             sut.IpAddress = "invalid";
@@ -107,8 +94,6 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
         [Test]
         public void Cannot_execute_save_if_port_is_already_used() {
-            var connectionViewModel = new ConnectionViewModel(connectionsViewModel, logWriter, logger);
-            connectionsViewModel.Connections.Add(connectionViewModel);
             TestFreshFields();
 
             sut.ConnectionType = ConnectionType.Udp;
@@ -121,13 +106,12 @@ namespace Loginator.Application.UnitTests.ViewModel {
             AssertCanSaveChanges(true);
         }
 
-
         [Test]
         public void Can_save_changes_and_call_close_handler() {
             TestSaveChanges();
 
-            delegateHandler.CallToClose().MustHaveHappened();
-            delegateHandler.CallToError().MustNotHaveHappened();
+            sutService.DelegateCallToClose().MustHaveHappened();
+            sutService.DelegateCallToError().MustNotHaveHappened();
         }
 
         [TestCase(true)]
@@ -137,15 +121,15 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
             TestSaveChanges(startImmediatelyValue: startImmediatelyValue);
 
-            delegateHandler.CallToClose().MustNotHaveHappened();
-            delegateHandler.CallToError().MustNotHaveHappened();
+            sutService.DelegateCallToClose().MustNotHaveHappened();
+            sutService.DelegateCallToError().MustNotHaveHappened();
         }
 
         [Test]
         public void Cannot_save_changes_but_call_error_handler_if_repository_throws_when_saving() {
             TestRepositoryThrowsOnSave();
 
-            delegateHandler.CallToError(TestException).MustHaveHappened();
+            sutService.DelegateCallToError(TestException).MustHaveHappened();
         }
 
         [Test]
@@ -154,14 +138,14 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
             TestRepositoryThrowsOnSave();
 
-            delegateHandler.CallToError().MustNotHaveHappened();
+            sutService.DelegateCallToError().MustNotHaveHappened();
         }
 
         [Test]
         public void Can_call_error_handler_if_close_handler_throws_after_saving() {
             TestCloseHandlerThrowsOnSave();
 
-            delegateHandler.CallToError(TestException).MustHaveHappened();
+            sutService.DelegateCallToError(TestException).MustHaveHappened();
         }
 
         [Test]
@@ -170,45 +154,40 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
             TestCloseHandlerThrowsOnSave();
 
-            delegateHandler.CallToError().MustNotHaveHappened();
+            sutService.DelegateCallToError().MustNotHaveHappened();
         }
 
         private void AssertCanSaveChanges(bool can) =>
             sut.AcceptChangesCommand.CanExecute(null).Should().Be(can);
 
         private void TestCancelChanges() {
-            // Arrange
-            var expected = connectionsViewModel.Connections.Count;
+            var expected = sutService.Connections.Count;
 
-            // Act
             sut.CancelChangesCommand.Execute(null);
 
-            // Assert
-            connectionsViewModel.Connections.Count.Should().Be(expected);
+            sutService.Connections.Count.Should().Be(expected);
         }
 
         private void TestCloseHandlerThrowsOnCancel() {
-            delegateHandler.CallToClose().Throws(TestException).Once();
+            sutService.DelegateCallToClose().Throws(TestException).Once();
 
             TestCancelChanges();
 
-            delegateHandler.CallToClose().MustHaveHappened();
+            sutService.DelegateCallToClose().MustHaveHappened();
         }
 
         private void TestRepositoryThrowsOnSave() {
-            CallToLogServiceCreateWriter().Throws(TestException).Once();
-
             TestSaveChanges(assertConnectionAdded: false);
 
-            delegateHandler.CallToClose().MustNotHaveHappened();
+            sutService.DelegateCallToClose().MustNotHaveHappened();
         }
 
         private void TestCloseHandlerThrowsOnSave() {
-            delegateHandler.CallToClose().Throws(TestException).Once();
+            sutService.DelegateCallToClose().Throws(TestException).Once();
 
             TestSaveChanges();
 
-            delegateHandler.CallToClose().MustHaveHappened();
+            sutService.DelegateCallToClose().MustHaveHappened();
         }
 
         private void TestFreshFields() {
@@ -223,45 +202,81 @@ namespace Loginator.Application.UnitTests.ViewModel {
             // Arrange
             sut.ConnectionType = ConnectionType.Tcp;
             sut.LogType = LogType.Logcat;
-            sut.Port = DEFAULT_PORT;
+            sut.Port = DEFAULT_PORT + 1;
             sut.IpAddress = VALID_IP_ADDRESS;
             sut.StartImmediately = startImmediatelyValue;
 
-            var expectedCount = connectionsViewModel.Connections.Count;
+            var expectedCount = sutService.Connections.Count;
             var expectedConnection = sut.ToConnection();
-            CallToLogWriterConnection().Returns(expectedConnection);
+            var testConnection = sutService.Arrange(expectedConnection, !assertConnectionAdded);
 
             // Act
             sut.AcceptChangesCommand.Execute(null);
 
             // Assert
-            CallToLogServiceCreateWriter().MustHaveHappened();
+            testConnection.CallToLogServiceCreateWriter().MustHaveHappened();
 
             if (assertConnectionAdded) {
-                connectionsViewModel.Connections.Should()
+                sutService.Connections.Should()
                     .HaveCount(expectedCount + 1).And
                     .Contain(c => c.Connection == expectedConnection);
             }
         }
 
-        private IReturnValueArgumentValidationConfiguration<Connection> CallToLogWriterConnection() =>
-            A.CallTo(() => logWriter.Connection);
+        private class SutService : IAsyncDisposable {
 
-        private IReturnValueArgumentValidationConfiguration<ILogWriter> CallToLogServiceCreateWriter() =>
-            A.CallTo(() => logService.CreateWriter(A<Connection>._));
+            private readonly ILogService logService;
+            private readonly IDelegateHandler delegateHandler;
+            private readonly TestConnection testConnection;
+            private readonly ConnectionsViewModel connectionsViewModel;
 
-        private ConnectionAddViewModel Sut() {
-            var connection = new Connection {
-                Port = DEFAULT_PORT,
-                State = ConnectionState.Stopped
-            };
-            CallToLogWriterConnection().Returns(connection);
-            CallToLogServiceCreateWriter().Returns(logWriter);
+            public SutService() {
+                var connection = new Connection {
+                    Port = DEFAULT_PORT,
+                    State = ConnectionState.Stopped
+                };
+                var connectionsOptions = new ConnectionsOptions([connection]);
+                var optionsRepository = A.Fake<IOptionsRepository<ConnectionsOptions>>();
+                A.CallTo(() => optionsRepository.Get()).Returns(connectionsOptions);
 
-            return new ConnectionAddViewModel(connectionsViewModel) {
-                OnClose = delegateHandler.Close,
-                OnError = delegateHandler.Error
-            };
+                logService = A.Fake<ILogService>();
+                testConnection = new(connection, logService);
+                var logger = A.Fake<ILogger<ConnectionsViewModel>>();
+                connectionsViewModel = new ConnectionsViewModel(optionsRepository, logService, logger);
+
+                delegateHandler = A.Fake<IDelegateHandler>();
+                Sut = new ConnectionAddViewModel(connectionsViewModel) {
+                    OnClose = delegateHandler.Close,
+                    OnError = delegateHandler.Error
+                };
+            }
+
+            public IReadOnlyCollection<ConnectionViewModel> Connections =>
+                connectionsViewModel.Connections;
+
+            public ConnectionAddViewModel Sut { get; private init; }
+
+            public async ValueTask DisposeAsync() {
+                await connectionsViewModel.DisposeAsync().ConfigureAwait(false);
+                testConnection.Dispose();
+            }
+
+            public TestConnection Arrange(Connection connection, bool throwOnCreation = false) {
+                var testConnection = new TestConnection(connection, logService);
+                if (throwOnCreation) {
+                    CallToLogServiceCreateWriter().Throws(TestException);
+                }
+                return testConnection;
+            }
+
+            public IVoidArgumentValidationConfiguration DelegateCallToClose() =>
+                delegateHandler.CallToClose();
+
+            public IVoidArgumentValidationConfiguration DelegateCallToError(Exception? expected = null) =>
+                delegateHandler.CallToError(expected);
+
+            private IReturnValueArgumentValidationConfiguration<ILogWriter> CallToLogServiceCreateWriter() =>
+                A.CallTo(() => logService.CreateWriter(A<Connection>._));
         }
     }
 }

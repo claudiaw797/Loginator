@@ -1,11 +1,9 @@
 // Copyright (C) 2025 Claudia Wagner
 
 using FakeItEasy;
-using FakeItEasy.Configuration;
 using FluentAssertions;
 using Loginator.Application.Option;
 using Loginator.Application.ViewModel;
-using Loginator.Domain.Channel;
 using Loginator.Domain.Option;
 using Microsoft.Extensions.Logging;
 using System;
@@ -145,7 +143,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut.LogWriterActive = true;
             sut.CanPause.Should().BeTrue();
 
-            sut.Pause();
+            sut.PauseAsync();
 
             sut.StateShouldBe(ConnectionState.Paused);
             sut.LogWriterActive.Should().BeFalse();
@@ -158,7 +156,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut.LogWriterActive.Should().BeFalse();
             sut.CanResume.Should().BeTrue();
 
-            sut.Resume();
+            sut.ResumeAsync();
 
             sut.StateShouldBe(ConnectionState.Running);
             sut.LogWriterActive.Should().BeTrue();
@@ -171,7 +169,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut.LogWriterActive.Should().BeFalse();
             sut.CanStart.Should().BeTrue();
 
-            sut.Start();
+            sut.StartAsync();
 
             sut.StateShouldBe(ConnectionState.Running);
             sut.LogWriterActive.Should().BeTrue();
@@ -183,35 +181,35 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut.LogWriterTaskRunning = true;
             sut.CanStop.Should().BeTrue();
 
-            sut.Stop();
+            sut.StopAsync();
 
             sut.StateShouldBe(ConnectionState.Stopped);
             sut.LogWriterTaskRunning.Should().BeFalse();
         }
 
         [Test]
-        public void Can_remove_from_state_stopped() {
-            sut.Stop();
+        public async Task Can_remove_from_state_stopped() {
+            await sut.StopAsync().ConfigureAwait(false);
             sut.StateShouldBe(ConnectionState.Stopped);
 
-            TestRemove();
+            await TestRemoveAsync().ConfigureAwait(false);
         }
 
         [Test]
-        public void Can_remove_from_state_paused() {
-            sut.Start();
-            sut.Pause();
+        public async Task Can_remove_from_state_paused() {
+            await sut.StartAsync().ConfigureAwait(false);
+            await sut.PauseAsync().ConfigureAwait(false);
             sut.StateShouldBe(ConnectionState.Paused);
 
-            TestRemove();
+            await TestRemoveAsync().ConfigureAwait(false);
         }
 
         [Test]
-        public void Can_remove_from_state_running() {
-            sut.Start();
+        public async Task Can_remove_from_state_running() {
+            await sut.StartAsync().ConfigureAwait(false);
             sut.StateShouldBe(ConnectionState.Running);
 
-            TestRemove();
+            await TestRemoveAsync().ConfigureAwait(false);
         }
 
         [Test]
@@ -247,38 +245,21 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut.CanRemove.Should().BeTrue();
         }
 
-        private void TestRemove() {
+        private async Task TestRemoveAsync() {
             sut.CanRemove.Should().BeTrue();
 
-            sut.Remove();
+            await sut.RemoveAsync().ConfigureAwait(false);
 
             sut.HasCallToLogServiceRemoveWriter();
             sut.IsConnectionsEmpty.Should().BeTrue();
         }
 
-        private class Sut : IAsyncDisposable {
+        private class Sut : TestConnection, IAsyncDisposable {
 
-            private readonly ILogService logService;
-            private readonly ILogWriter logWriter;
-            private readonly Connection connection;
             private readonly ConnectionsViewModel connectionsViewModel;
-            private TaskCompletionSource? tcs;
-
             private readonly ConnectionViewModel sut;
 
-            public Sut(Connection connection) {
-                this.connection = connection;
-
-                logService = A.Fake<ILogService>();
-                logWriter = A.Fake<ILogWriter>();
-
-                CallToLogWriterConnection().Returns(connection);
-                CallToLogWriterTask().ReturnsLazily(c => tcs is null ? Task.CompletedTask : tcs.Task);
-
-                CallToLogServiceCreateWriter().Returns(logWriter);
-                CallToLogServiceStartWriter().Invokes(c => tcs = new TaskCompletionSource());
-                CallToLogServiceStopWriter().Invokes(c => tcs?.SetCanceled());
-
+            public Sut(Connection connection) : base(connection) {
                 var optionsRepository = A.Fake<IOptionsRepository<ConnectionsOptions>>();
                 A.CallTo(() => optionsRepository.Get()).Returns([connection]);
 
@@ -288,28 +269,18 @@ namespace Loginator.Application.UnitTests.ViewModel {
                 sut = connectionsViewModel.Connections.First();
             }
 
-            public bool CanPause => sut.PauseCommand.CanExecute(null);
-            public bool CanResume => sut.ResumeCommand.CanExecute(null);
-            public bool CanStart => sut.StartCommand.CanExecute(null);
-            public bool CanStop => sut.StopCommand.CanExecute(null);
-            public bool CanRemove => sut.RemoveCommand.CanExecute(null);
+            public bool CanPause => sut.PauseAsyncCommand.CanExecute(null);
+            public bool CanResume => sut.ResumeAsyncCommand.CanExecute(null);
+            public bool CanStart => sut.StartAsyncCommand.CanExecute(null);
+            public bool CanStop => sut.StopAsyncCommand.CanExecute(null);
+            public bool CanRemove => sut.RemoveAsyncCommand.CanExecute(null);
 
             public bool IsConnectionsEmpty =>
                 connectionsViewModel.Connections.Count == 0;
 
             public bool LogWriterActive {
-                get { return logWriter.IsActive; }
-                set { logWriter.IsActive = value; }
-            }
-
-            public bool LogWriterTaskRunning {
-                get => !logWriter.Task.IsCompleted;
-                set {
-                    if (value)
-                        tcs = new TaskCompletionSource();
-                    else if (tcs is not null && !tcs.Task.IsCompleted)
-                        tcs?.SetCanceled();
-                }
+                get { return LogWriter.IsActive; }
+                set { LogWriter.IsActive = value; }
             }
 
             public async ValueTask DisposeAsync() {
@@ -323,40 +294,22 @@ namespace Loginator.Application.UnitTests.ViewModel {
             public void StateShouldBe(ConnectionState connectionState) =>
                 sut.State.Should().Be(connectionState);
 
-            public void Pause() => sut.PauseCommand.Execute(null);
-            public void Resume() => sut.ResumeCommand.Execute(null);
-            public void Start() => sut.StartCommand.Execute(null);
-            public void Stop() => sut.StopCommand.Execute(null);
-            public void Remove() => sut.RemoveCommand.Execute(null);
+            public Task PauseAsync() => sut.PauseAsyncCommand.ExecuteAsync(null);
+            public Task ResumeAsync() => sut.ResumeAsyncCommand.ExecuteAsync(null);
+            public Task StartAsync() => sut.StartAsyncCommand.ExecuteAsync(null);
+            public Task StopAsync() => sut.StopAsyncCommand.ExecuteAsync(null);
+            public Task RemoveAsync() => sut.RemoveAsyncCommand.ExecuteAsync(null);
 
             public void AssertConnection() {
-                sut.ConnectionType.Should().Be(connection.ConnectionType);
-                sut.LogType.Should().Be(connection.LogType);
-                sut.IpAddress.Should().Be(connection.IpAddress);
-                sut.Port.Should().Be(connection.Port);
-                sut.DesiredState.Should().Be(connection.State);
-                sut.Connection.Should().Be(connection);
+                sut.ConnectionType.Should().Be(Connection.ConnectionType);
+                sut.LogType.Should().Be(Connection.LogType);
+                sut.IpAddress.Should().Be(Connection.IpAddress);
+                sut.Port.Should().Be(Connection.Port);
+                sut.State.Should().Be(Connection.State);
+                sut.Connection.Should().Be(Connection);
             }
 
             public override string ToString() => sut.ToString();
-
-            private IReturnValueArgumentValidationConfiguration<Connection> CallToLogWriterConnection() =>
-                A.CallTo(() => logWriter.Connection);
-
-            private IReturnValueArgumentValidationConfiguration<Task> CallToLogWriterTask() =>
-                A.CallTo(() => logWriter.Task);
-
-            private IReturnValueArgumentValidationConfiguration<ILogWriter> CallToLogServiceCreateWriter() =>
-                A.CallTo(() => logService.CreateWriter(connection));
-
-            private IVoidArgumentValidationConfiguration CallToLogServiceStartWriter() =>
-                A.CallTo(() => logService.StartWriter(logWriter));
-
-            private IVoidArgumentValidationConfiguration CallToLogServiceStopWriter() =>
-                A.CallTo(() => logService.StopWriter(logWriter));
-
-            private IVoidArgumentValidationConfiguration CallToLogServiceRemoveWriter() =>
-                A.CallTo(() => logService.RemoveWriter(logWriter));
         }
     }
 }

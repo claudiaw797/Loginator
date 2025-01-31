@@ -3,6 +3,7 @@
 using Loginator.Domain.Option;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Loginator.Domain.Channel {
 
@@ -12,10 +13,10 @@ namespace Loginator.Domain.Channel {
 
         ILogWriter CreateWriter(Connection connection);
 
-        void StartWriter(ILogWriter logWriter);
+        Task StartWriterAsync(ILogWriter logWriter);
 
-        void StopWriter(ILogWriter logWriter);
+        Task StopWriterAsync(ILogWriter logWriter);
 
-        void RemoveWriter(ILogWriter logWriter);
+        Task RemoveWriterAsync(ILogWriter logWriter);
     }
 }

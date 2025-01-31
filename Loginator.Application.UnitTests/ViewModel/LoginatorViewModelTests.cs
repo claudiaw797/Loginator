@@ -616,7 +616,11 @@ namespace Loginator.Application.UnitTests.ViewModel {
                     catch (Exception) {
                     }
                     if (task is not null) {
-                        await task.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                        try {
+                            await task.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+                        }
+                        catch (Exception) {
+                        }
                     }
                 }
             }

@@ -54,13 +54,13 @@ namespace Loginator.Infrastructure.Channel {
             GC.SuppressFinalize(this);
         }
 
-        public void Start(ILogRepositoryFactory logRepositoryFactory, CancellationToken ct) {
-            if (Task.IsCompleted) {
+        public Task StartAsync(ILogRepositoryFactory logRepositoryFactory, CancellationToken ct) {
+            if (this.Task.IsCompleted) {
                 logRepository = logRepositoryFactory.CreateLogRepository(connection.ConnectionType, connection.LogType);
 
-                Task = Task.Run(async () => {
+                this.Task = Task.Run(async () => {
                     try {
-                        await WriteAsync(ct).ConfigureAwait(false);
+                        await this.WriteAsync(ct).ConfigureAwait(false);
                     }
                     catch (ObjectDisposedException ex) {
                         logger.LogWarning(ex, "Repository {connection} closed unexpectedly, restarting receiver", connection);
@@ -71,25 +71,26 @@ namespace Loginator.Infrastructure.Channel {
                     catch (Exception ex) {
                         logger.LogError(ex, "Repository {connection} closed unexpectedly", connection);
                     }
-                }, Token).ContinueWith(async _ => await DisposeAsync().ConfigureAwait(false));
+                }, this.Token).ContinueWith(async _ => await this.DisposeAsync().ConfigureAwait(false));
             }
             else {
                 logger.LogInformation("Writer {connection} is already running, no start required.", connection);
             }
+            return Task;
         }
 
-        public void Stop(CancellationToken ct) {
-            if (Task.IsCompleted) {
+        public async Task StopAsync(CancellationToken ct) {
+            if (this.Task.IsCompleted) {
                 logger.LogInformation("Writer {connection} has already completed, no stop required.", connection);
             }
             else {
-                CloseAsync().Wait(ct);
-                Task.Wait(ct);
+                await this.CloseAsync().ConfigureAwait(false);
+                await this.Task.WaitAsync(ct).ConfigureAwait(false);
             }
         }
 
         public async Task CloseAsync() {
-            await DisposeAsync().ConfigureAwait(false);
+            await this.DisposeAsync().ConfigureAwait(false);
         }
 
         private async Task WriteAsync(CancellationToken ct) {
@@ -98,9 +99,9 @@ namespace Loginator.Infrastructure.Channel {
             cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
             await foreach (var item in logRepository!
-                .GetEnumerableAsync(connection.Port, connection.IpAddress, Token)
+                .GetEnumerableAsync(connection.Port, connection.IpAddress, this.Token)
                 .ConfigureAwait(false)) {
-                await writer.WriteAsync(item, Token).ConfigureAwait(false);
+                await writer.WriteAsync(item, this.Token).ConfigureAwait(false);
             }
 
             logger.LogInformation("Writer {connection} done", connection);

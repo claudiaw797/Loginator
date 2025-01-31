@@ -49,16 +49,16 @@ namespace Loginator.Infrastructure.UnitTests.Channel {
             var expectedItems = TestLogs();
             var actual = sut.CreateWriter(new Connection());
 
-            sut.StartWriter(actual);
+            var startTask = sut.StartWriterAsync(actual);
             await logQueueReader.AddItemsAsync(expectedItems).ConfigureAwait(false);
 
-            var t = Task.Run(() => {
-                sut.StopWriter(actual);
-                sut.RemoveWriter(actual);
+            var endTask = Task.Run(async () => {
+                await sut.StopWriterAsync(actual).ConfigureAwait(false);
+                await sut.RemoveWriterAsync(actual).ConfigureAwait(false);
             });
 
             logQueueReader.ReceivedLogs.Should().BeEquivalentTo(expectedItems, c => c.WithStrictOrdering());
-            await t.ConfigureAwait(false);
+            await endTask.ConfigureAwait(false);
         }
 
         private LogService Sut() {

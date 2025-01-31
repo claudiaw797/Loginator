@@ -37,14 +37,14 @@
                              d:DataContext="{d:DesignInstance Type=viewmodel:ConnectionViewModel}">
                     <MenuItem Header="{DynamicResource cmd.StartConnection}"
                               ToolTip="{DynamicResource msg.StartConnection}"
-                              Command="{Binding StartCommand}">
+                              Command="{Binding StartAsyncCommand}">
                         <MenuItem.Icon>
                             <control:AutoDisableImage Source="/Resources/StatusRunning.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource cmd.StopConnection}"
                               ToolTip="{DynamicResource msg.StopConnection}"
-                              Command="{Binding StopCommand}">
+                              Command="{Binding StopAsyncCommand}">
                         <MenuItem.Icon>
                             <control:AutoDisableImage Source="/Resources/StatusStoppedOutlineGrey.png" DisabledOpacity="0.4" />
                         </MenuItem.Icon>
@@ -52,14 +52,14 @@
                     <Separator />
                     <MenuItem Header="{DynamicResource cmd.PauseConnection}"
                               ToolTip="{DynamicResource msg.PauseConnection}"
-                              Command="{Binding PauseCommand}">
+                              Command="{Binding PauseAsyncCommand}">
                         <MenuItem.Icon>
                             <control:AutoDisableImage Source="/Resources/StatusPaused.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="{DynamicResource cmd.ResumeConnection}"
                               ToolTip="{DynamicResource msg.ResumeConnection}"
-                              Command="{Binding ResumeCommand}">
+                              Command="{Binding ResumeAsyncCommand}">
                         <MenuItem.Icon>
                             <control:AutoDisableImage Source="/Resources/StatusResumed.png" DisabledOpacity="0.6" />
                         </MenuItem.Icon>
@@ -67,7 +67,7 @@
                     <Separator />
                     <MenuItem Header="{DynamicResource cmd.RemoveConnection}"
                               ToolTip="{DynamicResource msg.RemoveConnection}"
-                              Command="{Binding RemoveCommand}">
+                              Command="{Binding RemoveAsyncCommand}">
                         <MenuItem.Icon>
                             <control:AutoDisableImage Source="/Resources/RemoveConnection.png" />
                         </MenuItem.Icon>

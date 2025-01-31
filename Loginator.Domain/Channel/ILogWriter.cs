@@ -18,9 +18,9 @@ namespace Loginator.Domain.Channel {
 
         bool IsActive { get; set; }
 
-        void Start(ILogRepositoryFactory logRepositoryFactory, CancellationToken ct);
+        Task StartAsync(ILogRepositoryFactory logRepositoryFactory, CancellationToken ct);
 
-        void Stop(CancellationToken ct);
+        Task StopAsync(CancellationToken ct);
 
         Task CloseAsync();
     }
