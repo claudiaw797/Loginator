@@ -12,28 +12,28 @@ using Loginator.Infrastructure.Server;
 using Loginator.Infrastructure.Service;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 
 namespace Loginator.Infrastructure {
 
     public static class ServiceCollectionExtensions {
 
+        internal static readonly IReadOnlyCollection<ConnectionType> ConnectionTypes = [ConnectionType.Udp, ConnectionType.Tcp];
+        internal static readonly IReadOnlyCollection<LogType> LogTypes = [LogType.Log4j, LogType.Logcat];
+
         public static IServiceCollection AddInfrastructure(this IServiceCollection services) {
-            services.AddKeyedTransient<ILogConversionService, Log4jConversionService>(LogType.Log4j);
-            services.AddKeyedTransient<ILogConversionService, LogcatConversionService>(LogType.Logcat);
+            services.TryAddSingleton(TimeProvider.System);
 
-            services.AddKeyedTransient<AbstractSocket, UdpSocket>(ConnectionType.Udp);
-            services.AddKeyedTransient<AbstractSocket, TcpSocket>(ConnectionType.Tcp);
-
+            services.AddAbstractSockets();
+            services.AddLogConversionServices();
+            services.AddLogRepositories();
             services.AddTransient<ILogService, LogService>();
 
-            services.AddTransient<ILogRepositoryFactory>(sp => new LogRepositoryFactory(sp));
-            services.AddLogRepositories();
-
-            services.AddTransient<IStopwatchFactory>(sp => new StopwatchFactory(sp));
             services.AddStopwatches();
 
             return services;
@@ -53,12 +53,21 @@ namespace Loginator.Infrastructure {
             });
         }
 
-        private static void AddLogRepositories(this IServiceCollection services) {
-            ConnectionType[] connectionTypes = [ConnectionType.Udp, ConnectionType.Tcp];
-            LogType[] logTypes = [LogType.Log4j, LogType.Logcat, LogType.PlainText];
+        private static void AddAbstractSockets(this IServiceCollection services) {
+            services.AddKeyedTransient<AbstractSocket, UdpSocket>(ConnectionType.Udp);
+            services.AddKeyedTransient<AbstractSocket, TcpSocket>(ConnectionType.Tcp);
+        }
 
-            foreach (var connectionType in connectionTypes) {
-                foreach (var logType in logTypes) {
+        private static void AddLogConversionServices(this IServiceCollection services) {
+            services.AddKeyedTransient<ILogConversionService, Log4jConversionService>(LogType.Log4j);
+            services.AddKeyedTransient<ILogConversionService, LogcatConversionService>(LogType.Logcat);
+        }
+
+        private static void AddLogRepositories(this IServiceCollection services) {
+            services.AddTransient<ILogRepositoryFactory>(sp => new LogRepositoryFactory(sp));
+
+            foreach (var connectionType in ConnectionTypes) {
+                foreach (var logType in LogTypes) {
                     services.AddKeyedTransient<ILogRepository>(
                         (connectionType, logType),
                         (sp, key) => sp.GetLogRepository(((ConnectionType, LogType)?)key));
@@ -79,6 +88,8 @@ namespace Loginator.Infrastructure {
         }
 
         private static void AddStopwatches(this IServiceCollection services) {
+            services.AddTransient<IStopwatchFactory>(sp => new StopwatchFactory(sp));
+
             services.AddKeyedTransient<IStopwatch, StopwatchEnabled>(true);
             services.AddKeyedTransient<IStopwatch, StopwatchDisabled>(false);
         }

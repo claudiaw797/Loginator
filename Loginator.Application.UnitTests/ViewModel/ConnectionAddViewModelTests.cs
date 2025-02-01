@@ -33,8 +33,8 @@ namespace Loginator.Application.UnitTests.ViewModel {
             sut = sutService.Sut;
         }
 
-        [OneTimeTearDown]
-        public async Task OneTimeTearDown() {
+        [TearDown]
+        public async Task TearDown() {
             await sutService.DisposeAsync().ConfigureAwait(false);
         }
 

@@ -63,7 +63,7 @@ namespace Loginator.Gui.WPF {
             var activeSettings = GetActiveAppSettings(context.HostingEnvironment);
             services.AddConfiguration(context.Configuration, activeSettings);
 
-            services.AddApplication(context.Configuration);
+            services.AddApplication();
             services.AddInfrastructure();
             services.AddGui();
         }
