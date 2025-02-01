@@ -48,7 +48,6 @@ namespace Loginator.Gui.WPF {
                 stringResources = host.Services.GetRequiredService<StringResources>();
                 _ = host.Services.GetRequiredService<ColorResources>();
 
-                IoC.ServiceProvider = host.Services;
                 Current.Properties.Add(typeof(ServiceProvider), host.Services);
 
                 // Initialize dispatcher helper so we can access UI thread in view model

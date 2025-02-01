@@ -1,8 +1,9 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
+using Loginator.Domain.Service;
 using System;
 
-namespace Loginator.Application.Service {
+namespace Loginator.Infrastructure.Service {
 
     public class StopwatchDisabled : IStopwatch {
 

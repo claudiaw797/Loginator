@@ -1,16 +1,17 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-using NLog;
+using Loginator.Domain.Service;
+using Microsoft.Extensions.Logging;
 using System;
 
-namespace Loginator.Application.Service {
+namespace Loginator.Infrastructure.Service {
 
-    public class StopwatchEnabled(TimeProvider timeProvider) : IStopwatch {
+    public class StopwatchEnabled(TimeProvider timeProvider, ILogger<StopwatchEnabled> logger) : IStopwatch {
 
         private long start;
 
         private readonly TimeProvider timeProvider = timeProvider;
-        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private readonly ILogger<StopwatchEnabled> logger = logger;
 
         /// <inheritdoc/>
         public TimeSpan ElapsedTime =>
@@ -22,6 +23,6 @@ namespace Loginator.Application.Service {
 
         /// <inheritdoc/>
         public void TraceElapsedTime(string message) =>
-            logger.Trace("{message} {time:G}", message, timeProvider.GetElapsedTime(start));
+            logger.LogTrace("{message} {time:G}", message, timeProvider.GetElapsedTime(start));
     }
 }

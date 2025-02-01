@@ -1,11 +1,13 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
 using Loginator.Application.Option;
-using Loginator.Application.Service;
 using Loginator.Application.ViewModel;
 using Loginator.Domain.Channel;
+using Loginator.Domain.Service;
+using Loginator.Infrastructure.Service;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
 namespace Loginator.Application {
@@ -13,16 +15,13 @@ namespace Loginator.Application {
     internal static class ServiceCollectionExtensions {
 
         public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration) {
-            services.AddSingleton(TimeProvider.System);
-
-            services.AddKeyedTransient<IStopwatch, StopwatchEnabled>(true);
-            services.AddKeyedTransient<IStopwatch, StopwatchDisabled>(false);
+            services.TryAddSingleton(TimeProvider.System);
 
             if (configuration.GetAppSettings().TracePerformance) {
-                services.AddTransient<IStopwatch, StopwatchEnabled>();
+                services.TryAddTransient<IStopwatch, StopwatchEnabled>();
             }
             else {
-                services.AddTransient<IStopwatch, StopwatchDisabled>();
+                services.TryAddTransient<IStopwatch, StopwatchDisabled>();
             }
 
             services.AddTransient<ILogProcessor>(sp => sp.GetRequiredService<LoginatorViewModel>());

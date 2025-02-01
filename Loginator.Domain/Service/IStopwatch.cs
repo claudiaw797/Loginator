@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Loginator.Application.Service {
+namespace Loginator.Domain.Service {
 
     public interface IStopwatch {
 

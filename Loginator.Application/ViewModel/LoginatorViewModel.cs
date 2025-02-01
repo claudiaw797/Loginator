@@ -7,6 +7,7 @@ using Loginator.Application.Option;
 using Loginator.Application.Service;
 using Loginator.Domain.Channel;
 using Loginator.Domain.Model;
+using Loginator.Domain.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -26,6 +27,7 @@ namespace Loginator.Application.ViewModel {
         private static readonly TimeSpan BATCH_TIME_INTERVAL = TimeSpan.FromMilliseconds(300);
 
         private readonly IDisposable? optionsChangeListener;
+        private readonly IStopwatchFactory stopwatchFactory;
         private readonly IDispatcher dispatcher;
         private readonly ILogger<LoginatorViewModel> logger;
         private readonly OrderedObservableCollection orderedLogs = [];
@@ -36,15 +38,16 @@ namespace Loginator.Application.ViewModel {
 
         public LoginatorViewModel(
             IOptionsMonitor<ApplicationOptions> optionsMonitor,
-            IStopwatch stopwatch,
+            IStopwatchFactory stopwatchFactory,
             IDispatcher dispatcher,
             ILogger<LoginatorViewModel> logger) {
-            this.stopwatch = stopwatch;
+            this.stopwatchFactory = stopwatchFactory;
             this.dispatcher = dispatcher;
             this.logger = logger;
 
             optionsChangeListener = optionsMonitor.OnChange(OnChange_Options);
             currentOptions = optionsMonitor.CurrentValue;
+            stopwatch = stopwatchFactory.CreateStopwatch(currentOptions.TracePerformance);
             isActive = true;
             selectedInitialLogLevel = LogLevel.TRACE;
             numberOfLogsPerLevel = Constants.DefaultMaxNumberOfLogsPerLevel;
@@ -193,7 +196,7 @@ namespace Loginator.Application.ViewModel {
                     logger.LogInformation("Log time format configuration changed from {LogTimeFormat} to {logConfig.LogTimeFormat}.", currentOptions.LogTimeFormat, options.LogTimeFormat);
                 }
                 if (currentOptions.TracePerformance != options.TracePerformance) {
-                    Interlocked.Exchange(ref stopwatch, IoC.Get<IStopwatch>(options.TracePerformance));
+                    Interlocked.Exchange(ref stopwatch, stopwatchFactory.CreateStopwatch(options.TracePerformance));
                 }
                 currentOptions = options;
 

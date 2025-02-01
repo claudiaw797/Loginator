@@ -4,10 +4,12 @@ using Loginator.Domain.Channel;
 using Loginator.Domain.Converter;
 using Loginator.Domain.Option;
 using Loginator.Domain.Server;
+using Loginator.Domain.Service;
 using Loginator.Infrastructure.Channel;
 using Loginator.Infrastructure.Converter;
 using Loginator.Infrastructure.Option;
 using Loginator.Infrastructure.Server;
+using Loginator.Infrastructure.Service;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,8 +30,11 @@ namespace Loginator.Infrastructure {
 
             services.AddTransient<ILogService, LogService>();
 
+            services.AddTransient<ILogRepositoryFactory>(sp => new LogRepositoryFactory(sp));
             services.AddLogRepositories();
-            services.AddSingleton<ILogRepositoryFactory>(sp => new LogRepositoryFactory(sp));
+
+            services.AddTransient<IStopwatchFactory>(sp => new StopwatchFactory(sp));
+            services.AddStopwatches();
 
             return services;
         }
@@ -71,6 +76,11 @@ namespace Loginator.Infrastructure {
             var optionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<LogProcessingOptions>>();
             var logger = serviceProvider.GetRequiredService<ILogger<LogRepository>>();
             return new LogRepository(socket, conversionFactory, optionsMonitor, logger);
+        }
+
+        private static void AddStopwatches(this IServiceCollection services) {
+            services.AddKeyedTransient<IStopwatch, StopwatchEnabled>(true);
+            services.AddKeyedTransient<IStopwatch, StopwatchDisabled>(false);
         }
     }
 }
