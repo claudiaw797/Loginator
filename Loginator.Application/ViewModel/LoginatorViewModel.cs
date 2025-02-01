@@ -24,8 +24,6 @@ namespace Loginator.Application.ViewModel {
 
     public sealed partial class LoginatorViewModel : ObservableObject, ILogProcessor, IDisposable {
 
-        private static readonly TimeSpan BATCH_TIME_INTERVAL = TimeSpan.FromMilliseconds(300);
-
         private readonly IDisposable? optionsChangeListener;
         private readonly IStopwatchFactory stopwatchFactory;
         private readonly IDispatcher dispatcher;

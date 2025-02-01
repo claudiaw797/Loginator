@@ -55,6 +55,7 @@ namespace Loginator.Infrastructure.Server {
                 socket.Listen();
             }
 
+            var receivedCount = 0;
             await foreach (var pooledBytes in enumerableBytes
                 .WithCancellation(ct)
                 .ConfigureAwait(false)) {
@@ -62,11 +63,15 @@ namespace Loginator.Infrastructure.Server {
                     TraceMessage(pooledBytes);
 
                     foreach (var log in conversionFactory.Convert(pooledBytes).Where(l => l != Log.DEFAULT)) {
+                        receivedCount++;
                         yield return log;
                     }
+
+                    logger.LogDebug("Received {count} log items", receivedCount);
                 }
                 finally {
                     pooledBytes.Dispose();
+                    receivedCount = 0;
                 }
             };
         }
