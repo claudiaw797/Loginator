@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Configuration options: connection type, language, check for update on startup, log colors
+- Configuration options: language, check for update on startup, log colors
 - 'Check for updates' toolbar button
 - 'Select all' context menu button in application view
 - Only for namespaces having associated log entries count is displayed in namespace view, selecting such a namespace highlights the entries
+- Connections view to set up multiple connections
+- 'Add new connection' window
 - About window
-- Dependencies: PixiEditor.ColorPicker 3.4.1
+- Dependencies: Microsoft.CodeAnalysis.Analyzers 3.11.0, Microsoft.CodeAnalysis.CSharp 4.12.0, Microsoft.Extensions.DependencyInjection 9.0.1,
+  PixiEditor.ColorPicker 3.4.1
 
 ### Changed
 
@@ -22,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Toolbar buttons moved to separate toolbars
 - Configuration window
 - Solution architecture moved to layered
+- Upgrade target framework to net9.0
+- Upgrade dependencies: CommunityToolkit.Mvvm 8.4.0, coverlet.collector 6.0.4, coverlet.msbuild 6.0.4, FluentAssertions 8.0.1,
+  Microsoft.Extensions.Configuration.Abstractions 9.0.1, Microsoft.Extensions.Hosting 9.0.1,
+  Microsoft.Extensions.Hosting.Abstractions 9.0.1, Microsoft.Extensions.Logging.Abstractions 9.0.1, Microsoft.Extensions.Options.ConfigurationExtensions 9.0.1,
+  Microsoft.Extensions.TimeProvider.Testing 9.1.0, Microsoft.NET.Test.Sdk 17.12.0, NLog.Extensions.Hosting 5.3.15, NUnit 4.3.2, NUnit.Analyzers 4.6.0
+
+## Removed
+
+- Connections tab from settings window
 
 ## [1.7.5] - 2024-09-19
 

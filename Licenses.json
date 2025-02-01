@@ -1,6 +1,6 @@
 [{
         "PackageName": "CommunityToolkit.Mvvm",
-        "PackageVersion": "8.3.2",
+        "PackageVersion": "8.4.0",
         "PackageUrl": "https://github.com/CommunityToolkit/dotnet",
         "Copyright": "(c) .NET Foundation and Contributors. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -9,7 +9,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "coverlet.collector",
-        "PackageVersion": "6.0.2",
+        "PackageVersion": "6.0.4",
         "PackageUrl": "https://github.com/coverlet-coverage/coverlet",
         "Copyright": "",
         "Authors": ["tonerdo"],
@@ -18,7 +18,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "coverlet.msbuild",
-        "PackageVersion": "6.0.2",
+        "PackageVersion": "6.0.4",
         "PackageUrl": "https://github.com/coverlet-coverage/coverlet",
         "Copyright": "",
         "Authors": ["tonerdo"],
@@ -36,16 +36,34 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "FluentAssertions",
-        "PackageVersion": "6.12.1",
-        "PackageUrl": "https://www.fluentassertions.com/",
-        "Copyright": "Copyright Dennis Doomen 2010-2024",
-        "Authors": ["Dennis Doomen", "Jonas Nyrup"],
-        "Description": "A very extensive set of extension methods that allow you to more naturally specify the expected outcome of a TDD or\r\n      BDD-style unit tests. Targets .NET Framework 4.7, .NET Core 2.1 and 3.0, .NET 6, as well as .NET Standard 2.0 and 2.1.\r\n      Supports the unit test frameworks MSTest2, NUnit3, XUnit2, MSpec, and NSpec3.\r\n\r\n      Supported by InfoSupport B.V.",
-        "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
-        "LicenseType": "Apache-2.0"
+        "PackageVersion": "8.0.1",
+        "PackageUrl": "https://xceed.com/products/unit-testing/fluent-assertions/",
+        "Copyright": "Copyright 2024-2025 Xceed Software Inc., all rights reserved",
+        "Authors": ["Dennis Doomen", "Jonas Nyrup", "Xceed"],
+        "Description": "A very extensive set of extension methods that allow you to more naturally specify the expected outcome of a TDD or\r\n      BDD-style unit tests. Works with .NET Standard 2.0 and higher, .NET Framework 4.7 and higher and .NET 6 and higher.\r\n      Supports the unit test frameworks MSTest2, NUnit3, NUnit4, XUnit2, XUnit3, MSpec and TUnit.\r\n\r\n      IMPORTANT: This version is free for open-source projects and non-commercial use, but commercial use requires [a paid license](https://xceed.com/products/unit-testing/fluent-assertions/). \r\nCheck out the [license page](LICENSE.md) for more information.",
+        "LicenseUrl": "https://www.nuget.org/packages/FluentAssertions/8.0.1/License",
+        "LicenseType": "LICENSE.md"
+    }, {
+        "PackageName": "Microsoft.CodeAnalysis.Analyzers",
+        "PackageVersion": "3.11.0",
+        "PackageUrl": "https://github.com/dotnet/roslyn-analyzers",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Analyzers for consumers of Microsoft.CodeAnalysis NuGet package, i.e. extensions and applications built on top of .NET Compiler Platform (Roslyn). This package is included as a development dependency of Microsoft.CodeAnalysis NuGet package and does not need to be installed separately if you are referencing Microsoft.CodeAnalysis NuGet package.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
+        "PackageName": "Microsoft.CodeAnalysis.CSharp",
+        "PackageVersion": "4.12.0",
+        "PackageUrl": "https://github.com/dotnet/roslyn",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": ".NET Compiler Platform (\"Roslyn\") support for C#, Microsoft.CodeAnalysis.CSharp.dll.\r\n    \r\n      More details at https://aka.ms/roslyn-packages\r\n      This package was built from the source at https://github.com/dotnet/roslyn/commit/dfa7fc6bdea31a858a402168384192b633c811fa.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.Extensions.Configuration.Abstractions",
-        "PackageVersion": "8.0.0",
+        "PackageVersion": "9.0.1",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -53,8 +71,17 @@
         "LicenseUrl": "https://licenses.nuget.org/MIT",
         "LicenseType": "MIT"
     }, {
+        "PackageName": "Microsoft.Extensions.DependencyInjection",
+        "PackageVersion": "9.0.1",
+        "PackageUrl": "https://dot.net/",
+        "Copyright": "© Microsoft Corporation. All rights reserved.",
+        "Authors": ["Microsoft"],
+        "Description": "Default implementation of dependency injection for Microsoft.Extensions.DependencyInjection.",
+        "LicenseUrl": "https://licenses.nuget.org/MIT",
+        "LicenseType": "MIT"
+    }, {
         "PackageName": "Microsoft.Extensions.Hosting",
-        "PackageVersion": "8.0.1",
+        "PackageVersion": "9.0.1",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -63,7 +90,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.Extensions.Hosting.Abstractions",
-        "PackageVersion": "8.0.1",
+        "PackageVersion": "9.0.1",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -72,7 +99,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.Extensions.Logging.Abstractions",
-        "PackageVersion": "8.0.2",
+        "PackageVersion": "9.0.1",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -81,7 +108,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.Extensions.Options.ConfigurationExtensions",
-        "PackageVersion": "8.0.0",
+        "PackageVersion": "9.0.1",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -90,7 +117,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.Extensions.TimeProvider.Testing",
-        "PackageVersion": "8.10.0",
+        "PackageVersion": "9.1.0",
         "PackageUrl": "https://dot.net/",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -99,7 +126,7 @@
         "LicenseType": "MIT"
     }, {
         "PackageName": "Microsoft.NET.Test.Sdk",
-        "PackageVersion": "17.11.1",
+        "PackageVersion": "17.12.0",
         "PackageUrl": "https://github.com/microsoft/vstest",
         "Copyright": "© Microsoft Corporation. All rights reserved.",
         "Authors": ["Microsoft"],
@@ -117,7 +144,7 @@
         "LicenseType": "BSD-3-Clause"
     }, {
         "PackageName": "NLog.Extensions.Hosting",
-        "PackageVersion": "5.3.14",
+        "PackageVersion": "5.3.15",
         "PackageUrl": "https://github.com/NLog/NLog.Extensions.Logging",
         "Copyright": "Copyright (c) 2004-2024 NLog Project - https://nlog-project.org/",
         "Authors": ["Julian Verdurmen", "Bryan Gonzalez"],
@@ -126,18 +153,18 @@
         "LicenseType": "BSD-2-Clause"
     }, {
         "PackageName": "NUnit",
-        "PackageVersion": "4.2.2",
+        "PackageVersion": "4.3.2",
         "PackageUrl": "https://nunit.org/",
         "Copyright": "Copyright (c) Charlie Poole, Rob Prouse and Contributors. MIT License.",
         "Authors": ["Charlie Poole", " Rob Prouse"],
-        "Description": "NUnit is a unit-testing framework for all .NET languages.\r\n            It can run on macOS, Linux and Windows operating systems.\r\n            NUnit can be used for a wide range of testing, from unit testing with TDD to full-fledged system and integration testing.\r\n            It is a non-opinionated, broad and deep framework with multiple different ways to assert that your code behaves as expected. Many aspects of NUnit can be extended to suit your specific purposes.\r\n\r\n            The latest version, version 4, is an upgrade from the groundbreaking NUnit 3 framework. It is a modernized version, aimed at taking advantage of the latest .NET features and C# language constructs.\r\n\r\n            If you are upgrading from NUnit 3, be aware of the breaking changes (https://docs.nunit.org/articles/nunit/release-notes/breaking-changes.html#nunit-40). Please see the NUnit 4 Migration Guide (https://docs.nunit.org/articles/nunit/release-notes/Nunit4.0-MigrationGuide.html) and take care to prepare your NUnit 3 code before you do the upgrade.\r\n\r\n            Supported platforms:\r\n            - .NET Framework 4.6.2+\r\n            - .NET 6.0+",
+        "Description": "NUnit is a unit-testing framework for all .NET languages.\r\n            It can run on macOS, Linux and Windows operating systems.\r\n            NUnit can be used for a wide range of testing, from unit testing with TDD to full-fledged system and integration testing.\r\n            It is a non-opinionated, broad and deep framework with multiple different ways to assert that your code behaves as expected. Many aspects of NUnit can be extended to suit your specific purposes.\r\n\r\n            The latest version, version 4, is an upgrade from the groundbreaking NUnit 3 framework. It is a modernized version, aimed at taking advantage of the latest .NET features and C# language constructs.\r\n\r\n            If you are upgrading from NUnit 3, be aware of the breaking changes (https://docs.nunit.org/articles/nunit/release-notes/breaking-changes.html#nunit-40). Please see the NUnit 4 Migration Guide (https://docs.nunit.org/articles/nunit/release-notes/Nunit4.0-MigrationGuide.html) and take care to prepare your NUnit 3 code before you do the upgrade.\r\n\r\n            Supported platforms:\r\n            - .NET Framework 4.6.2+\r\n            - .NET 6.0+\r\n            - .NET 8.0+",
         "LicenseUrl": "https://licenses.nuget.org/MIT",
         "LicenseType": "MIT"
     }, {
         "PackageName": "NUnit.Analyzers",
-        "PackageVersion": "4.3.0",
+        "PackageVersion": "4.6.0",
         "PackageUrl": "https://github.com/nunit/nunit.analyzers",
-        "Copyright": "Copyright (c) 2018-2024 NUnit project",
+        "Copyright": "Copyright (c) 2018-2025 NUnit project",
         "Authors": ["NUnit"],
         "Description": "This package includes analyzers and code fixes for test projects using NUnit 3+. The analyzers will mark wrong usages when writing tests, and the code fixes can be used to used to correct these usages. They will also aid in the transition from NUnit 3 to NUnit 4.\r\n\r\nVersion 3.0 and upwards works in Visual Studio 2019 (version 16.3) or newer and also enables supression of compiler errors such as errors arising from nullable reference types. For Visual Studio 2017 one must use versions below 3.0 - note that these versions are no longer updated, so version 2.10.0 is the last version that works in Visual Studio 2017.",
         "LicenseUrl": "https://licenses.nuget.org/MIT",
@@ -151,5 +178,14 @@
         "Description": "The NUnit3 TestAdapter for Visual Studio, all versions from 2012 and onwards, and DotNet (incl. .Net core), versions .net framework 4.6.2 or higher, .net core 3.1, .net 5 or higher.\r\n\r\n      Note that this package ONLY contains the adapter, not the NUnit framework.\r\n      For VS 2017 and forward, you should add this package to every test project in your solution. (Earlier versions only require a single adapter package per solution.)",
         "LicenseUrl": "https://licenses.nuget.org/MIT",
         "LicenseType": "MIT"
+    }, {
+        "PackageName": "PixiEditor.ColorPicker",
+        "PackageVersion": "3.4.1",
+        "PackageUrl": "https://github.com/PixiEditor/ColorPicker",
+        "Copyright": "PixiEditor",
+        "Authors": ["Egor Mozgovoy", " Krzysztof Krysiński"],
+        "Description": "A collection of various WPF controls used to select colors. See documentation and usage examples in the project repository, https://github.com/PixiEditor/ColorPicker. Supports .NET Framework 4.5.1+, .NET Core 3.1+, .NET 5 - 7\r\n\r\nOriginally developed for PixiEditor: https://github.com/PixiEditor/PixiEditor.",
+        "LicenseUrl": "https://www.nuget.org/packages/PixiEditor.ColorPicker/3.4.1/License",
+        "LicenseType": "LICENSE.md"
     }
 ]
