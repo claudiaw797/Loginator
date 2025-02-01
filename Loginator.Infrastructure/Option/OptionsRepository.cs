@@ -21,14 +21,14 @@ namespace Loginator.Infrastructure.Option {
 
         private readonly IOptionsMonitor<TOptions> optionsMonitor;
         private readonly IConfigurationRoot configuration;
-        private readonly string section;
+        private readonly IConfigurationSection section;
         private readonly string physicalPath;
 
         public OptionsRepository(
             IHostEnvironment environment,
             IOptionsMonitor<TOptions> optionsMonitor,
             IConfigurationRoot configuration,
-            string section,
+            IConfigurationSection section,
             string file) {
 
             var physicalPath = environment.ContentRootFileProvider.GetFileInfo(file).PhysicalPath
@@ -46,23 +46,21 @@ namespace Loginator.Infrastructure.Option {
 
         public void Save(Action<TOptions> applyChanges) {
             // create json object from current file
-            var jsonFile = JsonSerializer.Deserialize<JsonObject>(File.ReadAllText(physicalPath));
-            // get section: deserialized from file object, current configuration value or newly created
-            var sectionObject = jsonFile is null || !jsonFile.TryGetPropertyValue(this.section, out var section)
-                ? Get() ?? new TOptions()
-                : JsonSerializer.Deserialize<TOptions>(section!.ToString());
+            var jsonFile = File.Exists(physicalPath) ?
+                JsonSerializer.Deserialize<JsonObject>(File.ReadAllText(physicalPath))
+                : [];
 
-            // cannot continue without section
-            if (sectionObject is null) return;
+            var (jsonParent, jsonChild) = Nodes(this.section.Path, jsonFile);
+            var sectionObject = jsonChild is null
+                ? new TOptions()
+                : JsonSerializer.Deserialize<TOptions>(jsonChild.ToString()) ?? new();
 
             // apply changes to section
             applyChanges(sectionObject);
 
-            // if there was no json object from file so far, create empty
-            jsonFile ??= [];
-            // serialize section to json and insert into file json
-            jsonFile[this.section] = JsonObject.Parse(JsonSerializer.Serialize(sectionObject));
-            // serialize file json and write to file
+            jsonParent[this.section.Key] = JsonObject.Parse(JsonSerializer.Serialize(sectionObject));
+
+            // serialize json and write to file
             File.WriteAllText(physicalPath, JsonSerializer.Serialize(jsonFile, serializerOptions));
 
             configuration.Reload();
@@ -70,5 +68,28 @@ namespace Loginator.Infrastructure.Option {
 
         public IDisposable? OnChanged(Action<TOptions, string?> listener) =>
             optionsMonitor.OnChange(listener);
+
+        private static (JsonNode parent, JsonNode? child) Nodes(string path, JsonObject? rootNode) {
+            ReadOnlySpan<char> input = path.AsSpan();
+            JsonNode parent = rootNode ?? [];
+            JsonNode? child = parent;
+
+            foreach (Range keyRange in input.Split(':')) {
+                var key = input[keyRange].ToString();
+
+                parent = child;
+                child = parent[key];
+
+                if (child is null) {
+                    if (keyRange.End.Value == path.Length) {
+                        child = null;
+                        break;
+                    }
+                    child = new JsonObject();
+                    parent[key] = child;
+                }
+            }
+            return (parent, child);
+        }
     }
 }

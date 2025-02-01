@@ -43,10 +43,10 @@ namespace Loginator.Gui.WPF {
                 DispatcherUnhandledException += OnDispatcherUnhandledException;
                 AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
-                await host.StartAsync();
+                await host.StartAsync().ConfigureAwait(false);
 
                 stringResources = host.Services.GetRequiredService<StringResources>();
-                host.Services.GetRequiredService<ColorResources>();
+                _ = host.Services.GetRequiredService<ColorResources>();
 
                 IoC.ServiceProvider = host.Services;
                 Current.Properties.Add(typeof(ServiceProvider), host.Services);
@@ -55,10 +55,10 @@ namespace Loginator.Gui.WPF {
                 host.Services.GetRequiredService<IDispatcher>().Initialize();
                 host.Services.GetRequiredService<MainWindow>().Show();
 
-                logger.Info("[OnStartup] Application successfully started");
+                logger.Info("[App.OnStartup] Application successfully started");
             }
             catch (Exception exception) {
-                logger.Fatal(exception, "[OnStartup] Error during starting Application");
+                logger.Fatal(exception, "[App.OnStartup] Error during starting Application");
                 ShowException(exception);
                 Current.Shutdown();
             }
@@ -67,10 +67,10 @@ namespace Loginator.Gui.WPF {
         }
 
         protected override async void OnExit(ExitEventArgs e) {
-            logger.Debug("[OnExit] Application is stopping");
+            logger.Info("[App.OnExit] Application is stopping...");
 
             using (host) {
-                await host.StopAsync(TimeSpan.FromSeconds(5));
+                await host.StopAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
             }
 
             base.OnExit(e);
@@ -109,7 +109,7 @@ namespace Loginator.Gui.WPF {
 
         private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) {
             var innerException = GetInnerException(e.Exception);
-            logger.Error(e.Exception, "[OnStartup] An unhandled dispatcher exception occurred.");
+            logger.Error(e.Exception, "[App] An unhandled dispatcher exception occurred");
             ShowException(innerException);
             e.Handled = true;
             Current.Shutdown();
@@ -118,10 +118,10 @@ namespace Loginator.Gui.WPF {
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e) {
             var exception = e.ExceptionObject as Exception;
             if (exception is null) {
-                logger.Fatal("[OnStartup] Unknow error killed application");
+                logger.Fatal("[App] Unknow error killed application");
             }
             else {
-                logger.Fatal(exception, "[OnStartup] An unhandled exception occurred and the application is terminating");
+                logger.Fatal(exception, "[App] An unhandled exception occurred and the application is terminating");
             }
             ShowException(exception);
         }

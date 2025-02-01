@@ -1,22 +1,29 @@
-﻿// Copyright (C) 2024 Claudia Wagner
+﻿// Copyright (C) 2025 Claudia Wagner
 
 using FakeItEasy;
 using FakeItEasy.Core;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
-namespace Loginator.Application.UnitTests {
+namespace Loginator.UnitTests.Infrastructure {
 
-    internal class LogListener : IInterceptionListener {
+    public class LogListener : IInterceptionListener {
 
         private static readonly string[] PARAMETER_NAMES = ["logLevel", "eventId"];
 
         private readonly List<LogCall> logCalls = [];
 
         public IReadOnlyCollection<LogCall> LogCalls => logCalls;
+
+        public ILogger<T> Setup<T>() {
+            var logger = A.Fake<ILogger<T>>();
+            A.CallTo(() => logger.IsEnabled(A<LogLevel>._)).Returns(true);
+            Fake.GetFakeManager(logger).AddInterceptionListener(this);
+            return logger;
+        }
 
         public void OnBeforeCallIntercepted(IFakeObjectCall interceptedCall) {
         }
@@ -32,12 +39,9 @@ namespace Loginator.Application.UnitTests {
             }
         }
 
-        public bool Contains(LogLevel logLevel, EventId? eventId = null, string? messagePattern = null) {
-            var contains = logCalls.Any(logCall =>
-                logCall.LogLevel == logLevel &&
-                (!eventId.HasValue || logCall.EventId == eventId) &&
-                (string.IsNullOrEmpty(messagePattern) || (logCall.Message != null && Regex.IsMatch(logCall.Message, messagePattern))));
-            return contains;
+        public bool Contains(LogLevel logLevel, EventId? eventId = null, string? messagePattern = null, int expectedTimes = 1) {
+            var actualTimes = logCalls.Count(new LogPredicate(logLevel, eventId, messagePattern).Execute);
+            return actualTimes == expectedTimes;
         }
 
         public IEnumerable<LogCall> LogCallsByMinLevel(LogLevel logLevel) {
@@ -47,9 +51,9 @@ namespace Loginator.Application.UnitTests {
 
         public int SumFromMessage(LogLevel logLevel, Regex regex, string numberGroup) {
             var processedItemCount = logCalls.ToArray()
-                .Where(l => l.LogLevel == logLevel && !string.IsNullOrEmpty(l.Message))
-                .Select(l => regex.Match(l.Message!))
-                .Sum(m => m.Success ? int.Parse(m.Groups[numberGroup].Value) : 0);
+                .Where(l => l is not null && l.LogLevel == logLevel && !string.IsNullOrEmpty(l.Message))
+                .Select(l => regex.Match(l.Message is null ? string.Empty : l.Message))
+                .Sum(m => m is not null && m.Success ? int.Parse(m.Groups[numberGroup].Value) : 0);
             return processedItemCount;
         }
 
@@ -57,19 +61,12 @@ namespace Loginator.Application.UnitTests {
             logCalls.Clear();
         }
 
-        internal record LogCall {
+        private record LogPredicate(LogLevel LogLevel, EventId? EventId = null, string? MessagePattern = null) {
 
-            public LogCall(LogLevel logLevel, EventId eventId, string? message) {
-                this.LogLevel = logLevel;
-                this.EventId = eventId;
-                this.Message = message;
-            }
-
-            public LogLevel @LogLevel { get; init; }
-
-            public EventId @EventId { get; init; }
-
-            public string? Message { get; init; }
+            public bool Execute(LogCall? logCall) =>
+                logCall?.LogLevel == LogLevel &&
+                (!EventId.HasValue || logCall.EventId == EventId) &&
+                (string.IsNullOrEmpty(MessagePattern) || (logCall.Message != null && Regex.IsMatch(logCall.Message, MessagePattern)));
         }
     }
 }

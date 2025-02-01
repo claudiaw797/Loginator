@@ -43,7 +43,7 @@ namespace Loginator.Application.ViewModel {
 
         public string? Location {
             get {
-                if (log.Location is null) return null;
+                if (log.Location is null || log.Location.IsEmpty()) return null;
 
                 var sb = new StringBuilder();
                 AppendLine(sb, "Class", ClassName);

@@ -16,8 +16,10 @@ namespace Loginator.Infrastructure.Server {
         private readonly AbstractSocket socket = socket;
         private readonly ILogger<T> logger = logger;
 
-        public IAsyncEnumerator<PooledBytes> GetAsyncEnumerator(CancellationToken cancelToken = default) =>
-            new AsyncEnumerator(this, cancelToken);
+        public IAsyncEnumerator<PooledBytes> GetAsyncEnumerator(CancellationToken ct = default) =>
+            new AsyncEnumerator(this, ct);
+
+        public bool IsActive { get; set; } = true;
 
         private class AsyncEnumerator : IAsyncEnumerator<PooledBytes> {
 
@@ -32,9 +34,9 @@ namespace Loginator.Infrastructure.Server {
             private AbstractSocket? connection;
             private PooledBytes? current;
 
-            public AsyncEnumerator(AsyncEnumerablePooledBytes<T> outer, CancellationToken cancelToken) {
+            public AsyncEnumerator(AsyncEnumerablePooledBytes<T> outer, CancellationToken ct) {
                 this.outer = outer;
-                this.cancelToken = cancelToken;
+                this.cancelToken = ct;
 
                 // pre-pinned memory, using the .NET5 POH (pinned object heap)
                 buffer = GC.AllocateArray<byte>(length: BUFFER_LENGTH, pinned: true);
@@ -42,51 +44,52 @@ namespace Loginator.Infrastructure.Server {
             }
 
             public async ValueTask<bool> MoveNextAsync() {
-                current = await ReadBytesAsync();
+                current = await ReadBytesAsync().ConfigureAwait(false);
                 return current is not null;
             }
 
             public PooledBytes Current => current!;
 
             public ValueTask DisposeAsync() {
-                connection?.Dispose();
-                outer.socket.Dispose();
+                if (connection is not null && !ReferenceEquals(connection, outer.socket)) {
+                    connection.Dispose();
+                }
                 return new ValueTask(Task.CompletedTask);
             }
 
             private async Task<PooledBytes?> ReadBytesAsync() {
                 while (!cancelToken.IsCancellationRequested &&
-                       await IsConnected()) {
+                       await IsConnected().ConfigureAwait(false)) {
                     try {
                         var receivedBytes = connection is null ? 0 : await connection
                             .ReceiveAsync(bufferMemory, SocketFlags.None, cancelToken)
                             .ConfigureAwait(false);
 
-                        if (receivedBytes > 0) {
+                        if (receivedBytes > 0 && outer.IsActive) {
                             var pooledBytes = PooledBytes.Rent(receivedBytes);
                             Array.Copy(buffer, pooledBytes, receivedBytes);
                             return pooledBytes;
                         }
                     }
                     catch (SocketException ex) {
-                        outer.logger.LogWarning("Connection was lost: {message}", ex.Message);
+                        outer.logger.LogWarning("Connection access error: {message}", ex.Message);
                         connection?.Dispose();
                         connection = null;
                     }
                     catch (OperationCanceledException ex) {
                         outer.logger.LogInformation("Connection is closing: {message}", ex.Message);
-                        break;
                     }
-                    catch (Exception ex) {
-                        outer.logger.LogError(ex, "Could not read package");
+                    catch (ObjectDisposedException ex) {
+                        outer.logger.LogInformation("Connection is closing: {message}", ex.Message);
+                        break;
                     }
                 }
                 return null;
             }
 
             private async Task<bool> IsConnected() {
-                connection ??= outer.socket.Accept();
-                return await outer.socket.IsConnected(connection, cancelToken);
+                connection ??= await outer.socket.AcceptAsync(cancelToken).ConfigureAwait(false);
+                return await outer.socket.IsConnectedAsync(connection, cancelToken).ConfigureAwait(false);
             }
         }
     }

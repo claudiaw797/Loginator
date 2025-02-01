@@ -1,6 +1,6 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
-namespace Loginator.Infrastructure.Option {
+namespace Loginator.Domain.Option {
 
     public enum ConnectionType {
         None,

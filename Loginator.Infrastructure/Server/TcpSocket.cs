@@ -1,6 +1,8 @@
 ﻿// Copyright (C) 2024 Claudia Wagner
 
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Loginator.Infrastructure.Server {
 
@@ -10,7 +12,7 @@ namespace Loginator.Infrastructure.Server {
 
         private TcpSocket(Socket socket) : base(socket) { }
 
-        public override AbstractSocket Accept() =>
-            new TcpSocket(socket.Accept());
+        public async override ValueTask<AbstractSocket> AcceptAsync(CancellationToken ct) =>
+            new TcpSocket(await socket.AcceptAsync(ct).ConfigureAwait(false));
     }
 }

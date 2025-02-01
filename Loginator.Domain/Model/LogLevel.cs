@@ -8,7 +8,7 @@ using System.Linq;
 namespace Loginator.Domain.Model {
 
     [DebuggerDisplay("{Name} ({Id} {ShortName}")]
-    public sealed class LogLevel : IComparable<LogLevel> {
+    public sealed class LogLevel : IEquatable<LogLevel>, IComparable<LogLevel>, IComparable {
 
         private LogLevel(int id, string name, char shortName) {
             Id = id;
@@ -21,13 +21,13 @@ namespace Loginator.Domain.Model {
         public char ShortName { get; private set; }
 
         public static LogLevel NOT_SET { get; } = new(-1, "[not set]", '-');
-        public static LogLevel TRACE { get; } = new(0, "TRACE", 'V');
-        public static LogLevel DEBUG { get; } = new(1, "DEBUG", 'D');
-        public static LogLevel INFO { get; } = new(2, "INFO", 'I');
-        public static LogLevel WARN { get; } = new(3, "WARN", 'W');
-        public static LogLevel ERROR { get; } = new(4, "ERROR", 'E');
-        public static LogLevel FATAL { get; } = new(5, "FATAL", 'F');
-        private static LogLevel INVALID { get; } = new(99, "INVALID", '!');
+        public static LogLevel TRACE { get; } = new(0, nameof(TRACE), 'V');
+        public static LogLevel DEBUG { get; } = new(1, nameof(DEBUG), 'D');
+        public static LogLevel INFO { get; } = new(2, nameof(INFO), 'I');
+        public static LogLevel WARN { get; } = new(3, nameof(WARN), 'W');
+        public static LogLevel ERROR { get; } = new(4, nameof(ERROR), 'E');
+        public static LogLevel FATAL { get; } = new(5, nameof(FATAL), 'F');
+        private static LogLevel INVALID { get; } = new(99, nameof(INVALID), '!');
 
         private static readonly IEnumerable<LogLevel> Levels = [NOT_SET, TRACE, DEBUG, INFO, WARN, ERROR, FATAL, INVALID];
 
@@ -62,28 +62,53 @@ namespace Loginator.Domain.Model {
             return Levels.Where(m => m >= lower && m < upper);
         }
 
-        public static bool operator <(LogLevel? a, LogLevel? b) => a?.Id < b?.Id;
+        public static bool operator <(LogLevel? a, LogLevel? b) =>
+            a?.Id < b?.Id;
 
-        public static bool operator <=(LogLevel? a, LogLevel? b) => a?.Id <= b?.Id;
+        public static bool operator <=(LogLevel? a, LogLevel? b) =>
+            a?.Id <= b?.Id;
 
-        public static bool operator >(LogLevel? a, LogLevel? b) => a?.Id > b?.Id;
+        public static bool operator >(LogLevel? a, LogLevel? b) =>
+            a?.Id > b?.Id;
 
-        public static bool operator >=(LogLevel? a, LogLevel? b) => a?.Id >= b?.Id;
+        public static bool operator >=(LogLevel? a, LogLevel? b) =>
+            a?.Id >= b?.Id;
 
         public static bool operator ==(LogLevel? a, LogLevel? b) =>
-            a is null ? b is null : b is not null && a.Equals(b);
+            a is null
+            ? b is null
+            : b is not null && a.Equals(b);
 
-        public static bool operator !=(LogLevel? a, LogLevel? b) => !(a == b);
+        public static bool operator !=(LogLevel? a, LogLevel? b) =>
+            !(a == b);
 
-        public bool Equals(LogLevel? other) => other is not null && other.Id == this.Id;
+        public bool Equals(LogLevel? other) =>
+            other is not null &&
+            other.Id == Id &&
+            other.ShortName == ShortName &&
+            other.Name == Name;
 
-        public override bool Equals(object? obj) => Equals(obj as LogLevel);
+        public override bool Equals(object? obj) =>
+            Equals(obj as LogLevel);
 
-        public override int GetHashCode() => this.Id.GetHashCode();
+        public override int GetHashCode() =>
+            HashCode.Combine(Id, ShortName, Name);
 
-        public override string ToString() => Name;
+        public override string ToString() =>
+            Name;
 
         public int CompareTo(LogLevel? other) =>
-            other is null || this > other ? 1 : this < other ? -1 : 0;
+            other is null || this > other
+            ? 1
+            : this < other
+            ? -1
+            : 0;
+
+        public int CompareTo(object? obj) =>
+            obj is null
+            ? 1
+            : obj is LogLevel other
+            ? CompareTo(other)
+            : throw new ArgumentException($"Can only compare to type {nameof(LogLevel)}, but found {obj}", nameof(obj));
     }
 }

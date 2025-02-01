@@ -16,9 +16,9 @@ using LogLevel = Loginator.Domain.Model.LogLevel;
 
 namespace Loginator.Infrastructure.Converter {
 
-    public class Log4jConversionFactory(
+    public class Log4jConversionService(
         IOptionsMonitor<LogProcessingOptions> optionsMonitor,
-        ILogger<Log4jConversionFactory> logger) : ILogConversionFactory {
+        ILogger<Log4jConversionService> logger) : ILogConversionService {
 
         /*
             <log4j:event logger="WorldDirect.ChimneySweeper.Server.ChimneyService.BaseApplication" level="INFO" timestamp="1439817232886" thread="1">
@@ -201,6 +201,9 @@ namespace Loginator.Infrastructure.Converter {
                             properties.Add(new Property(name, xmlReader.GetAttribute("value") ?? string.Empty));
                         }
                     } while (HasNext(DATA_TAG));
+                }
+                else if (xmlReader.NodeType == XmlNodeType.Element) {
+                    xmlReader.ReadStartElement();
                 }
                 return properties;
             }

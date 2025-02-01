@@ -4,23 +4,21 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Loginator.Application.Option;
 using Loginator.Domain.Option;
-using Loginator.Infrastructure.Option;
 using System;
 using System.Drawing;
+using static Loginator.Application.Common.Constants;
 
 namespace Loginator.Application.ViewModel {
 
-    public partial class ConfigurationViewModel : ObservableObject {
+    public sealed partial class ConfigurationViewModel : ObservableObject, IDisposable {
 
         private readonly IOptionsRepository<ApplicationOptions> optionsRepository;
+        private readonly IDisposable? optionsChangeListener;
 
         public ConfigurationViewModel(IOptionsRepository<ApplicationOptions> optionsRepository) {
             this.optionsRepository = optionsRepository;
 
             var options = optionsRepository.Get();
-            connectionType = options.ConnectionType;
-            logType = options.LogType;
-            port = options.Port.ToString();
             language = options.Language;
             checkForUpdateOnStartup = options.CheckForUpdateOnStartup;
             tracePerformance = options.TracePerformance;
@@ -35,16 +33,9 @@ namespace Loginator.Application.ViewModel {
             colorLevelError = options.Colors.LevelError;
             colorLevelFatal = options.Colors.LevelFatal;
             colorLogHighlight = options.Colors.LogHighlight;
+
+            optionsChangeListener = optionsRepository.OnChanged(OnChange_Options);
         }
-
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private ConnectionType connectionType;
-
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private LogType logType;
-
-        [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
-        private string port;
 
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private KnownCulture language;
@@ -88,9 +79,13 @@ namespace Loginator.Application.ViewModel {
         [ObservableProperty, NotifyCanExecuteChangedFor(nameof(AcceptChangesCommand))]
         private Color colorLogHighlight;
 
-        public Action? OnClose { get; set; }
+        public OnCloseHandler? OnClose { get; set; }
 
         public OnErrorHandler? OnError { get; set; }
+
+        public void Dispose() {
+            optionsChangeListener?.Dispose();
+        }
 
         [RelayCommand]
         private void CancelChanges() {
@@ -106,9 +101,6 @@ namespace Loginator.Application.ViewModel {
         private void AcceptChanges() {
             try {
                 optionsRepository.Save(options => {
-                    options.ConnectionType = this.ConnectionType;
-                    options.LogType = this.LogType;
-                    options.Port = Convert.ToInt32(this.Port);
                     options.Language = this.Language;
                     options.CheckForUpdateOnStartup = this.CheckForUpdateOnStartup;
                     options.TracePerformance = this.TracePerformance;
@@ -133,18 +125,36 @@ namespace Loginator.Application.ViewModel {
         }
 
         private bool CanAcceptChanges() {
+            var result =
+                HasGeneralChanges() ||
+                HasDisplayChanges() ||
+                HasColorChanges() ||
+                HasInternalChanges();
+            return result;
+        }
+
+        private void OnChange_Options(ApplicationOptions options, string? name = null) {
+            lock (this) {
+                this.Language = options.Language;
+                this.CheckForUpdateOnStartup = options.CheckForUpdateOnStartup;
+                this.TracePerformance = options.TracePerformance;
+                this.LogTimeFormat = options.LogTimeFormat;
+                this.ApplicationFormat = options.LogProcessing.ApplicationFormat;
+                this.AllowAnonymousMessages = options.LogProcessing.AllowAnonymousMessages;
+                this.TraceMessages = options.LogProcessing.TraceMessages;
+                this.ColorLevelTrace = options.Colors.LevelTrace;
+                this.ColorLevelDebug = options.Colors.LevelDebug;
+                this.ColorLevelInfo = options.Colors.LevelInfo;
+                this.ColorLevelWarn = options.Colors.LevelWarn;
+                this.ColorLevelError = options.Colors.LevelError;
+                this.ColorLevelFatal = options.Colors.LevelFatal;
+                this.ColorLogHighlight = options.Colors.LogHighlight;
+            }
+        }
+
+        private bool HasColorChanges() {
             var options = optionsRepository.Get();
             var result =
-                this.ConnectionType != options.ConnectionType ||
-                this.LogType != options.LogType ||
-                this.Port != options.Port.ToString() ||
-                this.Language != options.Language ||
-                this.CheckForUpdateOnStartup != options.CheckForUpdateOnStartup ||
-                this.TracePerformance != options.TracePerformance ||
-                this.LogTimeFormat != options.LogTimeFormat ||
-                this.ApplicationFormat != options.LogProcessing.ApplicationFormat ||
-                this.AllowAnonymousMessages != options.LogProcessing.AllowAnonymousMessages ||
-                this.TraceMessages != options.LogProcessing.TraceMessages ||
                 this.ColorLevelTrace != options.Colors.LevelTrace ||
                 this.ColorLevelDebug != options.Colors.LevelDebug ||
                 this.ColorLevelInfo != options.Colors.LevelInfo ||
@@ -155,6 +165,32 @@ namespace Loginator.Application.ViewModel {
             return result;
         }
 
-        public delegate void OnErrorHandler(string actionKey, Exception exception);
+        private bool HasDisplayChanges() {
+            var options = optionsRepository.Get();
+            var result =
+                this.LogTimeFormat != options.LogTimeFormat ||
+                this.ApplicationFormat != options.LogProcessing.ApplicationFormat;
+            return result;
+        }
+
+        private bool HasGeneralChanges() {
+            var options = optionsRepository.Get();
+            var result =
+                this.Language != options.Language ||
+                this.CheckForUpdateOnStartup != options.CheckForUpdateOnStartup ||
+                this.TracePerformance != options.TracePerformance ||
+                this.AllowAnonymousMessages != options.LogProcessing.AllowAnonymousMessages ||
+                this.TraceMessages != options.LogProcessing.TraceMessages;
+            return result;
+        }
+
+        private bool HasInternalChanges() {
+            var options = optionsRepository.Get();
+            var result =
+                this.TracePerformance != options.TracePerformance ||
+                this.AllowAnonymousMessages != options.LogProcessing.AllowAnonymousMessages ||
+                this.TraceMessages != options.LogProcessing.TraceMessages;
+            return result;
+        }
     }
 }

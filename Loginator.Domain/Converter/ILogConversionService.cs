@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
+﻿// Copyright (C) 2025 Claudia Wagner
 
 using Loginator.Domain.Model;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Loginator.Domain.Converter {
 
-    public interface ILogConversionFactory {
+    public interface ILogConversionService {
 
         IReadOnlyCollection<Log> Convert(string text);
 

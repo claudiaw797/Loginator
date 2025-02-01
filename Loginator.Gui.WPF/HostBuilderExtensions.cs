@@ -44,7 +44,7 @@ namespace Loginator.Gui.WPF {
             hostBuilder.ConfigureServices(ConfigureServices);
 
         private static void ConfigureAppSettings(HostBuilderContext context, IConfigurationBuilder configBuilder) {
-            logger.Debug("Bootstrapping DI: adding settings from {0}", appSettingsDefault);
+            logger.Debug("Bootstrapping DI: adding settings from {file}", appSettingsDefault);
 
             configBuilder.AddJsonFile(appSettingsDefault, optional: true, reloadOnChange: true)
                          .AddJsonFile(GetAppSettings(context.HostingEnvironment.EnvironmentName), optional: true, reloadOnChange: true)

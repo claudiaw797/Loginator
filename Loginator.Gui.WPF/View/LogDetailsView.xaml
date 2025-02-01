@@ -12,7 +12,7 @@
 
     <ScrollViewer Height="Auto" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                   Visibility="{Binding SelectedLog, Converter={StaticResource ExistsToVisibilityConverter}}"
-                  control:ScrollViewerBehavior.RowResize="{Binding GridRowBehavior, RelativeSource={RelativeSource AncestorType=Window}}">
+                  control:ScrollViewerBehavior.RowResize="{Binding SelectedLogRowBehavior, RelativeSource={RelativeSource AncestorType=Window}}">
         <ScrollViewer.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="{DynamicResource cmd.Copy}" Command="{Binding CopySelectedLogCommand}" />

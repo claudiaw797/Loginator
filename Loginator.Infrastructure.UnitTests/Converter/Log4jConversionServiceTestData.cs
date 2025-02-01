@@ -1,6 +1,8 @@
 // Copyright (C) 2024 Claudia Wagner
 
+using Loginator.Domain.Common;
 using Loginator.Domain.Model;
+using Loginator.UnitTests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,34 +11,54 @@ using System.Xml.Linq;
 namespace Loginator.Infrastructure.UnitTests.Converter {
 
     /// <summary>
-    /// Represents test data for <see cref="Log4jConversionFactoryTests"/>.
+    /// Represents test data for <see cref="Log4jConversionServiceTests"/>.
     /// </summary>
-    internal class Log4jConversionFactoryTestData {
+    internal class Log4jConversionServiceTestData {
 
         private const string NSP_URI = "https://logging.apache.org/xml/ns";
         private const string NSP_PFX = "log4j";
+
+        static Log4jConversionServiceTestData() {
+            LogFromFullLog4jXml = new() {
+                Timestamp = Value.Timestamp,
+                Level = Value.Level,
+                Message = Value.Message,
+                Exception = Value.Exception,
+                MachineName = Value.MachineName,
+                Namespace = Value.Nspace,
+                Application = Value.Application,
+                Process = Value.Process,
+                Thread = Value.Thread,
+                Context = Value.Context,
+                Location = new() {
+                    ClassName = Value.ClassName,
+                    FileName = Value.FileName,
+                    MethodName = Value.MethodName,
+                    LineNumber = Value.LineNumber,
+                }
+            };
+            LogFromFullLog4jXml.AddProperties(
+            [
+                new(Name.Action, Value.Action),
+                new(Name.EventId, Value.EventId),
+                new(Name.FromMdc, Value.FromMdc),
+            ]);
+        }
 
         private static readonly XNamespace Nspace = NSP_URI;
 
         private static readonly XElementDictionary XElems = new();
 
-        internal static readonly Log LogFromValidLog4jXml = new() {
+        internal static readonly Log LogFromFullLog4jXml;
+
+        internal static Log LogFromMessageAndPropertiesOnlyLog4jXml(bool isMixed, bool withAppProps, bool withMachineProps) => new() {
             Timestamp = Value.Timestamp,
-            Level = Value.Level,
+            Level = LogLevel.NOT_SET,
             Message = Value.Message,
-            Exception = Value.Exception,
-            MachineName = Value.MachineName,
-            Namespace = Value.Nspace,
-            Application = Value.Application,
-            Process = Value.Process,
-            Thread = Value.Thread,
-            Context = Value.Context,
-            Location = new() {
-                ClassName = Value.ClassName,
-                FileName = Value.FileName,
-                MethodName = Value.MethodName,
-                LineNumber = Value.LineNumber,
-            }
+            MachineName = withMachineProps ? Value.MachineName : null,
+            Namespace = Constants.NamespaceDefault,
+            Application = withAppProps ? isMixed ? Value.Application : Value.Log4jApp : Constants.ApplicationDefault,
+            Process = withAppProps && !isMixed ? Value.Process : null,
         };
 
         internal static readonly IEnumerable<SaveOptions> FormatOptions = [
@@ -46,15 +68,7 @@ namespace Loginator.Infrastructure.UnitTests.Converter {
             SaveOptions.DisableFormatting | SaveOptions.OmitDuplicateNamespaces
         ];
 
-        static Log4jConversionFactoryTestData() {
-            LogFromValidLog4jXml.AddProperties([
-                new(Name.FromMdc, Value.FromMdc),
-                new(Name.Action, Value.Action),
-                new(Name.EventId, Value.EventId)
-            ]);
-        }
-
-        internal static IEnumerable<TestCaseData> ValidLog4jDataOptions() {
+        internal static IEnumerable<TestCaseData> Log4jFullDataOptions() {
             bool[] booleans = [true, false];
 
             foreach (var hasPrefix in booleans) {
@@ -63,19 +77,36 @@ namespace Loginator.Infrastructure.UnitTests.Converter {
                         foreach (var option in FormatOptions) {
                             yield return new TestCaseData(hasPrefix, hasNamespace, isMixed, option)
                                 .SetName("{m}{p}")
-                                .Returns(LogFromValidLog4jXml);
+                                .Returns(LogFromFullLog4jXml);
                         }
                     }
                 }
             }
         }
 
-        internal static string Log4JDefault(bool hasPrefix, bool hasNamespace, bool isMixed, SaveOptions formatOptions) {
-            var elem = Log4JDefault(hasNamespace, hasPrefix, isMixed);
+        internal static IEnumerable<TestCaseData> Log4jMessageAndPropertiesDataOptions() {
+            bool[] booleans = [true, false];
+
+            foreach (var isMixed in booleans) {
+                foreach (var addProps in booleans) {
+                    yield return new TestCaseData(isMixed, addProps, addProps)
+                        .SetName("{m}{p}")
+                        .Returns(LogFromMessageAndPropertiesOnlyLog4jXml(isMixed, addProps, addProps));
+                }
+            }
+        }
+
+        internal static string Log4jFull(bool hasPrefix, bool hasNamespace, bool isMixed, SaveOptions formatOptions) {
+            var elem = Log4jFull(hasNamespace, hasPrefix, isMixed);
             return elem.ToString(formatOptions, !hasNamespace);
         }
 
-        private static XElement Log4JDefault(bool withNs, bool withPrefix, bool mixed) {
+        internal static string Log4jMessageAndPropertiesOnly(bool hasPrefix, bool hasNamespace, bool isMixed, bool addAppProps, bool addMachineProps, SaveOptions formatOptions) {
+            var elem = Log4jMessageAndPropertiesOnly(hasNamespace, hasPrefix, isMixed, addAppProps, addMachineProps);
+            return elem.ToString(formatOptions, !hasNamespace);
+        }
+
+        private static XElement Log4jFull(bool withNs, bool withPrefix, bool mixed) {
             var @event = XElement(Tag.Event, withNs, withPrefix, mixed, XAtt.Logger, XAtt.Level, XAtt.Timestamp, XAtt.Thread);
             var mdc = Properties(withNs, withPrefix, mixed, Tag.Mdc, [XElems[Key(Name.FromMdc, withNs, withPrefix, mixed)]]);
             var locationInfo = XElement(Tag.Locationinfo, withNs, withPrefix, mixed, XAtt.Class, XAtt.Method, XAtt.File, XAtt.Line);
@@ -92,6 +123,32 @@ namespace Loginator.Infrastructure.UnitTests.Converter {
                 mdc,
                 locationInfo,
                 properties);
+
+            if (mixed) ShuffleNodes(@event);
+
+            return @event;
+        }
+
+        private static XElement Log4jMessageAndPropertiesOnly(bool withPrefix, bool withNs, bool mixed, bool addAppProps, bool addMachineProps) {
+            var @event = XElement(Tag.Event, withNs, withPrefix, mixed, XAtt.Timestamp);
+
+            var properties = Enumerable.Empty<XElement>();
+            if (addAppProps) {
+                var appProp = XElems[Key(Name.Log4jApp, withNs, withPrefix, mixed)];
+                if (mixed) {
+                    appProp = new XElement(appProp);
+                    appProp.SetAttributeValue(Att.Value, Value.Application);
+                }
+                properties = properties.Append(appProp);
+            }
+            if (addMachineProps) {
+                var machineProp = XElems[Key(Name.Log4jMachine, withNs, withPrefix, mixed)];
+                properties = properties.Append(machineProp);
+            }
+
+            @event.Add(
+                XElems[Key(Tag.Message, withNs, withPrefix)],
+                Properties(withNs, withPrefix, mixed, Tag.Properties, properties.ToArray()));
 
             if (mixed) ShuffleNodes(@event);
 
@@ -267,18 +324,13 @@ namespace Loginator.Infrastructure.UnitTests.Converter {
 
     internal static class Log4jConversionFactoryExtensions {
 
-        private static readonly Random Random = new();
-
         public static string ToString(this XElement element, SaveOptions options, bool removeNs) {
             var result = element.ToString(options);
 
             if (removeNs) {
-                result = result.Replace($" {Log4jConversionFactoryTestData.XAtt.Log4j}", string.Empty);
+                result = result.Replace($" {Log4jConversionServiceTestData.XAtt.Log4j}", string.Empty);
             }
             return result;
         }
-
-        public static T[] Shuffle<T>(this IEnumerable<T>? enumerable) =>
-            [.. enumerable?.OrderBy(x => Random.Next(1, 100))];
     }
 }

@@ -2,6 +2,7 @@
 
 using Loginator.Application.ViewModel;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Loginator.Gui.WPF.View {
 
@@ -18,6 +19,10 @@ namespace Loginator.Gui.WPF.View {
                 vm.OnError = (k, ex) =>
                     MessageBox.Show(ex.Message, $"Error {k} configuration changes", MessageBoxButton.OK, MessageBoxImage.Stop, MessageBoxResult.OK);
             }
+        }
+
+        private void OnKeyUp_Window(object sender, KeyEventArgs e) {
+            if (e.Key == Key.Escape) Close();
         }
     }
 }

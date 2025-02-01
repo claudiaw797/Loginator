@@ -87,8 +87,8 @@ namespace Loginator.Application.UnitTests.Common {
 
             AssertSutContainsTestItems();
             sutEvents.Actions.Should()
-                .AllBeEquivalentTo(NotifyCollectionChangedAction.Add)
-                .And.HaveCount(3);
+                .HaveCount(3).And
+                .AllBeEquivalentTo(NotifyCollectionChangedAction.Add);
         }
 
         [Test]

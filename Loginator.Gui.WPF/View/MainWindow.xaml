@@ -33,7 +33,7 @@
 
                 <view:LogListView Grid.Row="0" />
 
-                <GridSplitter Grid.Row="1" x:Name="SplitterRow"
+                <GridSplitter Grid.Row="1" x:Name="SelectedLogSplitter"
                               ResizeBehavior="PreviousAndNext" ResizeDirection="Rows"
                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
@@ -46,16 +46,22 @@
 
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="200" />
+                    <RowDefinition Height="Auto" x:Name="ApplicationsRow"/>
                     <RowDefinition Height="4" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="4" />
+                    <RowDefinition Height="Auto" x:Name="ConnectionsRow" />
                 </Grid.RowDefinitions>
 
                 <view:ApplicationsView Grid.Row="0" />
 
-                <GridSplitter Grid.Row="1" ResizeBehavior="BasedOnAlignment" ResizeDirection="Rows" Height="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                <GridSplitter Grid.Row="1" x:Name="ApplicationsSplitter"
+                              ResizeBehavior="PreviousAndNext" ResizeDirection="Rows"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
                 <view:NamespacesView Grid.Row="2" />
+
+                <view:ConnectionsView Grid.Row="4" />
             </Grid>
         </Grid>
     </DockPanel>

@@ -14,9 +14,9 @@ namespace Loginator.Gui.WPF {
     internal static class ServiceCollectionExtensions {
 
         public static IServiceCollection AddConfiguration(this IServiceCollection services, IConfiguration configuration, string activeSettingsFilename) {
-            services.AddOptionsRepository<LogProcessingOptions>(configuration.GetLogProcessingSection(), activeSettingsFilename);
             services.AddOptionsRepository<ApplicationOptions>(configuration.GetApplicationSection(), activeSettingsFilename);
-
+            services.AddOptionsRepository<ConnectionsOptions>(configuration.GetConnectionsSection(), activeSettingsFilename);
+            services.Configure<LogProcessingOptions>(configuration.GetLogProcessingSection());
             return services;
         }
 

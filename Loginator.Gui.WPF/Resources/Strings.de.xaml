@@ -5,13 +5,18 @@
 
     <!-- toolbar -->
     <s:String x:Key="cmd.Active">Aktiv</s:String>
+    <s:String x:Key="msg.Active">Alle eingehenden Nachrichten verarbeiten/verwerfen</s:String>
     <s:String x:Key="cmd.Limit">Limit/Level</s:String>
+    <s:String x:Key="msg.Limit">Limit pro Applikation und Level eingeben</s:String>
     <s:String x:Key="cmd.ClearLogs">Logs löschen</s:String>
+    <s:String x:Key="msg.ClearLogs">Nachrichten aus dem Cache löschen</s:String>
     <s:String x:Key="cmd.ClearAll">Alles löschen</s:String>
+    <s:String x:Key="msg.ClearAll">Nachrichten, Namensräume und Applikationen aus dem Cache löschen</s:String>
     <s:String x:Key="msg.Search">Suchtext eingeben</s:String>
     <s:String x:Key="cmd.Search">Suchen</s:String>
     <s:String x:Key="cmd.Clear">Suche löschen</s:String>
     <s:String x:Key="cmd.Invert">Umkehren</s:String>
+    <s:String x:Key="msg.Invert">Suchergebnis umkehren</s:String>
     <s:String x:Key="cmd.Settings">Konfigurieren...</s:String>
     <s:String x:Key="cmd.CheckUpdate">Nach Aktualisierungen suchen</s:String>
     <s:String x:Key="cmd.About">Info</s:String>
@@ -22,11 +27,6 @@
     <!-- settings dialog -->
     <s:String x:Key="grp.Settings">Konfiguration</s:String>
     <s:String x:Key="grp.Connection">Verbindung</s:String>
-
-    <s:String x:Key="grp.NetworkProtocol">Netzwerkprotokoll</s:String>
-
-    <s:String x:Key="grp.SourceType">Quellformat</s:String>
-    <s:String x:Key="msg.Port">Port, an den Lognachrichten gesendet werden</s:String>
 
     <s:String x:Key="grp.Display">Darstellung</s:String>
     <s:String x:Key="lab.Language">Sprache</s:String>
@@ -47,6 +47,31 @@
 
     <s:String x:Key="cmd.Save">Speichern</s:String>
     <s:String x:Key="cmd.Cancel">Abbrechen</s:String>
+
+    <!-- connection dialog and views -->
+    <s:String x:Key="msg.ShowConnections">Konfigurierte Verbindungen anzeigen/verstecken</s:String>
+    <s:String x:Key="grp.AddConnection">Verbindung hinzufügen</s:String>
+    <s:String x:Key="msg.AddConnection">Verbindung hinzufügen und konfigurieren</s:String>
+
+    <s:String x:Key="grp.NetworkProtocol">Netzwerkprotokoll</s:String>
+    <s:String x:Key="grp.SourceType">Quellformat</s:String>
+    <s:String x:Key="lab.IpAddress">IP Adresse</s:String>
+    <s:String x:Key="msg.IpAddress">IP Adresse, von der Nachrichten gesendet werden; leer lassen, um von jedem Sender zu empfangen</s:String>
+    <s:String x:Key="msg.Port">Port, an dem auf eingehende Nachrichten gewartet wird</s:String>
+
+    <s:String x:Key="lab.StartImmediately">Sofort starten</s:String>
+    <s:String x:Key="lab.NetworkProtocol">Protokoll</s:String>
+    <s:String x:Key="lab.SourceType">Quellformat</s:String>
+    <s:String x:Key="cmd.StartConnection">Starten</s:String>
+    <s:String x:Key="msg.StartConnection">Port verbinden und auf eingehende Nachrichten warten</s:String>
+    <s:String x:Key="cmd.StopConnection">Beenden</s:String>
+    <s:String x:Key="msg.StopConnection">Port trennen und nicht mehr auf eingehende Nachrichten warten</s:String>
+    <s:String x:Key="cmd.PauseConnection">Pausieren</s:String>
+    <s:String x:Key="msg.PauseConnection">Am Port eingehende Nachrichten verwerfen</s:String>
+    <s:String x:Key="cmd.ResumeConnection">Fortsetzen</s:String>
+    <s:String x:Key="msg.ResumeConnection">Am Port eingehende Nachrichten verarbeiten</s:String>
+    <s:String x:Key="cmd.RemoveConnection">Entfernen</s:String>
+    <s:String x:Key="msg.RemoveConnection">Verbindung stoppen und Konfiguration entfernen</s:String>
 
     <!-- update dialog -->
     <s:String x:Key="grp.UpdateCheck">Aktualisierungssuche</s:String>

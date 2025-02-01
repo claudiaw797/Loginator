@@ -1,10 +1,11 @@
 ﻿// Copyright (C) 2024 Claudia Wagner, Daniel Kuster
 
-namespace Loginator.Infrastructure.Option {
+namespace Loginator.Domain.Option {
 
     public enum LogType {
         None,
         Log4j,
-        Logcat
+        Logcat,
+        PlainText
     }
 }
