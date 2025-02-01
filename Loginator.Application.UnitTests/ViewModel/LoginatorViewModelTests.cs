@@ -3,10 +3,10 @@
 using FakeItEasy;
 using FluentAssertions;
 using Loginator.Application.Option;
-using Loginator.Application.Service;
 using Loginator.Application.ViewModel;
 using Loginator.Domain.Channel;
 using Loginator.Domain.Model;
+using Loginator.Domain.Service;
 using Loginator.UnitTests.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -48,7 +48,6 @@ namespace Loginator.Application.UnitTests.ViewModel {
             { LogLevel.FATAL, "Test fatality happened" }
         };
 
-        private readonly LoginatorViewModel sut;
         private readonly FakeTimeProvider timeProvider = new();
         private readonly Action<string?> clipboardMock;
         private readonly LogListener logListener = new();
@@ -56,6 +55,8 @@ namespace Loginator.Application.UnitTests.ViewModel {
         private readonly TestChannel testChannel;
 
         private readonly IEnumerable<Log> testItems;
+
+        private readonly LoginatorViewModel sut;
 
         public LoginatorViewModelTests() {
             clipboardMock = A.Fake<Action<string?>>();
@@ -91,9 +92,10 @@ namespace Loginator.Application.UnitTests.ViewModel {
         public void Can_create_sut() {
             var appOptionsMonitor = A.Fake<IOptionsMonitor<ApplicationOptions>>();
             var stopwatch = A.Fake<IStopwatch>();
+            var stopwatchFactory = A.Fake<IStopwatchFactory>();
             var logger = A.Fake<ILogger<LoginatorViewModel>>();
 
-            var sut = new LoginatorViewModel(appOptionsMonitor, stopwatch, new DispatcherMock(), logger);
+            var sut = new LoginatorViewModel(appOptionsMonitor, stopwatchFactory, new DispatcherMock(), logger);
 
             sut.IsActive.Should().BeTrue();
             sut.NumberOfLogsPerLevel.Should().BeGreaterThan(100);
@@ -564,14 +566,17 @@ namespace Loginator.Application.UnitTests.ViewModel {
 
         private LoginatorViewModel Sut() {
             var appOptions = new ApplicationOptions {
-                LogTimeFormat = LogTimeFormat.DoNotChange,
+                LogTimeFormat = LogTimeFormat.DoNotChange
             };
             var appOptionsMonitor = A.Fake<IOptionsMonitor<ApplicationOptions>>();
             A.CallTo(() => appOptionsMonitor.CurrentValue).Returns(appOptions);
 
             var stopwatch = A.Fake<IStopwatch>();
+            var stopwatchFactory = A.Fake<IStopwatchFactory>();
+            A.CallTo(() => stopwatchFactory.CreateStopwatch(A<bool>._)).Returns(stopwatch);
+
             var logger = logListener.Setup<LoginatorViewModel>();
-            var sut = new LoginatorViewModel(appOptionsMonitor, stopwatch, new DispatcherMock(), logger) {
+            var sut = new LoginatorViewModel(appOptionsMonitor, stopwatchFactory, new DispatcherMock(), logger) {
                 OnCopyToClipboard = clipboardMock
             };
 

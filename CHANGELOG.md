@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Removed
 
-- Connections tab from settings window
+- IoC for runtime dependency injection (substituted with specialized factories where needed)
 
 ## [1.7.5] - 2024-09-19
 

@@ -36,7 +36,7 @@ namespace Loginator.Application.UnitTests.ViewModel {
         }
 
         [TearDown]
-        public void OneTimeTearDown() {
+        public void TearDown() {
             sut.Dispose();
         }
 

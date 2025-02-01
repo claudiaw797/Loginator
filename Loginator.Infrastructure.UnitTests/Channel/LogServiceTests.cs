@@ -27,7 +27,7 @@ namespace Loginator.Infrastructure.UnitTests.Channel {
         }
 
         [OneTimeTearDown]
-        public async Task TearDown() {
+        public async Task OneTimeTearDown() {
             await sut.DisposeAsync().ConfigureAwait(false);
         }
 
